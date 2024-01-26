@@ -1,21 +1,24 @@
-name: Sync Repositories
+name: Sync branches between repos
 
 on:
   push:
     branches:
-      - actions
+      - actions  # Adjust as needed for your branch name
 
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Source Repository
-      uses: actions/checkout@v2
+      - name: Checkout source repository
+        uses: actions/checkout@v2
+        with:
+          repository: RusabKhan/OpenETL
+          ref: ${{ github.ref }}  # Use the same branch or tag that triggered the workflow
 
-    - name: Upload Repository as Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: repository-artifact
-        path: .  # Upload the entire repository
-      
+      - name: Push changes to target repository
+        run: |
+          git config --global user.email "githubactions[bot]@github.com"
+          git config --global user.name "Github Actions Bot"
+          git remote add target-repo git@github.com:RusabKhan/OpenETL-Pro.git
+          git push target-repo HEAD:actions  # Adjust target branch name if needed
