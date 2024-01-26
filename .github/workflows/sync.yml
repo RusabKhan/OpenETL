@@ -1,8 +1,9 @@
 name: Sync branches between repos
+
 on:
   push:
     branches:
-      - main  # Adjust as needed for your branch name
+      - main
 
 jobs:
   sync:
@@ -15,18 +16,16 @@ jobs:
           repository: RusabKhan/OpenETL
           ref: main  # Use the same branch or tag that triggered the workflow
 
-      - name: Configure SSH
+      - name: Configure SSH and Copy changes to target repository
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.PRIVATE_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 400 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-          
-      - name: Push changes to target repository
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "Github Actions Bot"
-          git remote add target-repo git@github.com:RusabKhan/OpenETL-Pro.git
-          git config pull.ff only
-          git pull target-repo sync
-          git push target-repo HEAD:sync  # Adjust target branch name if needed
+
+          git clone git@github.com:RusabKhan/OpenETL-Pro.git target-repo
+          cp -r ./* target-repo/
+          cd target-repo
+          git add .
+          git commit -m "Sync changes from main branch of OpenETL"
+          git push origin sync  # Adjust target branch name if needed
