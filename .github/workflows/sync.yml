@@ -27,5 +27,7 @@ jobs:
           rsync -av --exclude='.git' ./ target-repo/
           cd target-repo
           git add .
+          git config --global user.email "github-actions[bot]@github.com"
+          git config --global user.name "github-actions[bot]"
           git commit -m "Sync changes from main branch of OpenETL"
           git push origin sync  # Adjust target branch name if needed
