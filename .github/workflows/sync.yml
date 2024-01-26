@@ -6,29 +6,32 @@ on:
       - actions
 
 jobs:
-  sync:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out OpenETL Pro repository
-        uses: actions/checkout@v4
+    repo-sync:
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v3
         with:
-          repository: RusabKhan/OpenETL-Pro
-          path: OpenETL-Pro
-          ref: sync
-          token: ${{ secrets.WORKFLOW }}
+          persist-credentials: false
+      - name: repo-sync
+        uses: repo-sync/github-sync@v2
+        with:
+          source_repo: "RusabKhan/OpenETL"
+          source_branch: "actions"
+          destination_branch: "actions"
+          github_token: ${{ secrets.WORKSPACE }}
 
-      - name: Copy changes from OpenETL to OpenETL Pro
-        run: |
-          cp -R ./* OpenETL-Pro/ 
 
-        working-directory: ${{ github.workspace }}/OpenETL     
+      # - name: Copy changes from OpenETL to OpenETL Pro
+      #   run: |
+      #     cp -R ./* OpenETL-Pro/ 
+
+      #   working-directory: ${{ github.workspace }}/OpenETL     
           
-      - name: Push changes to develop branch of OpenETL Pro
-        run: |
-          cd OpenETL-Pro
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "GitHub Actions Bot"
-          git add .
-          git commit -m "Sync changes from main branch of OpenETL"
-          git push origin develop
+      # - name: Push changes to develop branch of OpenETL Pro
+      #   run: |
+      #     cd OpenETL-Pro
+      #     git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      #     git config --global user.name "GitHub Actions Bot"
+      #     git add .
+      #     git commit -m "Sync changes from main branch of OpenETL"
+          # git push origin develop
