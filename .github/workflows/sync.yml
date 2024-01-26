@@ -20,7 +20,7 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.PRIVATE_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          chmod 400 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           
       - name: Push changes to target repository
@@ -28,4 +28,5 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "Github Actions Bot"
           git remote add target-repo git@github.com:RusabKhan/OpenETL-Pro.git
+          git pull
           git push target-repo HEAD:actions  # Adjust target branch name if needed
