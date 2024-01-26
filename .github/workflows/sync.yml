@@ -28,5 +28,6 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "Github Actions Bot"
           git remote add target-repo git@github.com:RusabKhan/OpenETL-Pro.git
+          git config pull.rebase true
           git pull target-repo actions
           git push target-repo HEAD:actions  # Adjust target branch name if needed
