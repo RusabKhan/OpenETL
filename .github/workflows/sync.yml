@@ -3,7 +3,7 @@ name: Sync to OpenETL Pro
 on:
   push:
     branches:
-      - main
+      - actions
 
 jobs:
   sync:
