@@ -1,4 +1,4 @@
-name: Sync to OpenETL Pro
+name: Sync Repositories
 
 on:
   push:
@@ -10,22 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out OpenETL Pro repository
-        uses: actions/checkout@v2
-        with:
-          repository: RusabKhan/OpenETL-Pro
-          path: OpenETL-Pro
-          refs: actions
+    - name: Checkout Source Repository
+      uses: actions/checkout@v2
 
-      - name: Push changes to develop branch of OpenETL Pro
-        run: |
-          cd OpenETL-Pro
-          git config --global user.email "rusabkhan7@gmail.com"
-          git config --global user.name "Rusab Khan"
-          git checkout develop
-          git pull origin develop
-          cp -R ../. .
-
-          git add .
-          git commit -m "Sync changes from main branch of OpenETL"
-          git push origin develop
+    - name: Upload Repository as Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: repository-artifact
+        path: .  # Upload the entire repository
+      
