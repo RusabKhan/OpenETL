@@ -15,6 +15,7 @@ jobs:
         with:
           repository: RusabKhan/OpenETL-Pro
           path: OpenETL-Pro
+          refs: actions
 
       - name: Push changes to develop branch of OpenETL Pro
         run: |
