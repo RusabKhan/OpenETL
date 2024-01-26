@@ -1,0 +1,24 @@
+/* div.stButton button {
+    background-color: rgb(42, 106, 165);
+    width: 130px;
+    left: 0;
+    font-size: small;
+    font-weight: 120;
+} */
+
+.main {
+    align-items: left !important; 
+    margin-left: 15px;
+}
+
+
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 0rem;
+    padding-left: 5rem;
+    padding-right: 5rem;
+}
+
+.css-1cypcdb {
+    width: 250px;
+}

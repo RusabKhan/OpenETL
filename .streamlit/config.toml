@@ -1,0 +1,14 @@
+[theme]
+primaryColor="#2293e8"
+backgroundColor="#0e1117"
+secondaryBackgroundColor="#262730"
+textColor="#FFFFFF"
+font="sans serif"
+
+[server]
+port = 8500
+enableCORS = true
+
+[logger]
+level = "info"
+messageFormat = "%(asctime)s %(message)s"
