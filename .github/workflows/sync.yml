@@ -3,7 +3,7 @@ name: Sync branches between repos
 on:
   push:
     branches:
-      - main
+      - actions
 
 jobs:
   sync:
