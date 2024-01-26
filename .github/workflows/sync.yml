@@ -1,34 +1,32 @@
-name: Sync to OpenETL Pro
-
+name: Sync branches between repos
 on:
   push:
     branches:
-      - main
+      - main  # Adjust as needed for your branch name
 
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out OpenETL Pro repository
-        uses: actions/checkout@v4
+      - name: Checkout source repository
+        uses: actions/checkout@v2
         with:
-          repository: RusabKhan/OpenETL-Pro
-          path: OpenETL-Pro
-          ref: sync
-          token: ${{ secrets.WORKFLOW }}
+          repository: RusabKhan/OpenETL
+          ref: main  # Use the same branch or tag that triggered the workflow
 
-      - name: Copy changes from OpenETL to OpenETL Pro
+      - name: Configure SSH
         run: |
-          cp -R ./* OpenETL-Pro/ 
-
-        working-directory: ${{ github.workspace }}/OpenETL     
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PRIVATE_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 400 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
           
-      - name: Push changes to develop branch of OpenETL Pro
+      - name: Push changes to target repository
         run: |
-          cd OpenETL-Pro
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "GitHub Actions Bot"
-          git add .
-          git commit -m "Sync changes from main branch of OpenETL"
-          git push origin develop
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "Github Actions Bot"
+          git remote add target-repo git@github.com:RusabKhan/OpenETL-Pro.git
+          git config pull.ff only
+          git pull target-repo sync
+          git push target-repo HEAD:sync  # Adjust target branch name if needed
