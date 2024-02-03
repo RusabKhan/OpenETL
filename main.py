@@ -41,6 +41,9 @@ def set_session():
     if "integration_mapping_config" not in st.session_state:
         st.session_state.integration_mapping_config = ""
 
+    if "api_tab_val" not in st.session_state:
+        st.session_state.api_tab_val = 1
+    
 def __init__():
     #gu.set_page_config(page_title="AppX",page_icon=None,initial_sidebar_state="expanded",layout="wide",menu_items={})
     set_session()
@@ -56,8 +59,8 @@ show_pages(
         Page("main.py", "Home"),
         Page("connection/create_connection.py","Create a new connection"),
         Page("connection/connection.py", "Connections"),
-        Page("query_editor/try.py","try"),  
         #Page("query_editor/query.py","Query Editor"),  
+        Page("api/create_api.py","Create API"),
         Page("pipeline/pipelines.py","My ETL"),      
         Page("pipeline/create_pipelines.py","Create ETL"),
 

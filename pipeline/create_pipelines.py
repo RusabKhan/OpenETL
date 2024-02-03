@@ -95,7 +95,7 @@ if val == 1:
         table_col, schema_col = st.columns([2, 3])
         metadata = fetch_metadata(source)
         source_schema = metadata['schema']
-        no_source = True if source_schema is not None else False
+        no_source = False if source_schema is not None else True
         source_tables = metadata['tables']
 
         with table_col:
@@ -150,7 +150,6 @@ if val == 1:
             st.session_state.target_selected_table_index = target_tables[st.session_state.target_selected_schema_index].index(
                 target_int_tables)
             st.session_state.target_selected_tables = target_int_tables
-
 
 elif val == 2:
 
