@@ -167,3 +167,5 @@ mongo_data
 logs
 dags
 assets
+
+con.json

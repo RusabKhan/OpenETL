@@ -177,7 +177,7 @@ elif val == 2:
 
         spark_col.header("Enter Spark Configuration")
         df = pd.DataFrame(data)
-        _config_spark = st.experimental_data_editor(
+        _config_spark = st.data_editor(
             df, num_rows="dynamic", key="spark_config")
         spark_config = _config_spark.set_index(
             'Configuration')['Average Setting'].to_dict()
@@ -200,7 +200,7 @@ elif val == 2:
         df = pd.DataFrame(data)
 
         hadoop_col.header("Enter Hadoop Configuration")
-        _config_hadoop = st.experimental_data_editor(df, num_rows="dynamic")
+        _config_hadoop = st.data_editor(df, num_rows="dynamic")
         hadoop_config = _config_hadoop.set_index(
             'Configuration')['Average Setting'].to_dict()
 

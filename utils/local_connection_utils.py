@@ -9,8 +9,10 @@ directory = f'{os.getcwd()}/.local'
 pipelines_directory = f"{directory}/pipelines"
 connections_directory = f"{directory}/connections"
 profile_reports = f"{directory}/profile_reports"
-jars_directory = f"{directory}/jars"
-dirs = [directory,pipelines_directory,connections_directory,profile_reports,jars_directory]
+#jars_directory = f"{directory}/jars"
+api_directory = f"{directory}/api"
+
+dirs = [directory,pipelines_directory,connections_directory,profile_reports,api_directory]
 json_files_data = None
 
 def create_con_directory():
