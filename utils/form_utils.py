@@ -4,6 +4,8 @@ from .sqlalchemy_engine_utils import SQLAlchemyEngine
 import pandas as pd
 from .local_connection_utils import store_connection_config
 from .generic_utils import check_missing_values
+import json
+import os
 
 """This module contains functions related to form generation and card generation.
 """
@@ -80,7 +82,16 @@ class GenerateForm():
         print("Creating connection...")
 
     def api_form(self,api_name=""):
-        st.write("API not supported on Free Version")
+        con_data = json.loads(f"{os.getcwd()}/.local/api")
+        for auth_type, auth_details in con_data["authentication_details"].items():
+            if auth_type.lower() == authentication_type.lower():
+                for key, value in auth_details.items():
+                    if isinstance(value, str):
+                        backup_key = key
+                        key = key.replace("_"," ").capitalize()
+                        input_label = f"{key}:" 
+                        auth_value[backup_key] = st.text_input(input_label, value="", key=value) if "pass" not in input_label.lower() else st.text_input(
+                            input_label, value="", type="password",key=value)
     
     def jdbc_form(self, engine):
         host = None

@@ -3,6 +3,7 @@ import json
 from utils.api_utils import parse_json, parse_xml, test
 from streamlit_ace import st_ace
 import extra_streamlit_components as stx
+from utils.local_connection_utils import store_connection_config
 
 st.set_page_config(page_title="Create API", page_icon=None,
                    initial_sidebar_state="expanded", layout="wide", menu_items={})
@@ -95,15 +96,24 @@ class Create_API:
                                 input_label = f"{key}:" 
                                 auth_value[backup_key] = st.text_input(input_label, value="", key=value) if "pass" not in input_label.lower() else st.text_input(
                                     input_label, value="", type="password",key=value)
-
-                if st.button("Test Connection"):
-                    auth_value['base_url'] = con_data['base_url']
-                    #print(auth_value)
-                    resp = test(con_type=authentication_type.lower(), data=auth_value) 
-                    if resp["status_code"] == 200:
-                        st.success("Connection Successful")
-                    else:
-                        st.error(resp)
+                test_col, save_col = st.columns(2,gap="small")
+                tested = True
+                with test_col:
+                    if st.button("Test Connection"):
+                        auth_value['base_url'] = con_data['base_url']
+                        resp = test(con_type=authentication_type.lower(), data=auth_value) 
+                        if resp["status_code"] == 200:
+                            st.success("Connection Successful")
+                            tested = False
+                        else:
+                            st.error(resp)
+                with save_col:
+                    if st.button("Save Connection", disabled=tested):
+                        del con_data['auth_keys']
+                        con_data['connection_type'] = 'api'
+                        store_connection_config(
+                            filename=api_name, json_data=con_data)
+                        
                     # test(authentication_type, con_data)
 
     def submit_data_for_processing(self, data=None, is_json=True):

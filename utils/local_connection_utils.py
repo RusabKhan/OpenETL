@@ -104,7 +104,7 @@ def read_connection_configs():
         dict: {"database": database_data,"api": jdbc_data}
     """
     database_data = []
-    jdbc_data = []
+    api_data = []
     configs = get_all_connection_configs()
     for config in configs:
         with open(f"{connections_directory}/{config}.json") as json_file:
@@ -113,9 +113,9 @@ def read_connection_configs():
         if data.get('connection_type') == 'database':
             database_data.append({"connection_name":config,"connection":data})
         elif data.get('connection_type') == 'api':
-            jdbc_data.append({"connection_name":config,"connection":data})
+            api_data.append({"connection_name":config,"connection":data})
                 
-    return {"database": database_data,"api": jdbc_data}
+    return {"database": database_data,"api": api_data}
 
 def store_pipeline_config(config):
     """Store pipeline configuration in .local/pipelines directory
