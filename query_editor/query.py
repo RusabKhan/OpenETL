@@ -5,23 +5,17 @@ from utils.generic_utils import (
     extract_connections_db_or_api,
     fetch_metadata,
     execute,
-    set_page_config,
+    
 )
 import pandas as pd
 from sqlalchemy import text
 from utils.style_utils import load_css
+from utils.generic_utils import set_page_config
 #from pandas_profiling import ProfileReport
 from datetime import datetime
 from streamlit_ace import st_ace
 
-
-set_page_config(
-    page_title="Query Editor",
-    page_icon=None,
-    initial_sidebar_state="expanded",
-    layout="wide",
-    menu_items={},
-)
+set_page_config(page_title="Query Editor",page_icon=None,initial_sidebar_state="expanded",layout="wide",menu_items={})
 
 configs = read_connection_configs()
 load_css()

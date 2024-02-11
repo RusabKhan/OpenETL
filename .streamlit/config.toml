@@ -1,13 +1,15 @@
 [theme]
-primaryColor="#2293e8"
-backgroundColor="#0e1117"
-secondaryBackgroundColor="#262730"
-textColor="#FFFFFF"
+primaryColor="#2f2f9b"
+backgroundColor="#e5e5e5"
+secondaryBackgroundColor="#c4c6ca"
+textColor="#262730"
 font="sans serif"
+fontSize = 9
 
 [server]
 port = 8500
 enableCORS = true
+wideMode = true
 
 [logger]
 level = "info"

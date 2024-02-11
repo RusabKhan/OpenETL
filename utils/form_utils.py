@@ -2,10 +2,11 @@ import streamlit as st
 from .jdbc_engine_utils import JDBCEngine
 from .sqlalchemy_engine_utils import SQLAlchemyEngine
 import pandas as pd
-from .local_connection_utils import store_connection_config
+from .local_connection_utils import store_connection_config, read_api_config
 from .generic_utils import check_missing_values
 import json
 import os
+from utils.api_utils import test
 
 """This module contains functions related to form generation and card generation.
 """
@@ -28,7 +29,7 @@ class GenerateForm():
         elif type == "jdbc":
             self.jdbc_form(engine=engine)
         elif type == "api":
-            self.api_form()
+            self.api_form(engine=engine)
 
     def database_form(self, engine):  # sourcery skip: raise-specific-error
         """Generate database form for sqlalchemy connections
@@ -62,7 +63,7 @@ class GenerateForm():
                 "Create connection"
             ):
                 check = check_missing_values(connection_name=connection_name,
-                                                  hostname=host, username=username, password=password, port=port, database=database, engine=engine)
+                                             hostname=host, username=username, password=password, port=port, database=database, engine=engine)
                 if check[0]:
                     st.error(f"{check[1]} is missing")
                 else:
@@ -72,7 +73,7 @@ class GenerateForm():
                     json_data = {"hostname": host, "username": username, "password": password,
                                  "port": port, "database": database, "engine": engine, "connection_type": "database"}
                     stored = store_connection_config(
-                        filename=connection_name, json_data=json_data) if test_passed else False
+                        connection_name=connection_name, json_data=json_data) if test_passed else False
                     if stored:
                         st.success('Connection created!', icon="✅")
 
@@ -81,18 +82,49 @@ class GenerateForm():
         print('kwargss', kwargs)
         print("Creating connection...")
 
-    def api_form(self,api_name=""):
-        con_data = json.loads(f"{os.getcwd()}/.local/api")
+    def api_form(self, engine=""):
+        con_data = read_api_config(engine)
+        auth_types = list(con_data['authentication_details'].keys())
+        auth_value = {}
+        api_name = None
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            authentication_type = st.selectbox(
+                "Authentication Type", auth_types, index=st.session_state.con_tab_selected_index_auth_types)
+            st.session_state.con_tab_selected_index_auth_types = auth_types.index(
+                authentication_type)
+        with col2:
+            api_name = st.text_input("Connection Name", "my_api_connection")
+
         for auth_type, auth_details in con_data["authentication_details"].items():
             if auth_type.lower() == authentication_type.lower():
                 for key, value in auth_details.items():
                     if isinstance(value, str):
                         backup_key = key
-                        key = key.replace("_"," ").capitalize()
-                        input_label = f"{key}:" 
+                        key = key.replace("_", " ").capitalize()
+                        input_label = f"{key}:"
                         auth_value[backup_key] = st.text_input(input_label, value="", key=value) if "pass" not in input_label.lower() else st.text_input(
-                            input_label, value="", type="password",key=value)
-    
+                            input_label, value="", type="password", key=value)
+
+        test_col, save_col = st.columns(2, gap="small")
+
+        with test_col:
+            if st.button("Create Connection"):
+                auth_value['base_url'] = con_data['base_url']
+                resp = test(con_type=authentication_type.lower(),
+                            data=auth_value)
+                if resp["status_code"] == 200:
+                    st.success("Connection Successful")
+                    con_data['schema'] = 'public'
+                    con_data['database'] = 'public'
+                    store_connection_config(
+                        connection_name=api_name, json_data=con_data, is_api=False)
+                else:
+                    st.error(resp)
+                    
+
     def jdbc_form(self, engine):
         host = None
         username = None
@@ -118,17 +150,17 @@ class GenerateForm():
                 "Create connection"
             ):
                 check = check_missing_values(connection_name=connection_name,
-                                                  hostname=host, username=username, password=password, port=port, database=database, engine=engine)
+                                             hostname=host, username=username, password=password, port=port, database=database, engine=engine)
                 if check[0]:
                     st.error(f"{check[1]} is missing")
                 else:
                     test_passed = JDBCEngine(connection_name=connection_name,
-                                                   hostname=host, username=username, password=password, port=port, database=database, engine=engine).test()
+                                             hostname=host, username=username, password=password, port=port, database=database, engine=engine).test()
 
                     json_data = {"hostname": host, "username": username, "password": password,
                                  "port": port, "database": database, "engine": engine, "connection_type": "java"}
                     stored = store_connection_config(
-                        filename=connection_name, json_data=json_data) if test_passed else False
+                        connection_name=connection_name, json_data=json_data) if test_passed else False
                     if stored:
                         st.success('Connection created!', icon="✅")
 

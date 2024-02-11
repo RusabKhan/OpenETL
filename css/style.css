@@ -11,7 +11,6 @@
     margin-left: 15px;
 }
 
-
 .block-container {
     padding-top: 2rem;
     padding-bottom: 0rem;
@@ -21,4 +20,8 @@
 
 .css-1cypcdb {
     width: 250px;
+}
+
+.st-emotion-cache-z5fcl4 {
+    padding: 2rem 1rem 10rem !important;
 }

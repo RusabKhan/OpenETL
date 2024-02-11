@@ -1,15 +1,14 @@
 import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
 from streamlit_option_menu import option_menu
-from utils.generic_utils import set_page_config
 
 from utils.local_connection_utils import read_connection_configs
 from utils.form_utils import create_button_columns
+from utils.generic_utils import set_page_config
 
 from utils.style_utils import load_css
 
-set_page_config(page_title="My Connections",page_icon=None,initial_sidebar_state="expanded",layout="wide",menu_items={})
-
+set_page_config(page_title="Connections",page_icon=None,initial_sidebar_state="expanded",layout="wide",menu_items={})
 load_css()
 
 Database = st.container()

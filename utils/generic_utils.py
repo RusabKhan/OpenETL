@@ -2,6 +2,7 @@ from .sqlalchemy_engine_utils import SQLAlchemyEngine
 from .local_connection_utils import read_config
 import streamlit as st
 from .jdbc_engine_utils import JDBCEngine
+from .api_utils import read_api_tables
 
 """This module contains utilitiy functions which can be used in particular case and are not relevant to any one scenario.
 """
@@ -37,7 +38,11 @@ def fetch_metadata(connection):
         dict: {"tables": [],"schema":[]}
     """
     try:
-        metadata = read_config(connection)['data']
+        metadata = read_config(connection)['data'] 
+        if metadata['connection_type'] == "api":
+            tables = read_api_tables(metadata['api'])
+            return {"tables":[tables], "schema":["public"]}
+            
         metadata = SQLAlchemyEngine(**metadata).get_metadata()
         return metadata
     except Exception as e:

@@ -4,24 +4,15 @@ from utils.api_utils import parse_json, parse_xml, test
 from streamlit_ace import st_ace
 import extra_streamlit_components as stx
 from utils.local_connection_utils import store_connection_config
+from utils.generic_utils import set_page_config
 
-st.set_page_config(page_title="Create API", page_icon=None,
-                   initial_sidebar_state="expanded", layout="wide", menu_items={})
 
-st.markdown(
-    """
-    <style>
-    .css-z5fcl4 {
-        padding-top: 2rem !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+set_page_config(page_title="Create API",page_icon=None,initial_sidebar_state="expanded",layout="wide",menu_items={})
+
+
 
 global dump_data, con_data
 dump_data = {
-  "source_name": "my_source",
   "img": "",
   "base_url": "https://myapi/v1/endpoint",
   "authentication_details": {
@@ -86,6 +77,7 @@ class Create_API:
 
             # with col3:
             with rest_col:
+                untested = True
                 st.header("Test Connection")
                 for auth_type, auth_details in con_data["authentication_details"].items():
                     if auth_type.lower() == authentication_type.lower():
@@ -97,22 +89,26 @@ class Create_API:
                                 auth_value[backup_key] = st.text_input(input_label, value="", key=value) if "pass" not in input_label.lower() else st.text_input(
                                     input_label, value="", type="password",key=value)
                 test_col, save_col = st.columns(2,gap="small")
-                tested = True
+                
                 with test_col:
                     if st.button("Test Connection"):
                         auth_value['base_url'] = con_data['base_url']
                         resp = test(con_type=authentication_type.lower(), data=auth_value) 
                         if resp["status_code"] == 200:
                             st.success("Connection Successful")
-                            tested = False
+                            untested = False
                         else:
                             st.error(resp)
+                con_name = st.text_input("Connection Name", "my_api",disabled=untested)
+
                 with save_col:
-                    if st.button("Save Connection", disabled=tested):
+                    if st.button("Save Connection", disabled=untested):
                         del con_data['auth_keys']
                         con_data['connection_type'] = 'api'
+                        con_data['api'] = api_name
+                        con_data['connection_name'] = con_name
                         store_connection_config(
-                            filename=api_name, json_data=con_data)
+                            filename=api_name, json_data=con_data,is_api=True, connection_name=con_name)
                         
                     # test(authentication_type, con_data)
 
@@ -120,38 +116,14 @@ class Create_API:
         st.write(data)
 
 
-# tab_items = [
-#     stx.TabBarItemData(id=1, title="Add API",
-#                        description="Create A Source"),
-#     stx.TabBarItemData(id=2, title="Test", description="Test Your Connection"),
-# ]
 global val, create_api
 create_api = Create_API()
 
-# val = stx.tab_bar(
-#     data=tab_items, default=st.session_state.api_tab_val, return_type=int)
 
 
 def main():
 
-    # if val == 1:
     create_api.file_uploader_design()
-
-    # if val == 2:
-    # create_api.submit_data_for_processing(create_api.data)
-
-    # slide_col1, slide_col2 = st.columns([4, 1])
-
-    # with slide_col2:
-    #     sub_col1, sub_col2 = st.columns(2, gap="small")
-    #     with sub_col1:
-    #         if st.button("Back") and int(val) > 1:
-    #             st.session_state.api_tab_val = val-1
-    #             st.experimental_rerun()
-    #     with sub_col2:
-    #         if st.button("Next") and int(val) < len(tab_items):
-    #             st.session_state.api_tab_val = val+1
-    #             st.experimental_rerun()
 
 
 main()

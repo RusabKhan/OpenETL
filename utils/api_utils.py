@@ -4,6 +4,7 @@ import streamlit as st
 import requests
 from requests.auth import HTTPBasicAuth
 from streamlit_oauth import OAuth2Component
+from .local_connection_utils import api_directory
 
 
 def parse_json(json_content):
@@ -114,5 +115,10 @@ def test(con_type, data):
         return check_bearer_token(data=data)
         
         
-
+def read_api_tables(api_name):
+    tables = None
+    with open(f"{api_directory}/{api_name}.json") as f:
+        data = json.load(f)['tables'].keys()
+        tables = [i for i in data]
+    return tables
     

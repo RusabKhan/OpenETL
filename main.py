@@ -2,6 +2,9 @@ import streamlit as st
 from st_pages import Page, Section, show_pages, add_page_title, hide_pages
 import utils.generic_utils as gu
 from utils.local_connection_utils import create_con_directory
+from utils.style_utils import load_css
+
+gu.set_page_config(page_title="AppX",page_icon=None,initial_sidebar_state="expanded",layout="wide",menu_items={})
 
 
 def set_session():
@@ -10,7 +13,6 @@ def set_session():
     if "clicked_button" not in st.session_state:
         st.session_state.clicked_button = ""
     
-
     if "pipeline_tab_val" not in st.session_state:
         st.session_state.pipeline_tab_val = 1
         
@@ -50,20 +52,26 @@ def set_session():
     if "api_tab_selected_index_auth_types" not in st.session_state:
         st.session_state.api_tab_selected_index_auth_types = 0
     
-
-
-
-def set_page_config(page_title="AppX",menu_items={},initial_sidebar_state="expanded",page_icon=None,layout="wide"):
-    set_session()
-    st.set_page_config(page_title=page_title, page_icon=page_icon,initial_sidebar_state=initial_sidebar_state, layout=layout, menu_items=menu_items)
+    if "con_tab_selected_index_datatypes" not in st.session_state:
+        st.session_state.con_tab_selected_index_datatypes = 0
+    if "con_tab_selected_index_auth_types" not in st.session_state:
+        st.session_state.con_tab_selected_index_auth_types = 0
+    if "con_tab_selected_con_type_index" not in st.session_state:
+        st.session_state.con_tab_selected_con_type_index = 0
+    if "con_tab_selected_engine_index" not in st.session_state:
+        st.session_state.con_tab_selected_engine_index = 0
+        
+    if "style_setting" not in st.session_state:
+        st.session_state.style_setting = {}
 
 
 def __init__():
-    #gu.set_page_config(page_title="AppX",page_icon=None,initial_sidebar_state="expanded",layout="wide",menu_items={})
     set_session()
     create_con_directory()
-    
-    
+    load_css()
+
+
+
 __init__()
 
 

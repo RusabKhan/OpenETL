@@ -46,7 +46,7 @@ def read_connection_configs(configs):
             json_files_data.append(json_data_with_filename)
     return json_files_data
 
-def store_connection_config(filename,json_data):
+def store_connection_config(json_data,filename="",is_api=False,connection_name=""):
     """Store connection settings in a file in .local
 
     Args:
@@ -57,7 +57,12 @@ def store_connection_config(filename,json_data):
         Boolean: True if saved else False
     """
     try:
-        with open(f"{connections_directory}/{filename}.json", 'w') as file:
+        if is_api:
+            json_data['schema'] = 'public'
+            json_data['database'] = 'public'
+            with open(f"{api_directory}/{filename}.json", 'w') as file:
+                json.dump(json_data, file, indent=4)
+        with open(f"{connections_directory}/{connection_name}.json", 'w') as file:
             json.dump(json_data, file, indent=4)
             return True
     except Exception as e:
@@ -168,3 +173,15 @@ def read_pipeline_detals(pipeline):
 
 def check_jar_exists(jar):
     return os.path.exists(f"{jars_directory}/{jar}")
+
+def read_all_apis():
+    data = []
+    files = os.listdir(api_directory)
+    json_files = [file[:-5] for file in files if file.endswith('.json')]
+
+    # Loop through each JSON file and read its content
+    return json_files
+
+def read_api_config(apiname):
+    with open(os.path.join(api_directory, f"{apiname}.json")) as f:
+            return json.load(f)
