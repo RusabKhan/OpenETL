@@ -11,30 +11,8 @@ set_page_config(page_title="Create API",page_icon=None,initial_sidebar_state="ex
 
 
 
-global dump_data, con_data
-dump_data = {
-  "img": "",
-  "base_url": "https://myapi/v1/endpoint",
-  "authentication_details": {
-    "basic": {
-      "username_api_key": "username",
-      "password_api_key": "password"
-    },
-    "oauth2": {
-      "client_id_api_key": "client_id",
-      "client_secret_api_key": "client_secret",
-      "refresh_token_api_key": "refresh_token",
-      "redirect_uri_api_key": "redirect_uri"
-    },
-    "bearer": {
-      "token_api_key": "bearer_token"
-    }
-  },
-  "tables": {
-    "table1": "url1",
-    "table2": "url2"
-  }
-}
+global con_data
+
 con_data = {'auth_keys': []}
 
 
@@ -50,10 +28,6 @@ class Create_API:
         with upload_file_col:
             uploaded_file = st.file_uploader(
                 "Upload JSON file", type=["json"],accept_multiple_files=False)
-            
-
-            st.download_button("Demo JSON", data=json.dumps(
-                        dump_data, indent=4), file_name="demo_open-etl_con_details.json", mime="application/json")
         
         if uploaded_file:
             file_content = uploaded_file.getvalue().decode("utf-8")
@@ -64,9 +38,9 @@ class Create_API:
             main_col, side_col = st.columns([2, 3], gap="large")
             with main_col:
                 
-                col1, col2 = st.columns([1, 1])
+                col1, col2 = main_col.columns([1, 1])
                 with col1:
-                    api_name = st.text_input("API Name", "my_api")
+                    api_name = st.text_input("API Name", con_data["source_name"])
                 with col2:
                     auth_types = list(con_data['auth_keys'])
                     authentication_type = st.selectbox(

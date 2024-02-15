@@ -57,6 +57,7 @@ def store_connection_config(json_data,filename="",is_api=False,connection_name="
         Boolean: True if saved else False
     """
     try:
+        filename = filename.lower()
         if is_api:
             json_data['schema'] = 'public'
             json_data['database'] = 'public'
