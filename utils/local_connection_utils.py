@@ -46,6 +46,12 @@ def read_connection_configs(configs):
             json_files_data.append(json_data_with_filename)
     return json_files_data
 
+def read_single_config(config):
+    file_path = os.path.join(connections_directory, f"{config}.json")
+    with open(file_path) as json_file:
+        json_data = json.load(json_file)
+        return json_data
+
 def store_connection_config(json_data,filename="",is_api=False,connection_name=""):
     """Store connection settings in a file in .local
 
@@ -103,7 +109,7 @@ def read_config(config):
         return json_data_with_filename
     return json_data_with_filename
 
-def read_connection_configs():
+def read_all_connection_configs():
     """Read all connection configs database and JDBC
 
     Returns:
@@ -122,25 +128,6 @@ def read_connection_configs():
             api_data.append({"connection_name":config,"connection":data})
                 
     return {"database": database_data,"api": api_data}
-
-def store_pipeline_config(config):
-    """Store pipeline configuration in .local/pipelines directory
-
-    Args:
-        config (string): Name of the pipeline
-
-    Returns:
-        tuple: Boolean, Config. True if stored
-    """
-    if os.path.exists(f"{pipelines_directory}/" + config["integration_name"] + ".json"):
-        return (False, "Integration already exists")
-    try:
-        with open(f"{pipelines_directory}/" + config["integration_name"] + ".json", 'w') as file:
-            json.dump(config, file, indent=4)
-    except Exception as e:
-        return (False,str(e))
-    del config["run_details"]
-    return (True, config)
 
 def read_all_pipeline_configs():
     """Read all pipeline configurations from .local/pipelines

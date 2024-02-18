@@ -1,6 +1,6 @@
 import streamlit as st
 import json
-from utils.api_utils import parse_json, parse_xml, test
+from utils.api_utils import parse_json, parse_xml, test_api
 from streamlit_ace import st_ace
 import extra_streamlit_components as stx
 from utils.local_connection_utils import store_connection_config
@@ -67,7 +67,7 @@ class Create_API:
                 with test_col:
                     if st.button("Test Connection"):
                         auth_value['base_url'] = con_data['base_url']
-                        resp = test(con_type=authentication_type.lower(), data=auth_value) 
+                        resp = test_api(con_type=authentication_type.lower(), data=auth_value) 
                         if resp["status_code"] == 200:
                             st.success("Connection Successful")
                             untested = False

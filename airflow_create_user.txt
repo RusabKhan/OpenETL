@@ -1,0 +1,7 @@
+airflow users create \
+    --username admin \
+    --firstname admin \
+    --lastname admin \
+    --email admin@myorg.com \
+    --role Admin \
+    --password 1234

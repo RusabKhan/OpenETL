@@ -58,9 +58,7 @@ def check_basic_auth(data):
         return f'An error occurred: {e}'
 
 
-def check_bearer_token(data):
-    url = data["base_url"]
-    data.pop("base_url")
+def check_bearer_token(data,table=None):
     bearer_token = list(data.values())[0]
 
     # Headers with Bearer token
@@ -68,13 +66,9 @@ def check_bearer_token(data):
         'Authorization': f'Bearer {bearer_token}'
     }
 
-    tables = []
-    for key, value in st.session_state.api_tab_data.items():
-        tables.append(value)
-
     try:
         # Make a GET request to the API endpoint with Bearer token
-        response = requests.get(f"{url}/{tables[0]}", headers=headers)
+        response = requests.get(f"{table}", headers=headers)
 
         # Check if the request was successful (status code 200)
         if response.status_code == 200:
@@ -114,14 +108,24 @@ def check_oauth2(data):
             st.experimental_rerun()
 
 
-def test(con_type, data):
+def test_api(con_type, data,creating=False):
     st.write(f"{con_type} connection: Testing against 1st table.")
+    
+    if creating:
+        api = data['api']
+        table = read_api_tables(api)
+        table = read_api_tables_url(api, table[0]).format(records=1)
+    else:
+        table = list(st.session_state.api_tab_data.values())[0]
+        base_url = data['base_url']
+        table = f"{base_url}/{table}"
+        
     if con_type.lower() == AuthType.BASIC.value:
         return check_basic_auth(data=data)
     elif con_type.lower() == AuthType.OAUTH2.value:
         return check_oauth2(data=data)
     elif con_type.lower() == AuthType.BEARER.value:
-        return check_bearer_token(data=data)
+        return check_bearer_token(data=data,table=table)
 
 
 def read_api_tables(api_name):

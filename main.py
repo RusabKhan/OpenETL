@@ -85,7 +85,7 @@ show_pages(
         Page("api/create_api.py","Create API"),
         Page("pipeline/pipelines.py","My ETL"),      
         Page("pipeline/create_pipelines.py","Create ETL"),
-        Page("api/fetch_data.py","Fetch Data"),
+        #Page("api/fetch_data.py","Fetch Data"),
 
     ]
 )
