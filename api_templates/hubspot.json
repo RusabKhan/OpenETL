@@ -12,5 +12,14 @@
         "get_all_companies": "companies/paged",
         "get_all_deals": "deal/paged",
         "get_all_activities": "engagements/paged"
+    },
+    "pagination": {
+        "isoffset": true,
+        "pagenumber": false,
+        "iscursor": false,
+        "key": {
+                "vidoffset": "{val}",
+                "count":100
+        }
     }
 }

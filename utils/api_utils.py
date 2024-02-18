@@ -7,6 +7,8 @@ from streamlit_oauth import OAuth2Component
 from .local_connection_utils import api_directory
 import pandas as pd
 from . enums import *
+import re
+from collections import abc
 
 
 def parse_json(json_content):
@@ -130,12 +132,29 @@ def read_api_tables(api_name):
     return tables
 
 
+def get_pagination_parameters(main):
+    is_offset = main['isoffset']
+    is_pagenumber = main['pagenumber']
+    is_cursor = main['iscursor']
+    key = main['key']
+    return key
+
+
 def read_api_tables_url(api_name, tablename):
     tables = None
     url = None
+    first_key = True
     with open(f"{api_directory}/{api_name}.json") as f:
         data = json.load(f)
         url = f"{data['base_url']}/{data['tables'][tablename]}"
+        pagination_parameters = get_pagination_parameters(data['pagination'])
+        for key,value in pagination_parameters.items():
+            if first_key:
+                url += f"?{key}={value}"
+                first_key = False
+            else:
+                url += f"&{key}={value}"
+        
     return url
 
 
@@ -153,24 +172,80 @@ def get_data_from_api(table, api,auth_type, token=None, username=None, password=
     Returns:
         dict: The JSON response from the API.
     """
+    responses = []
     headers = {}
-    if auth_type == AuthType.BEARER.value:
-        headers['Authorization'] = f'Bearer {token}'
-    elif auth_type == AuthType.BASIC.value:
-        headers['Authorization'] = requests.auth.HTTPBasicAuth(
-            username, password)
+    final_arr = []
+    records=1
+    while True:
+        table_new = table.format(records=records)
+        if auth_type == AuthType.BEARER.value:
+            headers['Authorization'] = f'Bearer {token}'
+        elif auth_type == AuthType.BASIC.value:
+            headers['Authorization'] = requests.auth.HTTPBasicAuth(
+                username, password)
+        
+        response = requests.get(table_new, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            if data in responses:
+                return return_final_df(responses)
+            responses.append(data)
+            records += 1
+        else:
+            print(
+                f"Failed to retrieve data from {table}. Status code: {response.status_code}")
+            return return_final_df(responses)
+    return return_final_df(responses)
 
-    response = requests.get(table, headers=headers)
 
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print(
-            f"Failed to retrieve data from {table}. Status code: {response.status_code}")
-        return None
+def return_final_df(responses):
+    final_arr = []
+    for resp in responses:
+        final_arr.append(create_df(resp))
+    df = pd.concat(final_arr)
+    return df
+
+
+def create_df(resp):
+    parent_key = resp.keys()
+    arr =  []
+    for key in parent_key:
+        real_response = resp[key]
+        if isinstance(real_response, dict) or isinstance(real_response, list):
+            arr.append(pd.json_normalize(real_response))
+        else:
+            arr.append(pd.DataFrame([real_response],columns=[key]))
+            
+    df = pd.concat(arr)
+    for col in df.select_dtypes(include='object').columns:
+        df[col] = df[col].astype(str)
+
+    return df
+
+
+def flatten_dict_to_rows(d, sep='_'):
+    rows = []
+    for k, v in d.items():
+        k = re.sub(r"[^_a-zA-Z0-9]", "", k).lower()  # Remove special characters and convert to lowercase
+        if isinstance(v, abc.MutableMapping):
+            # If the value is a dictionary, recursively flatten it and add each row to the result
+            sub_rows = flatten_dict_to_rows(v, sep=sep)
+            for sub_k, sub_v in sub_rows:
+                new_key = k + sep + sub_k if k else sub_k
+                rows.append((new_key, sub_v))
+        elif isinstance(v, abc.MutableSequence):
+            # If the value is a list or mutable sequence, add each item in the list as a separate row
+            for i, item in enumerate(v):
+                new_key = k + sep + str(i) if k else str(i)
+                rows.append((new_key, item))
+        else:
+            # For other types of values, add them directly as a row
+            rows.append((k, v))
+    return rows
 
 
 def flatten_data(y):
+    output = []
     out = {}
 
     def flatten(x, name=''):
@@ -178,19 +253,54 @@ def flatten_data(y):
             for a in x:
                 flatten(x[a], name + a + '_')
         elif type(x) is list:
-            i = 0
             for a in x:
-                flatten(a, name + str(i) + '_')
-                i += 1
+                flatten(a, name + '_')
         else:
-            out[name[:-1]] = x
-
+            output.append((name[:-1], x))
+        
     flatten(y)
-    return out
+    return output
+
+
+def flatten_data_rest(y):
+    output = {}
+    index = 0
+    
+    def flatten(x, name='', record_index=None):
+        nonlocal index
+        if record_index is None:
+            record_index = index
+        if isinstance(x, dict):
+            for key, value in x.items():
+                if isinstance(x, list):
+                    new_name = name + '_list_' + str(i)  # Name the list as '_list'
+                    flatten(item, new_name, record_index)
+                elif name:
+                    new_name = name + '_' + key
+                else:
+                    new_name = key
+                flatten(value, new_name, record_index)
+        elif isinstance(x, list):
+            for i, item in enumerate(x):
+                new_name = name + '_list_' # Name the list as '_list'
+                flatten(item, new_name, record_index)
+        else:
+            if name in output:
+                output[name].append(x)
+            else:
+                output[name] = [x]
+            index += 1
+            
+    for k, v in y.items():
+        flatten(v)
+
+    return output
 
 
 def get_data(table, api, auth_type, token=None, username=None, password=None):
     table = read_api_tables_url(api, table)
     data = get_data_from_api(table,api, auth_type, token, username, password)
-    flattened = flatten_data(data)
-    return pd.DataFrame.from_dict(flattened,orient='index')
+    #merged_df = pd.concat(dfs, ignore_index=True)
+
+    return data
+

@@ -18,5 +18,5 @@ API_names = [
 ]
 create_button_columns(API_names)
 
-df = get_data("contacts_all","hubspot",AuthType.BEARER.value )
+df = get_data("get_all_contacts","hubspot",AuthType.BEARER.value )
 st.data_editor(df)
