@@ -6,7 +6,7 @@ from .local_connection_utils import store_connection_config, read_api_config
 from .generic_utils import check_missing_values
 import json
 import os
-from utils.api_utils import test
+from utils.api_utils import test_api
 
 """This module contains functions related to form generation and card generation.
 """
@@ -113,12 +113,17 @@ class GenerateForm():
         with test_col:
             if st.button("Create Connection"):
                 auth_value['base_url'] = con_data['base_url']
-                resp = test(con_type=authentication_type.lower(),
+                con_data['api'] = engine
+                auth_value['api'] = engine
+                resp = test_api(con_type=authentication_type.lower(),
                             data=auth_value)
                 if resp["status_code"] == 200:
                     st.success("Connection Successful")
                     con_data['schema'] = 'public'
                     con_data['database'] = 'public'
+                    con_data['auth_types'] = authentication_type.lower()
+                    con_data['auth_values'] = auth_value
+
                     store_connection_config(
                         connection_name=api_name, json_data=con_data, is_api=False)
                 else:
