@@ -81,6 +81,9 @@ class Create_API:
                         con_data['connection_type'] = 'api'
                         con_data['api'] = api_name
                         con_data['connection_name'] = con_name
+                        con_data["auth_type"] = authentication_type
+                        for key,values in auth_value.items():
+                            con_data['authentication_details'][authentication_type][key] = values
                         store_connection_config(
                             filename=api_name, json_data=con_data,is_api=True, connection_name=con_name)
                         

@@ -9,6 +9,8 @@ import pandas as pd
 from . enums import *
 import re
 from collections import abc
+from utils.local_connection_utils import read_config
+import logging
 
 
 def parse_json(json_content):
@@ -58,7 +60,7 @@ def check_basic_auth(data):
         return f'An error occurred: {e}'
 
 
-def check_bearer_token(data,table=None):
+def check_bearer_token(data, table=None):
     bearer_token = list(data.values())[0]
 
     # Headers with Bearer token
@@ -108,9 +110,9 @@ def check_oauth2(data):
             st.experimental_rerun()
 
 
-def test_api(con_type, data,creating=False):
+def test_api(con_type, data, creating=False):
     st.write(f"{con_type} connection: Testing against 1st table.")
-    
+
     if creating:
         api = data['api']
         table = read_api_tables(api)
@@ -119,13 +121,13 @@ def test_api(con_type, data,creating=False):
         table = list(st.session_state.api_tab_data.values())[0]
         base_url = data['base_url']
         table = f"{base_url}/{table}"
-        
+
     if con_type.lower() == AuthType.BASIC.value:
         return check_basic_auth(data=data)
     elif con_type.lower() == AuthType.OAUTH2.value:
         return check_oauth2(data=data)
     elif con_type.lower() == AuthType.BEARER.value:
-        return check_bearer_token(data=data,table=table)
+        return check_bearer_token(data=data, table=table)
 
 
 def read_api_tables(api_name):
@@ -152,17 +154,17 @@ def read_api_tables_url(api_name, tablename):
         data = json.load(f)
         url = f"{data['base_url']}/{data['tables'][tablename]}"
         pagination_parameters = get_pagination_parameters(data['pagination'])
-        for key,value in pagination_parameters.items():
+        for key, value in pagination_parameters.items():
             if first_key:
                 url += f"?{key}={value}"
                 first_key = False
             else:
                 url += f"&{key}={value}"
-        
+
     return url
 
 
-def get_data_from_api(table, api,auth_type, token=None, username=None, password=None):
+def get_data_from_api(table, api, auth_type, token=None, username=None, password=None):
     """
     Retrieve data from an API using Basic Auth or Bearer token.
 
@@ -176,29 +178,39 @@ def get_data_from_api(table, api,auth_type, token=None, username=None, password=
     Returns:
         dict: The JSON response from the API.
     """
+    logging.info(
+        f"Retrieving data from {table} using {auth_type} authentication.")
+    logging.info(f"Token: {token}")
+    logging.info(f"Username: {username}")
+    logging.info(f"Password: {password}")
+
     responses = []
     headers = {}
     final_arr = []
-    records=1
-    while True:
-        table_new = table.format(records=records)
-        if auth_type == AuthType.BEARER.value:
-            headers['Authorization'] = f'Bearer {token}'
-        elif auth_type == AuthType.BASIC.value:
-            headers['Authorization'] = requests.auth.HTTPBasicAuth(
-                username, password)
-        
-        response = requests.get(table_new, headers=headers)
-        if response.status_code == 200:
-            data = response.json()
-            if data in responses:
-                return return_final_df(responses)
-            responses.append(data)
-            records += 1
-        else:
-            print(
-                f"Failed to retrieve data from {table}. Status code: {response.status_code}")
+    records = 1
+    # while True:
+    # table_new = table.format(records=records)
+    if auth_type == AuthType.BEARER.value:
+        headers['Authorization'] = f'Bearer {token}'
+    elif auth_type == AuthType.BASIC.value:
+        headers['Authorization'] = requests.auth.HTTPBasicAuth(
+            username, password)
+
+    logging.info(f"Headers: {headers}")
+    response = requests.get(table, timeout=5, headers=headers)
+    logging.info(f"Status code: {response.status_code}")
+    if response.status_code == 200:
+        data = response.json()
+        if data in responses:
             return return_final_df(responses)
+        responses.append(data)
+        records += 1
+        logging.info(f"Retrieved data from {table}.")
+        return return_final_df(responses)
+    else:
+        print(
+            f"Failed to retrieve data from {table}. Status code: {response.status_code}")
+        return return_final_df(responses)
     return return_final_df(responses)
 
 
@@ -212,14 +224,14 @@ def return_final_df(responses):
 
 def create_df(resp):
     parent_key = resp.keys()
-    arr =  []
+    arr = []
     for key in parent_key:
         real_response = resp[key]
         if isinstance(real_response, dict) or isinstance(real_response, list):
             arr.append(pd.json_normalize(real_response))
         else:
-            arr.append(pd.DataFrame([real_response],columns=[key]))
-            
+            arr.append(pd.DataFrame([real_response], columns=[key]))
+
     df = pd.concat(arr)
     for col in df.select_dtypes(include='object').columns:
         df[col] = df[col].astype(str)
@@ -230,7 +242,8 @@ def create_df(resp):
 def flatten_dict_to_rows(d, sep='_'):
     rows = []
     for k, v in d.items():
-        k = re.sub(r"[^_a-zA-Z0-9]", "", k).lower()  # Remove special characters and convert to lowercase
+        # Remove special characters and convert to lowercase
+        k = re.sub(r"[^_a-zA-Z0-9]", "", k).lower()
         if isinstance(v, abc.MutableMapping):
             # If the value is a dictionary, recursively flatten it and add each row to the result
             sub_rows = flatten_dict_to_rows(v, sep=sep)
@@ -261,7 +274,7 @@ def flatten_data(y):
                 flatten(a, name + '_')
         else:
             output.append((name[:-1], x))
-        
+
     flatten(y)
     return output
 
@@ -269,7 +282,7 @@ def flatten_data(y):
 def flatten_data_rest(y):
     output = {}
     index = 0
-    
+
     def flatten(x, name='', record_index=None):
         nonlocal index
         if record_index is None:
@@ -277,7 +290,8 @@ def flatten_data_rest(y):
         if isinstance(x, dict):
             for key, value in x.items():
                 if isinstance(x, list):
-                    new_name = name + '_list_' + str(i)  # Name the list as '_list'
+                    # Name the list as '_list'
+                    new_name = name + '_list_' + str(i)
                     flatten(item, new_name, record_index)
                 elif name:
                     new_name = name + '_' + key
@@ -286,7 +300,7 @@ def flatten_data_rest(y):
                 flatten(value, new_name, record_index)
         elif isinstance(x, list):
             for i, item in enumerate(x):
-                new_name = name + '_list_' # Name the list as '_list'
+                new_name = name + '_list_'  # Name the list as '_list'
                 flatten(item, new_name, record_index)
         else:
             if name in output:
@@ -294,7 +308,7 @@ def flatten_data_rest(y):
             else:
                 output[name] = [x]
             index += 1
-            
+
     for k, v in y.items():
         flatten(v)
 
@@ -303,8 +317,30 @@ def flatten_data_rest(y):
 
 def get_data(table, api, auth_type, token=None, username=None, password=None):
     table = read_api_tables_url(api, table)
-    data = get_data_from_api(table,api, auth_type, token, username, password)
-    #merged_df = pd.concat(dfs, ignore_index=True)
+    data = get_data_from_api(table, api, auth_type, token, username, password)
+    # merged_df = pd.concat(dfs, ignore_index=True)
 
     return data
 
+
+def read_connection_table(connection_name, table, schema="public"):
+    """_summary_
+
+    Args:
+        connection_name (_type_): _description_
+        table (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    config = read_config(connection_name)['data']
+    print(config)
+    if config['auth_type'] == AuthType.BEARER.value:
+        first_key = list(config['authentication_details']
+                         [config['auth_type']].keys())[0]
+        token = config['authentication_details'][config['auth_type']][first_key]
+        print(token)
+        table = f"{config['base_url']}/{config['tables'][table]}"
+        data = get_data_from_api(
+            table, config['api'], config['auth_type'], token)
+        print(data)

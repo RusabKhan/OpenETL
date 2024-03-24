@@ -285,8 +285,8 @@ with finish:
             "target_type": st.session_state.target_type
         }
         stored = create_airflow_dag(pipeline_json)
-        if not stored[0]:
-            st.error(stored[1])
+        if not stored:
+            st.error("Unable to create integration. Please try again.")
         else:
             st.success("Integration Created Successfully")
-            spark_work(**stored[1])
+            #spark_work(**stored[1])

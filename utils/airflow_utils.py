@@ -1,11 +1,15 @@
 import utils.api_utils as api
 import utils.sqlalchemy_engine_utils as sqla
 from utils.enums import *
-#import utils.spark_utils as su
-from datetime import datetime
+# import utils.spark_utils as su
+from datetime import datetime, timedelta
 import json
 import os
 import utils.local_connection_utils as loc
+
+
+def print_hello():
+    print("Hello, world!")
 
 
 def create_airflow_dag(config):
@@ -17,31 +21,65 @@ def create_airflow_dag(config):
     Returns:
         tuple: Boolean, Config. True if stored
     """
-    
+    current_datetime = datetime.now()
+    one_hour = timedelta(hours=1)
+    result_datetime = current_datetime - one_hour
+
+    default_args = {
+        'owner': 'admin',
+        'depends_on_past': False,
+        'start_date': result_datetime,
+        'email_on_failure': False,
+        'email_on_retry': False,
+        'retries': 1,
+        'retry_delay': timedelta(minutes=5),
+    }
     integration_name = config['integration_name']
-    source = config['source_connection_name']
-    con_details = loc.read_single_config(source)
-    auth = con_details['data']['auth']
-    api = con_details['data']['api']
-    op_args = [
-        config['target_table'],
-        config['source_table'],
-        config['target_schema'],
-        config['source_schema'],
-        config['mapping']
-    ]
-    
-    template = os.readfile(f"airflow_templates/{config}.py").decode("utf-8")
-    template = template.format(integration_name=integration_name,source=source,op_args=op_args)
-    # with open(f"airflow_dags/{config}.py", "w") as f:
-    #     f.write(template)
+
+    op_args = {
+        "config": {"source": {"table": config["source_table"], "schema": config["source_schema"], "connection_type": config["source_type"],
+                              "connection_name": config["source_connection_name"]},
+                   "target": {"table": config["target_table"], "schema": config["target_schema"], "connection_type": config["target_type"],
+                              "connection_name": config["target_connection_name"]},
+                   "mapping": config["mapping"]},
+    }
+    with open(f"{os.getcwd()}/utils/airflow_templates/full_load.py", 'r') as file:
+        template = file.read()
+    template = template.format(
+        integration_name=integration_name, source_connection=op_args[
+            "config"]["source"], target_connection=op_args["config"]["target"],
+        default_args=default_args)
+    with open(f"{os.getcwd()}/.local/dags/{config['integration_name']}.py", "w") as f:
+        f.write(template)
     return True
 
 
-def read_from_source(source_type,config):
-    if source_type.lower() == ConnectionType.DATABASE.value:
+def read_data(connection_type, table, schema, connection_name):
+    """
+    Reads data from a specified connection type.
+
+    Args:
+        connection_type (str): The type of connection to use. Valid values are "database" or "api".
+        table (str): The name of the table to read from.
+        schema (str): The schema of the table.
+        connection_name (str): The name of the connection.
+
+    Returns:
+        Union[DataFrame, dict]: If the connection type is "database", returns a Spark DataFrame containing the data.
+        If the connection type is "api", returns a dictionary containing the data retrieved from the API.
+
+    Raises:
+        ValueError: If the connection type is not "database" or "api".
+    """
+    if connection_type.lower() == ConnectionType.DATABASE.value:
         spark = su.SparkConnection(config)
         df = spark.read_via_spark()
         return df
-    elif source_type.lower() == ConnectionType.API.value:
-        return api.get_data(**config)
+    elif connection_type.lower() == ConnectionType.API.value:
+        data = api.read_connection_table(table=table, connection_name=connection_name)
+        print("################################")
+        print(data)
+        return data
+
+
+

@@ -47,6 +47,14 @@ def read_connection_configs(configs):
     return json_files_data
 
 def read_single_config(config):
+    """Read single pipeline configuration from connection directory
+
+    Args:
+        config (string): Name of the pipeline
+
+    Returns:
+        dict: config of the pipeline
+    """
     file_path = os.path.join(connections_directory, f"{config}.json")
     with open(file_path) as json_file:
         json_data = json.load(json_file)
