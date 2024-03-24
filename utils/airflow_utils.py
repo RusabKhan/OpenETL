@@ -22,7 +22,7 @@ def create_airflow_dag(config):
         tuple: Boolean, Config. True if stored
     """
     current_datetime = datetime.now()
-    one_hour = timedelta(hours=1)
+    one_hour = timedelta(days=1)
     result_datetime = current_datetime - one_hour
 
     default_args = {
@@ -65,12 +65,14 @@ def read_data(connection_type, table, schema, connection_name):
         connection_name (str): The name of the connection.
 
     Returns:
-        Union[DataFrame, dict]: If the connection type is "database", returns a Spark DataFrame containing the data.
-        If the connection type is "api", returns a dictionary containing the data retrieved from the API.
+        Union[DataFrame]: If the connection type is "database", returns a Spark DataFrame containing the data. If the connection type is "api" returns a pandas DataFrame containing the data.
 
     Raises:
         ValueError: If the connection type is not "database" or "api".
     """
+    if connection_type.lower() not in [ConnectionType.DATABASE.value, ConnectionType.API.value]:
+        raise ValueError(f"Unsupported connection type: {connection_type}")
+    
     if connection_type.lower() == ConnectionType.DATABASE.value:
         spark = su.SparkConnection(config)
         df = spark.read_via_spark()
@@ -82,4 +84,11 @@ def read_data(connection_type, table, schema, connection_name):
         return data
 
 
+
+def extract_xcom_value(task_id, **context):
+    # Extract XCom value
+    xcom_value = context['task_instance'].xcom_pull(task_ids=task_id)
+
+    # Do something with the XCom value
+    print("Extracted XCom value:", xcom_value)
 

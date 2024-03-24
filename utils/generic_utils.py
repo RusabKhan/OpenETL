@@ -1,5 +1,5 @@
 from .sqlalchemy_engine_utils import SQLAlchemyEngine
-from .local_connection_utils import read_config
+from .local_connection_utils import read_connection_config
 import streamlit as st
 from .jdbc_engine_utils import JDBCEngine
 from .api_utils import read_api_tables
@@ -38,7 +38,7 @@ def fetch_metadata(connection):
         dict: {"tables": [],"schema":[]}
     """
     try:
-        metadata = read_config(connection)['data'] 
+        metadata = read_connection_config(connection)['data'] 
         if metadata['connection_type'] == "api":
             tables = read_api_tables(metadata['api'])
             return {"tables":[tables], "schema":["public"]}
@@ -59,7 +59,7 @@ def execute(connection,query,is_java=False):
     Returns:
         Dataframe: Database response in dataframe
     """
-    metadata = read_config(connection)['data']
+    metadata = read_connection_config(connection)['data']
     
     if is_java:
         return JDBCEngine(**metadata).execute_query(query)

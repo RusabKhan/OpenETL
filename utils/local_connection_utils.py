@@ -95,14 +95,14 @@ def get_all_connection_configs():
         if filename.endswith('.json')
     ]
 
-def read_config(config):
-    """Read a single config file from .local
+def read_connection_config(config):
+    """Read a single config file from connections_directory in .local
 
     Args:
         config (string): Name of the config file
 
     Returns:
-        dict: {'filename':'myconfiguration'}
+        dict: {'filename':'myconfiguration', 'data':'json_data'}
     """
     json_data_with_filename = {}
     file_path = os.path.join(connections_directory, f"{config}.json")
@@ -156,7 +156,7 @@ def read_pipeline_detals(pipeline):
         pipeline (string): Name of the pipeline
 
     Returns:
-        dict: config of the pipeline
+        dict: details of the pipeline
     """
     json_data = {}
     file_path = os.path.join(pipelines_directory, f"{pipeline}.json")
@@ -171,6 +171,12 @@ def check_jar_exists(jar):
     return os.path.exists(f"{jars_directory}/{jar}")
 
 def read_all_apis():
+    """
+    Reads all the APIs from the API directory and returns a list of JSON file names.
+
+    Returns:
+        list: A list of JSON file names without the extension.
+    """
     data = []
     files = os.listdir(api_directory)
     json_files = [file[:-5] for file in files if file.endswith('.json')]

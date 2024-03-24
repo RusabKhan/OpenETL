@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.local_connection_utils import read_connection_configs, read_config
+from utils.local_connection_utils import read_connection_configs, read_connection_config
 from utils.sqlalchemy_engine_utils import SQLAlchemyEngine
 from utils.generic_utils import (
     extract_connections_db_or_api,

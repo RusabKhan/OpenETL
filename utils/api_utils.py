@@ -9,7 +9,7 @@ import pandas as pd
 from . enums import *
 import re
 from collections import abc
-from utils.local_connection_utils import read_config
+from utils.local_connection_utils import read_connection_config
 import logging
 
 
@@ -324,23 +324,25 @@ def get_data(table, api, auth_type, token=None, username=None, password=None):
 
 
 def read_connection_table(connection_name, table, schema="public"):
-    """_summary_
-
-    Args:
-        connection_name (_type_): _description_
-        table (_type_): _description_
-
-    Returns:
-        _type_: _description_
     """
-    config = read_config(connection_name)['data']
-    print(config)
+    Reads a connection table from the given connection name and table name.
+    
+    Args:
+        connection_name (str): The name of the connection.
+        table (str): The name of the table to read.
+        schema (str, optional): The schema of the table. Defaults to "public".
+    
+    Returns:
+        Dataframe: The data read from the table.
+    """
+
+    config = read_connection_config(connection_name)['data']
+    logging.info(f"config for given connection name: {config}")
     if config['auth_type'] == AuthType.BEARER.value:
         first_key = list(config['authentication_details']
                          [config['auth_type']].keys())[0]
         token = config['authentication_details'][config['auth_type']][first_key]
-        print(token)
         table = f"{config['base_url']}/{config['tables'][table]}"
         data = get_data_from_api(
             table, config['api'], config['auth_type'], token)
-        print(data)
+        return data

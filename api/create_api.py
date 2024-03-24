@@ -1,4 +1,15 @@
-import streamlit as st
+"""
+This module contains functions and classes for creating and managing API connections.
+
+Functions:
+    - parse_json(json_content): Parses a JSON content string and returns the parsed data.
+    - parse_xml(xml_content): Parses an XML content string and returns the parsed data.
+    - test_api(con_type, data, creating=False): Tests the API connection based on the connection type and data provided.
+
+Classes:
+    - Create_API: Represents a class for creating API connections with methods like file_uploader_design and submit_data_for_processing.
+"""
+
 import json
 from utils.api_utils import parse_json, parse_xml, test_api
 from streamlit_ace import st_ace
