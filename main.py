@@ -4,7 +4,7 @@ import utils.generic_utils as gu
 from utils.local_connection_utils import create_con_directory
 from utils.style_utils import load_css
 
-gu.set_page_config(page_title="AppX",page_icon=None,initial_sidebar_state="expanded",layout="wide",menu_items={})
+gu.set_page_config(page_title="OpenETL",page_icon=None,initial_sidebar_state="expanded",layout="wide",menu_items={})
 
 
 def set_session():
@@ -60,9 +60,23 @@ def set_session():
         st.session_state.con_tab_selected_con_type_index = 0
     if "con_tab_selected_engine_index" not in st.session_state:
         st.session_state.con_tab_selected_engine_index = 0
-        
+            
     if "style_setting" not in st.session_state:
         st.session_state.style_setting = {}
+        
+    # STYLE VARIABLES
+    if "connection_create_connection_style_set" not in st.session_state:
+        st.session_state.connection_create_connecction_style_set = False
+    if "connection_connection_style_set" not in st.session_state:
+        st.session_state.connection_connection_style_set = False
+    
+    if "api_create_api_style_set" not in st.session_state:
+        st.session_state.api_create_api_style_set = False
+    
+    if "pipeline_pipeline_style_set" not in st.session_state:
+        st.session_state.pipeline_pipeline_style_set = False
+    if "pipeline_create_pipeline_style_set" not in st.session_state:
+        st.session_state.pipeline_create_pipeline_style_set = False
 
 
 def __init__():

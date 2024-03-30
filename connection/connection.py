@@ -8,7 +8,8 @@ from utils.generic_utils import set_page_config
 
 from utils.style_utils import load_css
 
-set_page_config(page_title="Connections",page_icon=None,initial_sidebar_state="expanded",layout="wide",menu_items={})
+set_page_config(page_title="Connections", page_icon=None, initial_sidebar_state="expanded",
+                layout="wide", menu_items={}, page_style_state_variable="connection_connection")
 load_css()
 
 Database = st.container()
@@ -17,7 +18,7 @@ API = st.container()
 
 configs = read_all_connection_configs()
 container_css = {
-    "container": {"width": "25%", "margin": "0px !important","font-size": "14px","min-height": "30px", "white-space": "nowrap","overflow": "hidden","text-overflow": "ellipsis" }}
+    "container": {"width": "25%", "margin": "0px !important", "font-size": "14px", "min-height": "30px", "white-space": "nowrap", "overflow": "hidden", "text-overflow": "ellipsis"}}
 
 
 Database_selected = None
@@ -35,9 +36,8 @@ with Database:
         for config in configs['database']
     ]
     create_button_columns(Database_names)
-        
-    
-    
+
+
 with API:
     API.header("API")
     API_names = [
@@ -45,4 +45,3 @@ with API:
         for config in configs['api']
     ]
     create_button_columns(API_names)
-

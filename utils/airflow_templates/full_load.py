@@ -22,6 +22,7 @@ target_connection = {target_connection}
 
 
 def print_environment_variables():
+    logging.info("PRINTING OUT ENVIRONMENT VARIABLES")
     logging.info("OPENETL_HOME: @VALUE".replace("@VALUE", base_dir))
     logging.info("sys.path: @VALUE".replace("@VALUE", str(sys.path)))
     logging.info("default_args: @VALUE".replace("@VALUE", str(default_args)))

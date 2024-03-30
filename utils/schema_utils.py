@@ -1,6 +1,5 @@
-from shillelagh.backends.apsw.db import connect
-from gsheetsdb import connect
 import pandas as pd
+import gspread
 import time
 from sqlalchemy import create_engine, MetaData, Column, Integer, String, Float, Boolean
 from sqlalchemy.ext.declarative import declarative_base
@@ -16,21 +15,10 @@ def get_datatypes_and_default_values(sheet_link):
 
     :return: Pandas dataframe containing data types and default values
     """
-    # Establish connection to database
-    conn = connect()
-
-    # Execute SQL query to retrieve data types and default values from Google Sheets
-    result = conn.execute("""
-        SELECT
-            *
-        FROM
-            "{sheet_link}"
-    """.format(sheet_link=sheet_link), headers=1)
-
-    # Convert query result to Pandas dataframe
-    df = pd.DataFrame(result.fetchall())
-
-    # Return dataframe with data types and default values
+    gc = gspread.models.Spreadsheet(gspread.client.Client(None), None, sheet_link)
+    worksheet = gc.get_worksheet(0)
+    data = worksheet.get_all_values()
+    df = pd.DataFrame(data[1:], columns=data[0])
     return df
 
 

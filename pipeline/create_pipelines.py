@@ -9,8 +9,8 @@ import pandas as pd
 import json
 from datetime import date
 
-set_page_config(page_title="Create ETL", page_icon=None,
-                initial_sidebar_state="expanded", layout="wide", menu_items={})
+set_page_config(page_title="Create ETL", page_icon=None, initial_sidebar_state="expanded", 
+                layout="wide", menu_items={}, page_style_state_variable="pipeline_create_pipeline")
 
 # (steps=["Select Source & Target", "Spark Settings", "Finish"])
 source_type = "Database"
@@ -289,4 +289,4 @@ with finish:
             st.error("Unable to create integration. Please try again.")
         else:
             st.success("Integration Created Successfully")
-            #spark_work(**stored[1])
+            # spark_work(**stored[1])
