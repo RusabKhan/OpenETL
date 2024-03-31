@@ -1,5 +1,5 @@
 import streamlit as st
-from local.cache import *
+from utils.cache import *
 from .style_utils import load_css
 import jaydebeapi
 import zipfile

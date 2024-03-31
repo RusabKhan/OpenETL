@@ -10,6 +10,7 @@ Classes:
     - Create_API: Represents a class for creating API connections with methods like file_uploader_design and submit_data_for_processing.
 """
 
+from utils.schema_utils import SchemaUtils
 import json
 from utils.api_utils import parse_json, parse_xml, test_api
 from streamlit_ace import st_ace
@@ -118,3 +119,10 @@ def main():
 
 
 main()
+
+from utils.enums import ColumnActions
+if st.button("Submit"):
+    SchemaUtils({"username": "rusab1", "password": "1234",
+                "host": "127.0.0.1", "port": "5432", "database": "demo","engine":"PostgreSQL"})\
+                    .alter_table_column_add_or_drop("new", "aged", "Integer",ColumnActions.DROP)\
+

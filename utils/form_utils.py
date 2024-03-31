@@ -11,6 +11,7 @@ from utils.api_utils import test_api
 """This module contains functions related to form generation and card generation.
 """
 
+default_img = "https://cdn5.vectorstock.com/i/1000x1000/42/09/connection-vector-28634209.jpg"
 
 class GenerateForm():
     """
@@ -204,7 +205,7 @@ def create_button_columns(names):
 
         # Iterate over the names in the current row
         for i in range(start_index, end_index):
-            cols[i % num_columns].image("local/images/icon1.png")
+            cols[i % num_columns].image(default_img,width=150)
             if button_clicked := cols[i % num_columns].button(
                 names[i], use_container_width=True
             ):

@@ -1,5 +1,5 @@
 import streamlit as st
-from local.cache import *
+from utils.cache import *
 import sqlalchemy as sq
 import pandas as pd
 from sqlalchemy import text
