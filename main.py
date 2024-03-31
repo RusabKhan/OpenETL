@@ -4,7 +4,8 @@ import utils.generic_utils as gu
 from utils.local_connection_utils import create_con_directory
 from utils.style_utils import load_css
 
-gu.set_page_config(page_title="OpenETL",page_icon=None,initial_sidebar_state="expanded",layout="wide",menu_items={})
+gu.set_page_config(page_title="OpenETL", page_icon=None, initial_sidebar_state="expanded",
+                   layout="wide", menu_items={}, page_style_state_variable="home")
 
 
 def set_session():
@@ -12,10 +13,10 @@ def set_session():
         st.session_state.selected_pipeline_pipeline_page = ""
     if "clicked_button" not in st.session_state:
         st.session_state.clicked_button = ""
-    
+
     if "pipeline_tab_val" not in st.session_state:
         st.session_state.pipeline_tab_val = 1
-        
+
     if "source_type_index" not in st.session_state:
         st.session_state.source_type_index = 0
     if "source_selected_index" not in st.session_state:
@@ -23,7 +24,7 @@ def set_session():
     if "source_selected_schema_index" not in st.session_state:
         st.session_state.source_selected_schema_index = 0
     if "source_selected_table_index" not in st.session_state:
-        st.session_state.source_selected_table_index = 0   
+        st.session_state.source_selected_table_index = 0
 
     if "target_type_index" not in st.session_state:
         st.session_state.target_type_index = 0
@@ -32,7 +33,7 @@ def set_session():
     if "target_selected_schema_index" not in st.session_state:
         st.session_state.target_selected_schema_index = 0
     if "target_selected_table_index" not in st.session_state:
-        st.session_state.target_selected_table_index = 0   
+        st.session_state.target_selected_table_index = 0
 
     if "integration_selected_dates" not in st.session_state:
         st.session_state.integration_selected_dates = []
@@ -51,7 +52,7 @@ def set_session():
         st.session_state.api_tab_selected_index_datatypes = 0
     if "api_tab_selected_index_auth_types" not in st.session_state:
         st.session_state.api_tab_selected_index_auth_types = 0
-    
+
     if "con_tab_selected_index_datatypes" not in st.session_state:
         st.session_state.con_tab_selected_index_datatypes = 0
     if "con_tab_selected_index_auth_types" not in st.session_state:
@@ -60,23 +61,23 @@ def set_session():
         st.session_state.con_tab_selected_con_type_index = 0
     if "con_tab_selected_engine_index" not in st.session_state:
         st.session_state.con_tab_selected_engine_index = 0
-            
+
     if "style_setting" not in st.session_state:
         st.session_state.style_setting = {}
-        
+
     # STYLE VARIABLES
-    if "connection_create_connection_style_set" not in st.session_state:
-        st.session_state.connection_create_connecction_style_set = False
-    if "connection_connection_style_set" not in st.session_state:
-        st.session_state.connection_connection_style_set = False
-    
-    if "api_create_api_style_set" not in st.session_state:
-        st.session_state.api_create_api_style_set = False
-    
-    if "pipeline_pipeline_style_set" not in st.session_state:
-        st.session_state.pipeline_pipeline_style_set = False
-    if "pipeline_create_pipeline_style_set" not in st.session_state:
-        st.session_state.pipeline_create_pipeline_style_set = False
+    # if "connection_create_connection_style_set" not in st.session_state:
+    #     st.session_state.connection_create_connecction_style_set = False
+    # if "connection_connection_style_set" not in st.session_state:
+    #     st.session_state.connection_connection_style_set = False
+
+    # if "api_create_api_style_set" not in st.session_state:
+    #     st.session_state.api_create_api_style_set = False
+
+    # if "pipeline_pipeline_style_set" not in st.session_state:
+    #     st.session_state.pipeline_pipeline_style_set = False
+    # if "pipeline_create_pipeline_style_set" not in st.session_state:
+    #     st.session_state.pipeline_create_pipeline_style_set = False
 
 
 def __init__():
@@ -85,22 +86,19 @@ def __init__():
     load_css()
 
 
-
 __init__()
-
 
 
 show_pages(
     [
         Page("main.py", "Home"),
-        Page("connection/create_connection.py","Create a new connection"),
+        Page("connection/create_connection.py", "Create a new connection"),
         Page("connection/connection.py", "Connections"),
-        #Page("query_editor/query.py","Query Editor"),  
-        Page("api/create_api.py","Create API"),
-        Page("pipeline/pipelines.py","My ETL"),      
-        Page("pipeline/create_pipelines.py","Create ETL"),
-        #Page("api/fetch_data.py","Fetch Data"),
+        # Page("query_editor/query.py","Query Editor"),
+        Page("api/create_api.py", "Create API"),
+        Page("pipeline/pipelines.py", "My ETL"),
+        Page("pipeline/create_pipelines.py", "Create ETL"),
+        # Page("api/fetch_data.py","Fetch Data"),
 
     ]
 )
-

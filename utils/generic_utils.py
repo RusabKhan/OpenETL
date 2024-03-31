@@ -23,7 +23,6 @@ def set_page_config(page_title="OpenETL", menu_items={}, initial_sidebar_state="
     Returns:
         None
     """
-
     is_set = bool(st.session_state.get(page_style_state_variable)) 
     if not is_set:
         st.set_page_config(page_title=page_title, page_icon=page_icon,
