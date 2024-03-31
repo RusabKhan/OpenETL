@@ -19,6 +19,9 @@ default_args = {default_args}
 
 source_connection = {source_connection}
 target_connection = {target_connection}
+spark_config = {spark_config}
+hadoop_config = {hadoop_config}
+mapping = f"{mapping}"
 
 
 def print_environment_variables():
@@ -61,6 +64,13 @@ task_to_extract_xcom = PythonOperator(
     op_args=['execute_get_data'],
     dag=dag,
     provide_context=True,  # This is important to provide the context to the PythonOperator
+)
+
+write_to_target = PythonOperator(
+    task_id='write_to_target',
+    python_callable=write_to_target,
+    op_args=[target_connection['connection_type'], target_connection['table'], target_connection['schema'], target_connection['connection_name']],
+    dag=dag,
 )
 
 # Set task dependencies

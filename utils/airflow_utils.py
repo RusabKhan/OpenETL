@@ -40,15 +40,14 @@ def create_airflow_dag(config):
         "config": {"source": {"table": config["source_table"], "schema": config["source_schema"], "connection_type": config["source_type"],
                               "connection_name": config["source_connection_name"]},
                    "target": {"table": config["target_table"], "schema": config["target_schema"], "connection_type": config["target_type"],
-                              "connection_name": config["target_connection_name"]},
-                   "mapping": config["mapping"]},
+                              "connection_name": config["target_connection_name"]}},
     }
     with open(f"{os.getcwd()}/utils/airflow_templates/full_load.py", 'r') as file:
         template = file.read()
     template = template.format(
         integration_name=integration_name, source_connection=op_args[
-            "config"]["source"], target_connection=op_args["config"]["target"],
-        default_args=default_args)
+            "config"]["source"], target_connection=op_args["config"]["target"], mapping=config["mapping"],
+        spark_config=config["spark_config"], hadoop_config=config["hadoop_config"], default_args=default_args)
     with open(f"{os.getcwd()}/.local/dags/{config['integration_name']}.py", "w") as f:
         f.write(template)
     return True
@@ -72,17 +71,17 @@ def read_data(connection_type, table, schema, connection_name):
     """
     if connection_type.lower() not in [ConnectionType.DATABASE.value, ConnectionType.API.value]:
         raise ValueError(f"Unsupported connection type: {connection_type}")
-    
+
     if connection_type.lower() == ConnectionType.DATABASE.value:
         spark = su.SparkConnection(config)
         df = spark.read_via_spark()
         return df
     elif connection_type.lower() == ConnectionType.API.value:
-        data = api.read_connection_table(table=table, connection_name=connection_name)
+        data = api.read_connection_table(
+            table=table, connection_name=connection_name)
         print("################################")
         print(data)
         return data
-
 
 
 def extract_xcom_value(task_id, **context):
@@ -92,3 +91,22 @@ def extract_xcom_value(task_id, **context):
     # Do something with the XCom value
     print("Extracted XCom value:", xcom_value)
 
+
+def write_to_target(connection_type: ConnectionType, table, schema, connection_name, config):
+    """
+    Writes data to a specified connection type.
+
+    Args:
+        connection_type (ConnectionType): The type of connection to use. Valid values are "database" or "api" of enum ConnectionType.
+        table (str): The name of the table to write to.
+        schema (str): The schema of the table.
+        connection_name (str): The name of the connection.
+
+    Returns:
+        None
+    """
+    if connection_type.lower() == ConnectionType.DATABASE.value:
+        spark = su.SparkConnection(config)
+        spark.write_via_spark()
+    elif connection_type.lower() == ConnectionType.API.value:
+        raise NotImplementedError("API target connection not implemented")

@@ -156,13 +156,17 @@ with spark:
                 'spark.executor.memory',
                 'spark.executor.cores',
                 'spark.executor.instances',
+                "spark.master",
+                "spark.app.name",
 
             ],
             'Average Setting': [
-                '2g',
-                '2g',
-                '2',
-                '2',
+                '1g',
+                '1g',
+                '0.5',
+                '1',
+                "local[*]",
+                f"{source}_to_{target}",
             ]
         }
 

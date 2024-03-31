@@ -2,40 +2,8 @@ from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 from pyspark.sql.functions import lit
 from pyspark.sql.types import *
+from utils.cache import *
 
-SPARK_UTILITIES = {
-    'snowflake': {
-        'connection' :{
-            "hostname": "sfUrl",
-            "username": "sfUser",
-            "account": "sfAccount",
-            "password": "sfPassword",
-            "database": "sfDatabase",
-            "schema": "sfSchema",
-            "warehouse": "sfWarehouse",
-            "role": "sfRole",
-            "table": "dbtable"
-            },
-        "jars":"net.snowflake:spark-snowflake_2.12:2.8.4-spark_3.0"
-        },
-    
-    "postgresql":{
-        "connection":{
-            "hostname": "hostname",
-            "username": "user",
-            "password": "password",
-            "database": "database",
-            "schema": "schema",
-            "port": "port",
-            "classname": "driver",
-            "table": "dbtable",
-            "query":"query",
-            "url": "url"
-        },
-        "pattern":"jdbc:postgresql://hostname:port/database",
-        "jars":"org.postgresql:postgresql:42.5.0"
-    }
-}
 
 class SparkConnection():
     
