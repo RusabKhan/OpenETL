@@ -180,7 +180,7 @@ def on_button_click(button_name):
     st.session_state.clicked_button = button_name
 
 
-def create_button_columns(names):
+def create_button_columns(names,num_columns=7):
     """
     Create columns of buttons.
 
@@ -189,24 +189,15 @@ def create_button_columns(names):
 
     """
     # Calculate the number of columns
-    num_columns = 6
-    # Calculate the total number of names
     num_names = len(names)
-    # Calculate the number of rows required
     num_rows = (num_names + num_columns - 1) // num_columns
-
-    # Iterate over each row
     for row in range(num_rows):
-        # Create the desired number of columns
         cols = st.columns(num_columns)
-        # Calculate the start and end index for names in the current row
+        
         start_index = row * num_columns
         end_index = min(start_index + num_columns, num_names)
 
-        # Iterate over the names in the current row
         for i in range(start_index, end_index):
-            cols[i % num_columns].image(default_img,width=150)
-            if button_clicked := cols[i % num_columns].button(
-                names[i], use_container_width=True
-            ):
-                on_button_click(names[i])
+            cols[i % num_columns].image(default_img, width=150)
+            cols[i % num_columns].button(names[i], use_container_width=True)
+
