@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO)
 base_dir = os.getenv('OPENETL_HOME')
 sys.path.append(base_dir)
 
-from utils.airflow_utils import read_data, extract_xcom_value
+from utils.airflow_utils import run_pipeline
 import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
@@ -50,31 +50,19 @@ execute_print_environment_variables = PythonOperator(
 )
 
 # Define the PythonOperator to execute the get_data function
-execute_get_data = PythonOperator(
-    task_id='execute_get_data',
-    python_callable=read_data,
-    op_args=[source_connection['connection_type'], source_connection['table'], source_connection['schema'], source_connection['connection_name']],
+execute_pipeline = PythonOperator(
+    task_id='execute_pipeline',
+    python_callable=run_pipeline,
+    op_args=[source_connection['connection_type'], source_connection['table'], source_connection['schema'], \
+    source_connection['connection_name'], target_connection['connection_type'], target_connection,
+                spark_config, hadoop_config, mapping],
     dag=dag,
 )
 
 
-task_to_extract_xcom = PythonOperator(
-    task_id='task_to_extract_xcom',
-    python_callable=extract_xcom_value,
-    op_args=['execute_get_data'],
-    dag=dag,
-    provide_context=True,  # This is important to provide the context to the PythonOperator
-)
-
-write_to_target = PythonOperator(
-    task_id='write_to_target',
-    python_callable=write_to_target,
-    op_args=[target_connection['connection_type'], target_connection['table'], target_connection['schema'], target_connection['connection_name']],
-    dag=dag,
-)
 
 # Set task dependencies
-execute_print_environment_variables >> execute_get_data >> task_to_extract_xcom
+execute_print_environment_variables >> execute_pipeline
 
 
 

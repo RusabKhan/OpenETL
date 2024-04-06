@@ -46,8 +46,8 @@ def read_connection_configs(configs):
             json_files_data.append(json_data_with_filename)
     return json_files_data
 
-def read_single_config(config):
-    """Read single pipeline configuration from connection directory
+def read_single_connection_config(config):
+    """Read single connection configuration from connection directory
 
     Args:
         config (string): Name of the pipeline

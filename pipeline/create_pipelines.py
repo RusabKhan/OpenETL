@@ -163,7 +163,7 @@ with spark:
             'Average Setting': [
                 '1g',
                 '1g',
-                '0.5',
+                '1',
                 '1',
                 "local[*]",
                 f"{source}_to_{target}",

@@ -3,14 +3,15 @@ from pyspark.conf import SparkConf
 from pyspark.sql.functions import lit
 from pyspark.sql.types import *
 from utils.cache import *
+import os
 
 
 class SparkConnection():
-    
-    def __init__(self,connection_credentials:dict,
-                 spark_configuration:dict,
-                 hadoop_configuration:dict = None,
-                 sparkDataframe:pyspark.sql.DataFrame = None):
+
+    def __init__(self, connection_string: str,
+                 spark_configuration: dict,
+                 hadoop_configuration: dict = None,
+                 jar=None):
         """
         Initializes a SparkConnection object with the provided connection and configuration details.
 
@@ -38,17 +39,14 @@ class SparkConnection():
         Returns:
             None
         """
-        self.connection_credentials = connection_credentials
-        self.master = spark_configuration.get("master")
-        self.applicationName = spark_configuration.get("applicationName")
-        self.config = spark_configuration.get("applicationName")
-        self.sparkConnection = None
-        self.sparkDataframe = sparkDataframe
-        self.hadoop_configuration = hadoop_configuration
-        self.spark_connection_details = self.__credentials_formatter()
+        os.environ['SPARK_LOCAL_IP'] = "localhost"
 
-        
-    def initializeSpark(self):
+        self.connection_string = connection_string
+        self.spark_configuration = spark_configuration
+        self.hadoop_configuration = hadoop_configuration
+        self.jar = jar
+
+    def initializeSpark(self) -> SparkSession:
         """
         Initializes a Spark connection and configures the Spark session based on the connection and configuration details.
 
@@ -58,73 +56,31 @@ class SparkConnection():
         Raises:
             Exception: If an error occurs during Spark initialization.
         """
-        SparkConfig = SparkConf()
-        SparkConfig['spark.jars.packages'] = self.spark_connection_details['jars']
-        
-        try:
-            for (name, value) in self.config.items():
-                SparkConfig.set(name, value)
-            
-            sparkConnection = SparkSession.builder.master(master
-                        ).appName(applicationName
-                                ).config(conf=SparkConfig).getOrCreate()
-                        
-            
-            if self.hadoop_configuration:
-                sparkConn = sparkConnection.sparkContext._jsc.hadoopConfiguration()
-                for (name, value) in self.hadoop_configuration.items():
-                    sparkConn.set(name, value)
-                    
-            self.sparkConnection = sparkConnection
+        spark_conf = SparkConf()
+        spark_conf.set("spark.jars.packages", self.jar)
 
-            return sparkConnection
+        # Set Spark configurations
+        try:
+            for name, value in self.spark_configuration.items():
+                spark_conf.set(name, value)
+
+            # Build SparkSession
+            spark_session = SparkSession.builder \
+                .config(conf=spark_conf) \
+                .getOrCreate()
+
+            # Set Hadoop configurations
+            if self.hadoop_configuration:
+                hadoop_conf = spark_session.sparkContext._jsc.hadoopConfiguration()
+                for name, value in self.hadoop_configuration.items():
+                    hadoop_conf.set(name, value)
+
+            self.spark_session = spark_session
+            return spark_session
 
         except Exception as e:
             raise Exception(str(e))
-    
-    
-    def __credentials_formatter(self):
-        """
-        The credentials_formatter method is used to format the connection credentials based on the specified connection format.
-        It creates a dictionary of formatted credentials suitable for establishing a Spark connection.
 
-        Returns:
-            dict: A dictionary containing the formatted credentials and additional information.
-
-        Example:
-            {
-                'spark_formatted_creds': {
-                    'url': 'connection_url',
-                    'username': 'connection_username',
-                    'password': 'connection_password'
-                },
-                'jars': "jar1"
-            }
-        """
-        formated_creds = dict()
-        spark_formatted_creds = dict()
-
-        connection_format = self.connection_credentials.get(
-                            'connection_format').lower()
-
-        spark_connection = SPARK_UTILITIES[connection_format]
-        
-        for key,value in self.connection_credentials.items():
-            if key in spark_connection['connection']:
-                spark_formatted_creds[spark_connection['connection'][key]] = self.connection_credentials[key]
-        
-        if spark_connection.get('pattern'):
-            connection_string = spark_connection['pattern']
-            
-            for key,value in spark_formatted_creds.items():
-                connection_string = connection_string.replace(key,value)
-            spark_formatted_creds['url'] = connection_string
-        formated_creds['spark_formatted_creds'] = spark_formatted_creds
-        formated_creds['jars'] = spark_connection['jars']
-        
-        return formated_creds
-    
-    
     def read_via_spark(self):
         """
         This method is used to read data using Spark based on the specified connection format and credentials.
@@ -136,24 +92,24 @@ class SparkConnection():
         Raises:
             Exception: If an error occurs during the data reading process.
         """
-        
-        connection_format = self.connection_credentials.get(
-                            'connection_format').lower()
-        credentials = self.spark_connection_details.get('spark_formatted_creds')
-        
+
+        connection_format = self.connection_string.get(
+            'connection_format').lower()
+        credentials = self.spark_connection_details.get(
+            'spark_formatted_creds')
+
         try:
-            sparkDataframe = self.sparkConnection.read.format(connection_format
-                                    ).options(**credentials
-                                            ).load()
-                                
+            sparkDataframe = self.spark_session.read.format(connection_format
+                                                              ).options(**credentials
+                                                                        ).load()
+
             self.sparkDataframe = sparkDataframe
             return sparkDataframe
-        
+
         except Exception as e:
             raise Exception(str(e))
-    
-    
-    def write_via_spark(self):
+
+    def write_via_spark(self, dataframe, conn_string, table,driver, mode="append",format="jdbc"):
         """
         The write_via_spark method is used to write data using Spark based on the specified connection format and credentials. 
         It takes the DataFrame stored in the sparkDataframe attribute of the SparkConnection object and writes it to the target data destination.
@@ -171,11 +127,15 @@ class SparkConnection():
         Raises:
             Exception: If an error occurs during the data writing process.
         """
-        connection_format = self.connection_credentials.get(
-                            'connection_format').lower()
-        credentials = self.spark_connection_details.get('spark_formatted_creds')
         try:
-            self.sparkDataframe.write.format(connection_type).options(**connection_dict).mode(mode).save()
+            dataframe.write \
+                .format(format) \
+                .option("url", conn_string) \
+                .option("dbtable", table) \
+                .option("driver", driver) \
+                .mode(mode) \
+                .save()
+
         except Exception as e:
             raise Exception(str(e))
-            
+

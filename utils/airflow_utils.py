@@ -1,15 +1,17 @@
-import utils.api_utils as api
-import utils.sqlalchemy_engine_utils as sqla
-from utils.enums import *
-# import utils.spark_utils as su
-from datetime import datetime, timedelta
-import json
-import os
+import pandas as pd
+from utils.cache import *
 import utils.local_connection_utils as loc
+import json
+from datetime import datetime, timedelta
+import utils.spark_utils as su
+from utils.enums import *
+import utils.sqlalchemy_engine_utils as sqla
+import utils.jdbc_engine_utils as jdbc_utils
+import utils.api_utils as api
+import sys
+import os
+import logging
 
-
-def print_hello():
-    print("Hello, world!")
 
 
 def create_airflow_dag(config):
@@ -90,23 +92,33 @@ def extract_xcom_value(task_id, **context):
 
     # Do something with the XCom value
     print("Extracted XCom value:", xcom_value)
+    return xcom_value
 
 
-def write_to_target(connection_type: ConnectionType, table, schema, connection_name, config):
-    """
-    Writes data to a specified connection type.
+def run_pipeline(source_connection_type, source_table, source_schema, source_connection_name, target_connection_type,
+                 target_connection_config, spark_config=None, hadoop_config=None,  mapping=None):
 
-    Args:
-        connection_type (ConnectionType): The type of connection to use. Valid values are "database" or "api" of enum ConnectionType.
-        table (str): The name of the table to write to.
-        schema (str): The schema of the table.
-        connection_name (str): The name of the connection.
+    logging.info("RUNNING PIPELINE")
+    df = read_data(source_connection_type, source_table,
+                   source_schema, source_connection_name)
+    
+    if target_connection_type.lower() == ConnectionType.DATABASE.value:
+        connection_details = loc.read_single_connection_config(
+            target_connection_config['connection_name'])
+        engine = connection_details['engine']
 
-    Returns:
-        None
-    """
-    if connection_type.lower() == ConnectionType.DATABASE.value:
-        spark = su.SparkConnection(config)
-        spark.write_via_spark()
-    elif connection_type.lower() == ConnectionType.API.value:
+        jar = jdbc_database_jars[engine]
+        driver = jdbc_engine_drivers[engine]
+
+        connection_details = {key.upper(): value for key,
+                              value in connection_details.items()}
+        con_string = jdbc_connection_strings[engine].format(
+            **connection_details)
+        spark_class = su.SparkConnection(spark_configuration=spark_config,
+                                         hadoop_configuration=hadoop_config, jar=jar, connection_string=con_string)
+        spark_session = spark_class.initializeSpark()
+        df = spark_session.createDataFrame(df)
+        spark_class.write_via_spark(
+            df, conn_string=con_string, table=target_connection_config['table'], driver=driver, mode="overwrite")
+    elif target_connection_type.lower() == ConnectionType.API.value:
         raise NotImplementedError("API target connection not implemented")
