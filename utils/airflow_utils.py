@@ -1,17 +1,23 @@
+import sys
+import logging
+import os
+# logging.basicConfig(level=logging.INFO)
+
+# base_dir = os.getenv('OPENETL_HOME')
+# sys.path.append(base_dir)
+
 import pandas as pd
 from utils.cache import *
 import utils.local_connection_utils as loc
 import json
 from datetime import datetime, timedelta
-import utils.spark_utils as su
+import utils.spark_utils as sp_ut
 from utils.enums import *
 import utils.sqlalchemy_engine_utils as sqla
 import utils.jdbc_engine_utils as jdbc_utils
 import utils.api_utils as api
-import sys
-import os
 import logging
-
+from utils import schema_utils as schema_utils
 
 
 def create_airflow_dag(config):
@@ -75,7 +81,7 @@ def read_data(connection_type, table, schema, connection_name):
         raise ValueError(f"Unsupported connection type: {connection_type}")
 
     if connection_type.lower() == ConnectionType.DATABASE.value:
-        spark = su.SparkConnection(config)
+        spark = spark_utils.SparkConnection(config)
         df = spark.read_via_spark()
         return df
     elif connection_type.lower() == ConnectionType.API.value:
@@ -101,7 +107,9 @@ def run_pipeline(source_connection_type, source_table, source_schema, source_con
     logging.info("RUNNING PIPELINE")
     df = read_data(source_connection_type, source_table,
                    source_schema, source_connection_name)
-    
+    df = df.rename(columns=lambda x: x.replace('.', '_'))
+
+
     if target_connection_type.lower() == ConnectionType.DATABASE.value:
         connection_details = loc.read_single_connection_config(
             target_connection_config['connection_name'])
@@ -114,11 +122,25 @@ def run_pipeline(source_connection_type, source_table, source_schema, source_con
                               value in connection_details.items()}
         con_string = jdbc_connection_strings[engine].format(
             **connection_details)
-        spark_class = su.SparkConnection(spark_configuration=spark_config,
-                                         hadoop_configuration=hadoop_config, jar=jar, connection_string=con_string)
+        
+        schema_ops = schema_utils.SchemaUtils(connection_details)
+        df = schema_ops.cast_columns(df)
+        df = schema_ops.fill_na_based_on_dtype(df)
+        print(df)
+        created, message = schema_ops.create_table(
+            target_connection_config['table'], df)
+        if not created:
+            raise Exception(message)
+        
+        
+        spark_class = sp_ut.SparkConnection(spark_configuration=spark_config,
+                                                  hadoop_configuration=hadoop_config, jar=jar, connection_string=con_string)
         spark_session = spark_class.initializeSpark()
         df = spark_session.createDataFrame(df)
+        df = schema_ops.match_pandas_schema_to_spark(df)
         spark_class.write_via_spark(
-            df, conn_string=con_string, table=target_connection_config['table'], driver=driver, mode="overwrite")
+            df, conn_string=con_string, table=target_connection_config['table'], driver=driver)
     elif target_connection_type.lower() == ConnectionType.API.value:
         raise NotImplementedError("API target connection not implemented")
+
+
