@@ -16,6 +16,7 @@ from pyspark.sql.functions import lit
 from pyspark.sql.types import *
 from utils.cache import *
 import os
+import logging
 
 
 class SparkConnection():
@@ -148,6 +149,15 @@ class SparkConnection():
                 .mode(mode) \
                 .save()
 
+            return True
         except Exception as e:
-            raise Exception(str(e))
+            logging.error(str(e))
+            return False
+        
+    def __dispose__(self):
+        """
+        Dispose the session and engine.
+        """
+        logging.info("DISPOSING SPARK SESSION")
+        self.spark_session.stop()
 

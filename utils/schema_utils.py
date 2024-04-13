@@ -25,6 +25,7 @@ from utils.enums import ColumnActions
 import numpy as np
 from pyspark.sql.types import StringType, IntegerType, FloatType, DoubleType, BooleanType, TimestampType, DateType, ArrayType, MapType
 import re
+import logging
 
 
 class SchemaUtils:
@@ -346,6 +347,25 @@ class SchemaUtils:
             spark_df = spark_df.withColumn(
                 col, spark_df[col].cast(spark_dtype))
         return spark_df
+    
+    def write_batches(self, data):
+        """
+        Writes data to a table in etl_batches.
+
+        Parameters:
+            df (DataFrame): The DataFrame to write to the table.
+            table_name (str): The name of the table to write to.
+        """
+
+        try:
+            etl_batches_df = pd.DataFrame(data,index=[0])
+            with self._engine.connect() as con:
+                etl_batches_df.to_sql('openetl_batches', con=con, if_exists='append', index=False)
+            return True
+        except Exception as e:
+            logging.error(e)
+            return False
+
 
     def create_session(self):
         """
@@ -386,3 +406,10 @@ class SchemaUtils:
         """
         self.commit_changes()
         self.close_session()
+
+    def __dispose__(self):
+        """
+        Dispose the session and engine.
+        """
+        logging.info("DISPOSING SCHEMA UTILS SQLALCHEMY ENGINE")
+        self._engine.dispose()

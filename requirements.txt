@@ -120,7 +120,7 @@ opentelemetry-sdk==1.24.0
 opentelemetry-semantic-conventions==0.45b0
 ordered-set==4.1.0
 packaging==23.2
-pandas==2.2.1
+pandas==2.1.0
 pathspec==0.12.1
 pendulum==3.0.0
 pillow==10.2.0
@@ -170,7 +170,7 @@ SQLAlchemy-Utils==0.41.2
 sqlparse==0.4.4
 st-annotated-text==4.0.1
 st-pages==0.4.5
-streamlit==1.32.2
+streamlit==1.33.0
 streamlit-ace==0.1.1
 streamlit-camera-input-live==0.2.0
 streamlit-card==1.0.0
