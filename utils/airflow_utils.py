@@ -1,4 +1,13 @@
-import sys
+"""
+This module contains utility functions related to Airflow tasks and workflows.
+
+Functions:
+- run_pipeline: Runs the specified pipeline based on the provided parameters.
+- get_data: Retrieves data based on the specified parameters.
+- preprocess_data: Preprocesses the data before further processing.
+- post_process_data: Performs post-processing tasks on the data.
+- validate_data: Validates the data to ensure quality and consistency.
+"""
 import logging
 import os
 # logging.basicConfig(level=logging.INFO)

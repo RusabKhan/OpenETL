@@ -1,3 +1,13 @@
+"""
+This module contains utility functions related to form generation.
+
+Functions:
+- GenerateForm: A class that generates different types of forms based on the specified parameters.
+- database_form: Generates a database form for SQLAlchemy connections.
+- create_connection: Creates a new connection based on the provided arguments.
+- api_form: Generates an API form based on the specified engine.
+- jdbc_form: Generates a JDBC form based on the specified engine.
+"""
 import streamlit as st
 from .jdbc_engine_utils import JDBCEngine
 from .sqlalchemy_engine_utils import SQLAlchemyEngine

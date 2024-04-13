@@ -1,11 +1,11 @@
+"""This module contains utilitiy functions which can be used in particular case and are not relevant to any one scenario.
+"""
 from .sqlalchemy_engine_utils import SQLAlchemyEngine
 from .local_connection_utils import read_connection_config
 import streamlit as st
 from .jdbc_engine_utils import JDBCEngine
 from .api_utils import read_api_tables
 
-"""This module contains utilitiy functions which can be used in particular case and are not relevant to any one scenario.
-"""
 
 
 def set_page_config(page_title="OpenETL", menu_items={}, initial_sidebar_state="expanded", page_icon=None, layout="wide", page_style_state_variable=None):

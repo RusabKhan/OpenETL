@@ -1,3 +1,18 @@
+"""
+This module contains utility functions for working with data schema and types.
+
+Classes:
+- SchemaUtils: A class for working with data schema and types.
+
+Functions:
+- match_pandas_schema_to_spark: Matches the data types of columns in a Spark DataFrame to a specified schema.
+- commit_changes: Commits the changes made within the session.
+- __enter__: Enters the `with` context and creates a new session.
+- close_session: Closes the session and sets the session close flag.
+- __exit__: Exits the `with` context, commits changes, and closes the session.
+- create_table: Creates a new table in the database. If the table already exists, it skips the creation.
+- __init__: Initializes the class with the given connection credentials.
+"""
 import pandas as pd
 import time
 from sqlalchemy import create_engine, MetaData, Column, Integer, String, Float, Boolean, Table

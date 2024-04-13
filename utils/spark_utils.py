@@ -1,3 +1,15 @@
+"""
+This module contains utility functions and classes for working with Apache Spark.
+
+Classes:
+- SparkConnection: Represents a connection to a Spark cluster.
+
+Functions:
+- initializeSpark: Initializes a Spark connection and configures the Spark session based on the connection and configuration details.
+- read_via_spark: Reads data using Spark based on the specified connection format and credentials.
+- other_function_name(): Description of what this function does.
+- another_function_name(): Description of what this function does.
+"""
 from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 from pyspark.sql.functions import lit

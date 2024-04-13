@@ -1,3 +1,16 @@
+"""
+This module contains utility functions for working with SQLAlchemy engine connections.
+
+Class:
+- SQLAlchemyEngine: Represents a class to connect with any database using SQLAlchemy.
+
+Methods:
+- __init__: Initializes the class with database connection details.
+- test: Tests the connection to the database.
+- get_metadata: Retrieves schema metadata from the connection.
+- execute_query: Executes a SQL query against the connection.
+- get_metadata_df: Retrieves schema metadata in a dataframe format.
+"""
 import streamlit as st
 from utils.cache import *
 import sqlalchemy as sq

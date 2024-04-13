@@ -1,3 +1,7 @@
+"""
+This module contains various database connection parameters and database engines.
+"""
+
 sqlalchemy_database_engines = {
     'MySQL': 'mysql+pymysql',
     'PostgreSQL': 'postgresql+psycopg2',
