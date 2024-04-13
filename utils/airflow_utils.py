@@ -8,26 +8,24 @@ Functions:
 - post_process_data: Performs post-processing tasks on the data.
 - validate_data: Validates the data to ensure quality and consistency.
 """
+from utils import schema_utils as schema_utils
+import utils.api_utils as api
+import utils.jdbc_engine_utils as jdbc_utils
+import utils.sqlalchemy_engine_utils as sqla
+from utils.enums import *
+import utils.spark_utils as sp_ut
+from datetime import datetime, timedelta
+import json
+import utils.local_connection_utils as loc
+from utils.cache import *
+import pandas as pd
 import logging
 import os
 import sys
 logging.basicConfig(level=logging.INFO)
 
-base_dir = os.getenv('OPENETL_HOME')
-sys.path.append(base_dir)
-
-import pandas as pd
-from utils.cache import *
-import utils.local_connection_utils as loc
-import json
-from datetime import datetime, timedelta
-import utils.spark_utils as sp_ut
-from utils.enums import *
-import utils.sqlalchemy_engine_utils as sqla
-import utils.jdbc_engine_utils as jdbc_utils
-import utils.api_utils as api
-import logging
-from utils import schema_utils as schema_utils
+# base_dir = os.getenv('OPENETL_HOME')
+# sys.path.append(base_dir)
 
 
 def create_airflow_dag(config):
@@ -112,10 +110,10 @@ def extract_xcom_value(task_id, **context):
 
 
 def run_pipeline(source_connection_type, source_table, source_schema, source_connection_name, target_connection_type,
-                 target_connection_config, spark_config=None, hadoop_config=None,  mapping=None,integration_name=None):
+                 target_connection_config, spark_config=None, hadoop_config=None,  mapping=None, integration_name=None):
     """
     A function that runs a pipeline with the specified configurations, particularly used in the airflow DAG to run a pipeline.
-    
+
     Args:
         source_connection_type (str): The type of the source connection.
         source_table (str): The name of the source table.
@@ -127,7 +125,7 @@ def run_pipeline(source_connection_type, source_table, source_schema, source_con
         hadoop_config (dict, optional): The Hadoop configuration. Defaults to None.
         mapping (dict, optional): The mapping details. Defaults to None.
         integration_name (str, optional): The name of the integration. Defaults to None.
-    
+
     Raises:
         Exception: If no data is found in the source table.
         NotImplementedError: If the target connection type is API.
@@ -140,7 +138,7 @@ def run_pipeline(source_connection_type, source_table, source_schema, source_con
     if rows == 0:
         logging.exception(df)
         raise Exception("No data found in source table")
-    
+
     df = df.rename(columns=lambda x: x.replace('.', '_'))
 
     if target_connection_type.lower() == ConnectionType.DATABASE.value:
@@ -159,19 +157,19 @@ def run_pipeline(source_connection_type, source_table, source_schema, source_con
         schema_ops = schema_utils.SchemaUtils(connection_details)
         df = schema_ops.cast_columns(df)
         df = schema_ops.fill_na_based_on_dtype(df)
-        
+
         logging.info("priniting out dataframe details.")
         logging.info(df.head(2))
         logging.info(df.dtypes)
-        
+
         created, message = schema_ops.create_table(
             target_connection_config['table'], df)
         if not created:
             raise Exception(message)
 
-        etl_batches_df = pd.DataFrame(columns={'batch_id': int, 'start_date': datetime, 'end_date': datetime, 'batch_type':str, 'batch_status':str,
-                                               'integration_name':str})
-        
+        etl_batches_df = pd.DataFrame(columns={'batch_id': int, 'start_date': datetime, 'end_date': datetime, 'batch_type': str, 'batch_status': str,
+                                               'integration_name': str})
+
         rows = df.shape[0]
 
         spark_class = sp_ut.SparkConnection(spark_configuration=spark_config,
@@ -181,9 +179,11 @@ def run_pipeline(source_connection_type, source_table, source_schema, source_con
         df = schema_ops.match_pandas_schema_to_spark(df)
         if spark_class.write_via_spark(
                 df, conn_string=con_string, table=target_connection_config['table'], driver=driver):
-            data = {'batch_id': 1, 'start_date': datetime.now(), 'end_date': datetime.now(), 'batch_type': 'full', 'batch_status': 'success', 'integration_name': integration_name}
+            data = {'batch_id': 1, 'start_date': datetime.now(), 'end_date': datetime.now(), 'batch_type': 'full',
+                    'batch_status': 'success', 'integration_name': integration_name,
+                    'target_table': target_connection_config['table']}
             schema_ops.write_batches(data)
-            
+
         logging.info("FINISHED PIPELINE")
         logging.info("DISPOSING ENGINES")
         spark_class.__dispose__()
@@ -191,16 +191,3 @@ def run_pipeline(source_connection_type, source_table, source_schema, source_con
 
     elif target_connection_type.lower() == ConnectionType.API.value:
         raise NotImplementedError("API target connection not implemented")
-
-
-
-source_connection = {'table': 'get_all_contacts', 'schema': 'public', 'connection_type': 'API', 'connection_name': 'hubspot'}
-target_connection = {'table': 'sql_features', 'schema': 'public', 'connection_type': 'Database', 'connection_name': 'localhost'}
-spark_config = {'spark.driver.memory': '1g', 'spark.executor.memory': '1g', 'spark.executor.cores': '1', 'spark.executor.instances': '1', 'spark.master': 'local[*]', 'spark.app.name': 'hubspot_to_localhost'}
-hadoop_config = {}
-mapping = f"https://docs.google.com/spreadsheets/d/1576toIMaiKuFWShf-lzHMY6JYGEz-Ke3dGjYqa6n0sc/"
-
-
-run_pipeline(source_connection['connection_type'], source_connection['table'], source_connection['schema'], \
-    source_connection['connection_name'], target_connection['connection_type'], target_connection,
-                spark_config, hadoop_config, mapping)

@@ -17,6 +17,7 @@ os.environ['NO_PROXY'] = '*'
 
 default_args = {default_args}
 
+dag_name =  f"{integration_name}"
 source_connection = {source_connection}
 target_connection = {target_connection}
 spark_config = {spark_config}
@@ -37,7 +38,7 @@ def print_environment_variables():
 
 # Define the DAG
 dag = DAG(
-    f"{integration_name}",
+    dag_name,
     default_args=default_args,
     description='A DAG to execute the get_data function',
     schedule_interval='@daily',
@@ -55,7 +56,7 @@ execute_pipeline = PythonOperator(
     python_callable=run_pipeline,
     op_args=[source_connection['connection_type'], source_connection['table'], source_connection['schema'], \
     source_connection['connection_name'], target_connection['connection_type'], target_connection,
-                spark_config, hadoop_config, mapping],
+                spark_config, hadoop_config, mapping, dag_name],
     dag=dag,
 )
 

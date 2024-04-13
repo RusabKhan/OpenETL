@@ -3,7 +3,6 @@ import streamlit as st
 from utils.local_connection_utils import read_all_connection_configs, read_connection_config
 from utils.airflow_utils import create_airflow_dag
 from utils.generic_utils import extract_connections_db_or_api, fetch_metadata, check_missing_values, set_page_config
-from utils.schema_utils import get_datatypes_and_default_values
 from utils.sqlalchemy_engine_utils import SQLAlchemyEngine
 import pandas as pd
 import json
