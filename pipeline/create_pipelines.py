@@ -39,20 +39,6 @@ source_int_schema = 0
 slide_col1, slide_col2 = st.columns([4, 1])
 
 
-def spark_work(spark_config, hadoop_config, integration_name, is_frequency, selected_dates, schedule_time, schedule_dates, frequency, mapping, target_table, source_table, target_schema, source_schema):
-    """
-    @MeSSAGE FOR RAJAL NAQVI
-    yeh method 1 alag file m rkh kar utils m spark utils ki waha use krna h. isy dagsster se schedule kia jaega 1 method nh
-    hoga apko demo deny k liye likha h bs. frequency p dates nh hnge current date k hisab se calculate hojaige like
-    weekly m aj ki date se agly hafty p chlega monthly m aj k 30 ddays bdh etc.
-    """
-
-    print(spark_config, hadoop_config, integration_name, is_frequency,
-          selected_dates, schedule_time, schedule_dates, frequency, mapping)
-    print("WIP")
-    mapping_df = get_datatypes_and_default_values(mapping)
-    print(mapping_df)
-
 
 with source_target:
     source = ""
@@ -198,16 +184,10 @@ with spark:
         hadoop_config = _config_hadoop.set_index(
             'Configuration')['Average Setting'].to_dict()
 
-    mapping = st.text_input(
-        label="Mapping", value="https://docs.google.com/spreadsheets/d/1576toIMaiKuFWShf-lzHMY6JYGEz-Ke3dGjYqa6n0sc/")
-    disregard_spark_config = all(
-        value is None for value in spark_config.values())
-    disregard_hadoop_config = all(
-        value is None for value in hadoop_config.values())
 
-    st.session_state.integration_mapping_config = mapping
-    st.session_state.integration_spark_config = spark_config if disregard_spark_config is False else {}
-    st.session_state.integration_hadoop_config = hadoop_config if disregard_hadoop_config is False else {}
+
+    st.session_state.integration_spark_config = spark_config 
+    st.session_state.integration_hadoop_config = hadoop_config 
 
 
 with finish:
@@ -256,7 +236,6 @@ with finish:
             'frequency': frequencey,
             'schedule_dates': schedule_date.strftime('%Y-%m-%d'),
             "run_details": {},
-            "mapping": st.session_state.integration_mapping_config,
             "target_table": st.session_state.target_selected_tables,
             "source_table": st.session_state.source_selected_tables,
             "target_schema": st.session_state.target_selected_schema,
@@ -277,7 +256,6 @@ with finish:
             'frequency': frequencey,
             'schedule_dates': schedule_date.strftime('%Y-%m-%d'),
             "run_details": {f"{date.today()}": {"rows_read": 0, "rows_write": 0, "start_time": "00:00:00", "end_time": "00:00:00", "status": "Not Started"}},
-            "mapping": st.session_state.integration_mapping_config,
             "target_table": st.session_state.target_selected_tables,
             "source_table": st.session_state.source_selected_tables,
             "target_schema": st.session_state.target_selected_schema,

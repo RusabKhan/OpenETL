@@ -1,13 +1,13 @@
 
+from utils.schema_utils import SchemaUtils
+from utils.main_api_class import API
+from utils.enums import *
+from urllib.parse import urlencode
 import sys
 import os
 
 
 sys.path.append(os.getenv('OPENETL_HOME'))
-from urllib.parse import urlencode
-from utils.enums import *
-from utils.main_api_class import API
-from utils.schema_utils import SchemaUtils
 
 
 class Connector(API):
@@ -25,21 +25,20 @@ class Connector(API):
         self.pagination = {
             "after": 0
         }
-        self.limit = {"limit":100}
+        self.limit = {"limit": 100}
         self.connection_type = ConnectionType.API
         self.api = "hubspot"
         self.connection_name = "hubspot"
-        self.supported_auths = [AuthType.BEARER]
         self.schema = "public"
         self.database = "public"
-        self.authentication_details = {
-            "token_api_key": ""
+        self.authentication_details = {AuthType.BEARER: {
+            "token_api_key": ""}
         }
         self.main_response_key = "results"
         self.required_libs = []
 
     def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params):
-        return super().connect_to_api( auth_type, **auth_params)
+        return super().connect_to_api(auth_type, **auth_params)
 
     def fetch_data(self, api_session, table):
         arr = []
@@ -56,16 +55,16 @@ class Connector(API):
                 break
         return self.return_final_df(arr)
 
-    def return_final_df(self,responses):
+    def return_final_df(self, responses):
         return super().return_final_df(responses)
 
     def construct_endpoint(self, endpoint):
         return super().construct_endpoint(endpoint)
 
     def get_table_schema(self, api_session, table):
-        table_data = super().get_table_schema(api_session, table)[self.main_response_key]
+        table_data = super().get_table_schema(
+            api_session, table)[self.main_response_key]
         return SchemaUtils().dataframe_details(self.return_final_df(table_data))
 
     def install_missing_libraries(self):
         return super().install_missing_libraries()
-

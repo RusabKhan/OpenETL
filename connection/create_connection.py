@@ -3,13 +3,13 @@ import streamlit as st
 from utils.form_utils import GenerateForm
 from utils.cache import *
 from utils.style_utils import load_css
-from utils.local_connection_utils import read_all_apis
-from utils.generic_utils import set_page_config
+from utils.connector_utils import get_installed_connectors
+from utils.enums import *
 
-set_page_config(page_title="Create Connection", page_icon=None, initial_sidebar_state="expanded",
-                layout="wide", menu_items={}, page_style_state_variable="connection_create_connection")
+# set_page_config(page_title="Create Connection", page_icon=None, initial_sidebar_state="expanded",
+#                 layout="wide", menu_items={}, page_style_state_variable="connection_create_connection")
 
-load_css()
+# load_css()
 
 
 global type_, engine, gen
@@ -19,8 +19,8 @@ engine = None
 gen = None
 
 col1, col2 = st.columns([1, 1])
-sqlalchemy_sources = tuple(sqlalchemy_database_engines.keys())
-api_engines = read_all_apis()
+database_sources = get_installed_connectors(ConnectionType.DATABASE)
+api_engines = get_installed_connectors(ConnectionType.API)
 
 type_values = ("Database", "API")
 
@@ -34,7 +34,7 @@ with col1:
 
 with col2:
     msg = "Select Database" if type_ == "Database" else "Select API"
-    vals = sqlalchemy_sources if type_ == "Database" else api_engines
+    vals = database_sources if type_ == "Database" else api_engines
 
     engine = st.selectbox(
         msg,
@@ -42,8 +42,8 @@ with col2:
     )
 
 if type_ == "Database":
-    gen = GenerateForm("database", engine=engine)
+    gen = GenerateForm(ConnectionType.DATABASE, engine=engine)
 
 
 elif type_ == "API":
-    gen = GenerateForm("api", engine=engine)
+    gen = GenerateForm(ConnectionType.API, engine=engine)

@@ -62,7 +62,7 @@ def check_basic_auth(data):
 
 
 def check_bearer_token(data, table=None):
-    bearer_token = list(data.values())[0]
+    bearer_token = list(datas())[0]
 
     # Headers with Bearer token
     headers = {
@@ -119,15 +119,15 @@ def test_api(con_type, data, creating=False):
         table = read_api_tables(api)
         table = read_api_tables_url(api, table[0]).format(records=1)
     else:
-        table = list(st.session_state.api_tab_data.values())[0]
+        table = list(st.session_state.api_tab_datas())[0]
         base_url = data['base_url']
         table = f"{base_url}/{table}"
 
-    if con_type.lower() == AuthType.BASIC.value:
+    if con_type.lower() == AuthType.BASIC:
         return check_basic_auth(data=data)
-    elif con_type.lower() == AuthType.OAUTH2.value:
+    elif con_type.lower() == AuthType.OAUTH2:
         return check_oauth2(data=data)
-    elif con_type.lower() == AuthType.BEARER.value:
+    elif con_type.lower() == AuthType.BEARER:
         return check_bearer_token(data=data, table=table)
 
 
@@ -191,9 +191,9 @@ def get_data_from_api(table, api, auth_type, token=None, username=None, password
     records = 1
     # while True:
     # table_new = table.format(records=records)
-    if auth_type == AuthType.BEARER.value:
+    if auth_type == AuthType.BEARER:
         headers['Authorization'] = f'Bearer {token}'
-    elif auth_type == AuthType.BASIC.value:
+    elif auth_type == AuthType.BASIC:
         headers['Authorization'] = requests.auth.HTTPBasicAuth(
             username, password)
 
@@ -339,7 +339,7 @@ def read_connection_table(connection_name, table, schema="public"):
 
     config = read_connection_config(connection_name)['data']
     logging.info(f"config for given connection name: {config}")
-    if config['auth_type'] == AuthType.BEARER.value:
+    if config['auth_type'] == AuthType.BEARER:
         first_key = list(config['authentication_details']
                          [config['auth_type']].keys())[0]
         token = config['authentication_details'][config['auth_type']][first_key]

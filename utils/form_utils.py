@@ -17,29 +17,32 @@ from .generic_utils import check_missing_values
 import json
 import os
 from utils.api_utils import test_api
+from utils.enums import *
+from utils.connector_utils import get_connector_auth_details
 
 """This module contains functions related to form generation and card generation.
 """
 
 default_img = "https://cdn5.vectorstock.com/i/1000x1000/42/09/connection-vector-28634209.jpg"
 
+
 class GenerateForm():
     """
     A class which generates form.
     """
 
-    def __init__(self, type, engine):
+    def __init__(self, engine_type, engine):
         """Initialize GenerateForm class. 
 
         Args:
             type (string): database or JDBC. The type of form you wish to generate
             engine (string): Valid engine for sqlalchemy connection such as pymysql
         """
-        if type == "database":
+        if engine_type == ConnectionType.DATABASE:
             self.database_form(engine=engine)
-        elif type == "jdbc":
+        elif engine_type == "jdbc":
             self.jdbc_form(engine=engine)
-        elif type == "api":
+        elif engine_type == ConnectionType.API:
             self.api_form(engine=engine)
 
     def database_form(self, engine):  # sourcery skip: raise-specific-error
@@ -94,8 +97,8 @@ class GenerateForm():
         print("Creating connection...")
 
     def api_form(self, engine=""):
-        con_data = read_api_config(engine)
-        auth_types = list(con_data['authentication_details'].keys())
+        con_data = get_connector_auth_details(engine, ConnectionType.API)
+        auth_types = list(con_data.keys())
         auth_value = {}
         api_name = None
 
@@ -109,8 +112,8 @@ class GenerateForm():
         with col2:
             api_name = st.text_input("Connection Name", "my_api_connection")
 
-        for auth_type, auth_details in con_data["authentication_details"].items():
-            if auth_type.lower() == authentication_type.lower():
+        for auth_type, auth_details in con_data.items():
+            if auth_type == authentication_type:
                 for key, value in auth_details.items():
                     if isinstance(value, str):
                         backup_key = key
@@ -123,23 +126,7 @@ class GenerateForm():
 
         with test_col:
             if st.button("Create Connection"):
-                auth_value['base_url'] = con_data['base_url']
-                con_data['api'] = engine
-                auth_value['api'] = engine
-                resp = test_api(con_type=authentication_type.lower(),
-                            data=auth_value)
-                if resp["status_code"] == 200:
-                    st.success("Connection Successful")
-                    con_data['schema'] = 'public'
-                    con_data['database'] = 'public'
-                    con_data['auth_types'] = authentication_type.lower()
-                    con_data['auth_values'] = auth_value
-
-                    store_connection_config(
-                        connection_name=api_name, json_data=con_data, is_api=False)
-                else:
-                    st.error(resp)
-                    
+                pass
 
     def jdbc_form(self, engine):
         host = None
@@ -190,7 +177,7 @@ def on_button_click(button_name):
     st.session_state.clicked_button = button_name
 
 
-def create_button_columns(names,num_columns=7):
+def create_button_columns(names, num_columns=7):
     """
     Create columns of buttons.
 
@@ -203,11 +190,10 @@ def create_button_columns(names,num_columns=7):
     num_rows = (num_names + num_columns - 1) // num_columns
     for row in range(num_rows):
         cols = st.columns(num_columns)
-        
+
         start_index = row * num_columns
         end_index = min(start_index + num_columns, num_names)
 
         for i in range(start_index, end_index):
             cols[i % num_columns].image(default_img, width=150)
             cols[i % num_columns].button(names[i], use_container_width=True)
-

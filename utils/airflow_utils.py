@@ -85,14 +85,14 @@ def read_data(connection_type, table, schema, connection_name):
     Raises:
         ValueError: If the connection type is not "database" or "api".
     """
-    if connection_type.lower() not in [ConnectionType.DATABASE.value, ConnectionType.API.value]:
+    if connection_type.lower() not in [ConnectionType.DATABASE, ConnectionType.API]:
         raise ValueError(f"Unsupported connection type: {connection_type}")
 
-    if connection_type.lower() == ConnectionType.DATABASE.value:
+    if connection_type.lower() == ConnectionType.DATABASE:
         spark = spark_utils.SparkConnection(config)
         df = spark.read_via_spark()
         return df
-    elif connection_type.lower() == ConnectionType.API.value:
+    elif connection_type.lower() == ConnectionType.API:
         data = api.read_connection_table(
             table=table, connection_name=connection_name)
         print("################################")
@@ -141,7 +141,7 @@ def run_pipeline(source_connection_type, source_table, source_schema, source_con
 
     df = df.rename(columns=lambda x: x.replace('.', '_'))
 
-    if target_connection_type.lower() == ConnectionType.DATABASE.value:
+    if target_connection_type.lower() == ConnectionType.DATABASE:
         connection_details = loc.read_single_connection_config(
             target_connection_config['connection_name'])
         engine = connection_details['engine']
@@ -189,5 +189,5 @@ def run_pipeline(source_connection_type, source_table, source_schema, source_con
         spark_class.__dispose__()
         schema_ops.__dispose__()
 
-    elif target_connection_type.lower() == ConnectionType.API.value:
+    elif target_connection_type.lower() == ConnectionType.API:
         raise NotImplementedError("API target connection not implemented")
