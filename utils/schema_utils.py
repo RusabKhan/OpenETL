@@ -31,7 +31,7 @@ import logging
 class SchemaUtils:
     is_session_close = True
 
-    def __init__(self, connection_creds: dict):
+    def __init__(self, connection_creds: dict = None):
         """
         Initialize the class with the given connection credentials.
 
@@ -41,11 +41,11 @@ class SchemaUtils:
         Returns:
             None
         """
-
-        engine = connection_creds['ENGINE']
-        self._create_engine(engine, connection_creds)
-        self.metadata = MetaData()
-        self.schema_details = {}
+        if connection_creds is not None:
+            engine = connection_creds['ENGINE']
+            self._create_engine(engine, connection_creds)
+            self.metadata = MetaData()
+            self.schema_details = {}
 
     # TO CREATE ENGINE
     def _create_engine(self, engine, connection_creds):
