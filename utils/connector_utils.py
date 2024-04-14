@@ -84,3 +84,21 @@ def import_module(module_name, module_path, class_name="Connector", *args, **kwa
             f"Error initializing class '{class_name}' from module '{module_name}': {e}")
 
 
+def connector_test_connection(connector_name, connector_type=ConnectionType.DATABASE, auth_type=AuthType.BASIC, **auth_params):
+    """
+    Tests the connection to the specified connector.
+
+    Args:
+        connector_name (str): The name of the connector.
+        connector_type (ConnectionType): The type of connector, defaults to ConnectionType.DATABASE.
+
+    Returns:
+        bool: True if the connection is successful, False otherwise.
+    """
+    if connector_type == ConnectionType.DATABASE:
+        path = f"{connectors_directory}/database/{connector_name}.py"
+    elif connector_type == ConnectionType.API:
+        path = f"{connectors_directory}/api/{connector_name}.py"
+    module = import_module(connector_name, path)
+    api_session = module.connect_to_api(auth_type=auth_type, **auth_params)
+    return module.test_connection(api_session)

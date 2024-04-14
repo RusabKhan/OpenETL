@@ -8,6 +8,7 @@ import re
 from collections import abc
 from utils.generic_utils import install_libraries
 
+
 class API:
 
     logo = ""
@@ -27,7 +28,7 @@ class API:
     }
 
     def __init__(self):
-        
+
         self.logo = ""
         self.base_url = ""
         self.tables = {
@@ -38,14 +39,14 @@ class API:
         self.connection_type = ConnectionType.API
         self.api = ""
         self.connection_name = ""
-        self.supported_auths = [AuthType.BEARER, AuthType.OAUTH2, AuthType.BASIC]
+        self.supported_auths = [AuthType.BEARER,
+                                AuthType.OAUTH2, AuthType.BASIC]
         self.schema = "public"
         self.database = "public"
         self.authentication_details = {
         }
         self.main_response_key = ""
         self.required_libs = [""]
-
 
     def connect_to_api(self, auth_type=AuthType.BASIC, **auth_params):
         """
@@ -78,7 +79,6 @@ class API:
 
         return session
 
-
     def fetch_data(self, api_session, table):
         """
         Fetches data from the API using the provided session object.
@@ -94,19 +94,17 @@ class API:
         response.raise_for_status()  # Raise an exception for any HTTP errors
         return response.json()
 
-
-    def return_final_df(self,responses):
+    def return_final_df(self, responses):
         final_arr = []
         for resp in responses:
             if isinstance(resp, list):
                 final_arr.append(pd.json_normalize(resp))
-            else:   
+            else:
                 final_arr.append(self.create_df(resp))
         df = pd.concat(final_arr)
         return df
 
-
-    def create_df(self,resp):
+    def create_df(self, resp):
         parent_key = resp.keys()
         arr = []
         for key in parent_key:
@@ -127,7 +125,6 @@ class API:
         endpoint = f"{self.base_url}/{endpoint}"
         return endpoint
 
-    
     def get_table_schema(self, api_session, table_name):
         """Retrieve the schema details of a table.
 
@@ -138,11 +135,21 @@ class API:
             dict: A dictionary containing the schema details of the table.
         """
         endpoint = self.construct_endpoint(table_name)
-        resp = api_session.get(url = endpoint)
+        resp = api_session.get(url=endpoint)
         if resp.status_code == 200:
             table_data = resp.json()
             return table_data
-        
+        else:
+            raise Exception(f"Failed to retrieve table schema. Status code: {resp.status_code}. Message: {resp.text}")
+
     def install_missing_libraries(self):
         if len(self.required_libs) > 0:
             return install_libraries(self.required_libs)
+
+    def test_connection(self, api_session):
+        for table in self.tables:
+            try:
+                if self.get_table_schema(api_session, table):
+                    return True
+            except Exception as e:
+                return False

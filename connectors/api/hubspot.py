@@ -32,7 +32,7 @@ class Connector(API):
         self.schema = "public"
         self.database = "public"
         self.authentication_details = {AuthType.BEARER: {
-            "token_api_key": ""}
+            "token": ""}
         }
         self.main_response_key = "results"
         self.required_libs = []
@@ -68,3 +68,6 @@ class Connector(API):
 
     def install_missing_libraries(self):
         return super().install_missing_libraries()
+
+    def test_connection(self, api_session):
+        return super().test_connection(api_session)

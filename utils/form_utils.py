@@ -18,7 +18,7 @@ import json
 import os
 from utils.api_utils import test_api
 from utils.enums import *
-from utils.connector_utils import get_connector_auth_details
+import utils.connector_utils as con_utils
 
 """This module contains functions related to form generation and card generation.
 """
@@ -97,7 +97,7 @@ class GenerateForm():
         print("Creating connection...")
 
     def api_form(self, engine=""):
-        con_data = get_connector_auth_details(engine, ConnectionType.API)
+        con_data = con_utils.get_connector_auth_details(engine, ConnectionType.API)
         auth_types = list(con_data.keys())
         auth_value = {}
         api_name = None
@@ -126,7 +126,12 @@ class GenerateForm():
 
         with test_col:
             if st.button("Create Connection"):
-                pass
+                test = con_utils.connector_test_connection(auth_type=authentication_type, connector_type=ConnectionType.API, 
+                                                       connector_name=engine, **auth_value)
+                if test == True:
+                    st.success("Connection created successfully!") 
+                else:
+                    st.error("Connection failed. Please try again. Or check the connection details.")
 
     def jdbc_form(self, engine):
         host = None
