@@ -1,9 +1,12 @@
 
 import sys
 import os
+
+
+sys.path.append(os.getenv('OPENETL_HOME'))
 from urllib.parse import urlencode
 from utils.enums import *
-from utils.api_class import API
+from utils.main_api_class import API
 from utils.schema_utils import SchemaUtils
 
 
@@ -33,7 +36,7 @@ class Connector(API):
             "token_api_key": ""
         }
         self.main_response_key = "results"
-        self.required_libs = [""]
+        self.required_libs = []
 
     def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params):
         return super().connect_to_api( auth_type, **auth_params)
@@ -63,4 +66,6 @@ class Connector(API):
         table_data = super().get_table_schema(api_session, table)[self.main_response_key]
         return SchemaUtils().dataframe_details(self.return_final_df(table_data))
 
+    def install_missing_libraries(self):
+        return super().install_missing_libraries()
 

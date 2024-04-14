@@ -6,7 +6,7 @@ import pandas as pd
 from . enums import *
 import re
 from collections import abc
-
+from utils.generic_utils import install_libraries
 
 class API:
 
@@ -43,6 +43,8 @@ class API:
         self.database = "public"
         self.authentication_details = {
         }
+        self.main_response_key = ""
+        self.required_libs = [""]
 
 
     def connect_to_api(self, auth_type=AuthType.BASIC, **auth_params):
@@ -140,3 +142,7 @@ class API:
         if resp.status_code == 200:
             table_data = resp.json()
             return table_data
+        
+    def install_missing_libraries(self):
+        if len(self.required_libs) > 0:
+            return install_libraries(self.required_libs)

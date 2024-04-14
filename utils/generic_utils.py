@@ -102,6 +102,11 @@ def check_missing_values(**kwargs):
 
 
 def install_libraries(libs):
-    for lib in libs:
-        subprocess.call(['pip', 'install', lib])
+    try:
+        for lib in libs:
+            subprocess.call(['pip', 'install', lib])
+        return True
+    except Exception as e:
+        st.error(f"Error: {str(e)}")
+        return False
  
