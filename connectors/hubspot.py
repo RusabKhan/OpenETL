@@ -32,6 +32,8 @@ class Connector(API):
         self.authentication_details = {
             "token_api_key": ""
         }
+        self.main_response_key = "results"
+        self.required_libs = [""]
 
     def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params):
         return super().connect_to_api( auth_type, **auth_params)
@@ -44,7 +46,7 @@ class Connector(API):
             limit_query = urlencode(self.limit)
             paginated_endpoint = f"{endpoint}?{pagination_query}&{limit_query}"
             resp = super().fetch_data(api_session, paginated_endpoint)
-            arr.append(resp['results'])
+            arr.append(resp[self.main_response_key])
             if "paging" in resp and "next" in resp["paging"]:
                 self.pagination["after"] = resp["paging"]["next"]["after"]
             else:
@@ -58,7 +60,7 @@ class Connector(API):
         return super().construct_endpoint(endpoint)
 
     def get_table_schema(self, api_session, table):
-        table_data = super().get_table_schema(api_session, table)["results"]
+        table_data = super().get_table_schema(api_session, table)[self.main_response_key]
         return SchemaUtils().dataframe_details(self.return_final_df(table_data))
 
 

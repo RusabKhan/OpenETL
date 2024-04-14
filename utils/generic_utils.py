@@ -5,6 +5,7 @@ from .local_connection_utils import read_connection_config
 import streamlit as st
 from .jdbc_engine_utils import JDBCEngine
 from .api_utils import read_api_tables
+import subprocess
 
 
 
@@ -100,3 +101,7 @@ def check_missing_values(**kwargs):
     return False, None
 
 
+def install_libraries(libs):
+    for lib in libs:
+        subprocess.call(['pip', 'install', lib])
+ 

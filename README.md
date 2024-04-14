@@ -17,17 +17,10 @@ To get started with OpenETL, follow these simple steps:
 5. Launch the Docker container:
 6. Open your web browser and visit `http://localhost:8500` to access the OpenETL application.
 
-## Upgrade to the Paid Version
+## Need More?
 
-While the free version of OpenETL provides a solid foundation for your data processing needs, we also offer a paid version with enhanced features and customization options. In the paid version, you can take advantage of the following additions:
+If the features in the base version of OpenETL aren't quite cutting it for you, fear not! We're here to help. If you require additional functionality, customizations, or have specific requirements, simply reach out to us.
 
-- **Batches**: Perform ETL processes in batch mode for improved efficiency and scheduling capabilities.
-- **Incremental Load**: Incrementally load data by detecting and processing only the changed or new records.
-- **Custom Data Sources and Data Targets**: Connect to and extract data from a wide range of custom data sources, as well as load it into custom data targets.
-- **Data Warehouses**: Integrate with popular data warehouse solutions to store and analyze your processed data efficiently.
-- **Insights**: Gain valuable insights and visualize your data using advanced analytics and reporting features.
-
-To access the paid version of OpenETL and discuss tailored solutions based on your specific requirements, please reach out to us at [email protected] We will be delighted to assist you in setting up the application on your local environment and providing the customization you need.
 
 ## Support and Feedback
 
