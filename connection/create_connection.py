@@ -2,14 +2,13 @@
 import streamlit as st
 from utils.form_utils import GenerateForm
 from utils.cache import *
-from utils.style_utils import load_css
 from utils.connector_utils import get_installed_connectors
 from utils.enums import *
 
 # set_page_config(page_title="Create Connection", page_icon=None, initial_sidebar_state="expanded",
 #                 layout="wide", menu_items={}, page_style_state_variable="connection_create_connection")
 
-# load_css()
+# 
 
 
 global type_, engine, gen

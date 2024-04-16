@@ -1,5 +1,5 @@
 
-from utils.schema_utils import SchemaUtils
+from utils.database_utils import DatabaseUtils
 from utils.main_api_class import API
 from utils.enums import *
 from urllib.parse import urlencode

@@ -169,3 +169,5 @@ dags
 assets
 
 con.json
+
+.local.json

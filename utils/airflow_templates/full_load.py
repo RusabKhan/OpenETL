@@ -8,6 +8,7 @@ base_dir = os.getenv('OPENETL_HOME')
 sys.path.append(base_dir)
 
 from utils.airflow_utils import run_pipeline
+from utils.enums import *
 import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
@@ -22,7 +23,6 @@ source_connection = {source_connection}
 target_connection = {target_connection}
 spark_config = {spark_config}
 hadoop_config = {hadoop_config}
-mapping = f"{mapping}"
 
 
 def print_environment_variables():
@@ -56,7 +56,7 @@ execute_pipeline = PythonOperator(
     python_callable=run_pipeline,
     op_args=[source_connection['connection_type'], source_connection['table'], source_connection['schema'], \
     source_connection['connection_name'], target_connection['connection_type'], target_connection,
-                spark_config, hadoop_config, mapping, dag_name],
+                spark_config, hadoop_config, dag_name],
     dag=dag,
 )
 

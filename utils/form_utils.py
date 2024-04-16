@@ -10,7 +10,7 @@ Functions:
 """
 import streamlit as st
 from .jdbc_engine_utils import JDBCEngine
-from .sqlalchemy_engine_utils import SQLAlchemyEngine
+from .database_utils import DatabaseUtils
 import pandas as pd
 from .local_connection_utils import store_connection_config, read_api_config
 from .generic_utils import check_missing_values
@@ -81,7 +81,7 @@ class GenerateForm():
                 if check[0]:
                     st.error(f"{check[1]} is missing")
                 else:
-                    test_passed = SQLAlchemyEngine(connection_name=connection_name,
+                    test_passed = DatabaseUtils(connection_name=connection_name,
                                                    hostname=host, username=username, password=password, port=port, database=database, engine=engine).test()
 
                     json_data = {"hostname": host, "username": username, "password": password,

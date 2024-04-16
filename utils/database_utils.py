@@ -1,82 +1,127 @@
 """
-This module contains utility functions for working with data schema and types.
+This module contains utility functions for working with SQLAlchemy engine connections.
 
-Classes:
-- SchemaUtils: A class for working with data schema and types.
+Class:
+- SQLAlchemyEngine: Represents a class to connect with any database using SQLAlchemy.
 
-Functions:
-- match_pandas_schema_to_spark: Matches the data types of columns in a Spark DataFrame to a specified schema.
-- commit_changes: Commits the changes made within the session.
-- __enter__: Enters the `with` context and creates a new session.
-- close_session: Closes the session and sets the session close flag.
-- __exit__: Exits the `with` context, commits changes, and closes the session.
-- create_table: Creates a new table in the database. If the table already exists, it skips the creation.
-- __init__: Initializes the class with the given connection credentials.
+Methods:
+- __init__: Initializes the class with database connection details.
+- test: Tests the connection to the database.
+- get_metadata: Retrieves schema metadata from the connection.
+- execute_query: Executes a SQL query against the connection.
+- get_metadata_df: Retrieves schema metadata in a dataframe format.
 """
+import sys
+import os
+import sqlalchemy as sq
 import pandas as pd
-import time
-from sqlalchemy import create_engine, MetaData, Column, Integer, String, Float, Boolean, Table
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Enum, Date, DateTime, Float, \
+    and_, or_, select, PrimaryKeyConstraint
 from sqlalchemy.orm import sessionmaker
-import uuid
 from utils.cache import sqlalchemy_database_engines
 from sqlalchemy.exc import OperationalError
 from utils.enums import ColumnActions
 import numpy as np
-from pyspark.sql.types import StringType, IntegerType, FloatType, DoubleType, BooleanType, TimestampType, DateType, ArrayType, MapType
+from sqlalchemy.ext.declarative import declarative_base
+from pyspark.sql.types import StringType, IntegerType, FloatType, DoubleType, BooleanType, TimestampType, DateType, \
+    ArrayType, MapType
 import re
 import logging
+import base64
+import json
 
 
-class SchemaUtils:
-    is_session_close = True
+class DatabaseUtils():
+    """A class to connect with any database using SQLAlchemy.
+    """
 
-    def __init__(self, connection_creds: dict = None):
+    def __init__(self, engine, hostname, username, password, port, database, connection_name=None, connection_type=None):
+        """Initialize class
+
+        Args:
+            engine (string): Sqlalchemy dialect
+            hostname (string): You database hostname
+            username (string): Your database username
+            password (string): Your database password
+            port (string): Your database port
+            database (string): Your database
+            connection_name (string, optional): _description_. Defaults to None.
+            connection_type (string, optional): _description_. Defaults to None.
         """
-        Initialize the class with the given connection credentials.
+        engine = sqlalchemy_database_engines[engine]
+        url = f"{engine}://{username}:{password}@{hostname}:{port}/{database}"
 
-        Parameters:
-            connection_creds (dict): A dictionary containing the connection credentials.
+        self.engine = sq.create_engine(
+            url=url
+        )
+
+        self.create_session()
+
+    def test(self):
+        """Test connection to database
 
         Returns:
-            None
+            Boolean: True if connected else False
         """
-        if connection_creds is not None:
-            engine = connection_creds['ENGINE']
-            self._create_engine(engine, connection_creds)
-            self.metadata = MetaData()
-            self.schema_details = {}
+        try:
+            self.engine.connect()
+            return True
+        except Exception as e:
+            return False
 
-    # TO CREATE ENGINE
-    def _create_engine(self, engine, connection_creds):
+    def get_metadata(self):
+        """Get schema metadata from the connection
+
+        Returns:
+            dict: {"tables": tables,"schema":[]}
         """
-        Create a database engine based on the provided engine type and connection credentials.
+        try:
+            inspector = sq.inspect(self.engine)
+            schemas = inspector.get_schema_names()
+            tables = []
 
-        Parameters:
-            engine (str): The type of database engine to create.
-            connection_creds (dict): A dictionary containing the connection credentials including 'USERNAME', 'PASSWORD', 'HOSTNAME', 'PORT', 'DATABASE'.
+            for schema in schemas:
+                print(f"schema: {schema}")
+                tables.append(inspector.get_table_names(schema=schema))
+            return {"tables": tables, "schema": schemas}
+        except Exception as e:
+            return {"tables": tables, "schema": []}
 
-        Raises:
-            ValueError: If any of the required credentials are missing in the connection_creds dictionary.
+    def execute_query(self, query):
+        """Execute query against the connection
+
+        Args:
+            query (string): Valid SQL query
+
+        Returns:
+            Dataframe: Pandas dataframe of your query results
         """
-        required_credentials = ['USERNAME',
-                                'PASSWORD', 'HOSTNAME', 'PORT', 'DATABASE']
-        database_connection = sqlalchemy_database_engines.get(engine)
-        missing_credentials = [
-            cred for cred in required_credentials if cred not in connection_creds]
+        try:
+            con = self.engine.connect()
+            data = con.execute(text(query))
+            return pd.DataFrame(data)
+        except Exception as e:
+            return pd.DataFrame()
 
-        if missing_credentials:
-            raise ValueError(
-                f"Missing connection credentials: {', '.join(missing_credentials)}")
+    def get_metadata_df(self):
+        """Get your schema metadata in a dataframe
 
-        username = connection_creds['USERNAME']
-        password = connection_creds['PASSWORD']
-        host_ip = connection_creds['HOSTNAME']
-        port = connection_creds['PORT']
-        database = connection_creds['DATABASE']
-
-        connection_string = f"{database_connection}://{username}:{password}@{host_ip}:{port}/{database}"
-        self._engine = create_engine(connection_string)
+        Returns:
+            Dataframe: Pandas dataframe of your schema
+        """
+        inspector = sq.inspect(self.engine)
+        schemas = inspector.get_schema_names()
+        tables = []
+        data = {}
+        for schema in schemas:
+            data_schema = []
+            print(f"schema: {schema}")
+            tables = inspector.get_table_names(schema=schema)
+            data["Table Name"] = tables
+            while len(tables) < len(data_schema):
+                data_schema.append(schema)
+            data["Schema"] = schema
+        return pd.DataFrame(data)
 
     # TO HANDLE DML TASKS
 
@@ -124,7 +169,7 @@ class SchemaUtils:
             details[col] = str(dtype)
         return details
 
-    def create_table(self, table_name: str, df: pd.DataFrame):
+    def create_table(self, table_name: str, df: pd.DataFrame, target_schema="public"):
         """
         Create a new table in the database. If already exists, skip creation.
 
@@ -137,8 +182,8 @@ class SchemaUtils:
         try:
             schema_details = self.dataframe_details(df)
             table = Table(table_name, self.metadata,
-                          *[Column(column_name, eval(column_type)) for column_name, column_type in schema_details.items()])
-            self.metadata.create_all(self._engine)
+                          *[Column(column_name, eval(column_type)) for column_name, column_type in schema_details.items()], schema=target_schema)
+            self.metadata.create_all(self.engine)
 
             self.schema_details = schema_details
 
@@ -169,17 +214,17 @@ class SchemaUtils:
             'unicode': u' ',
             # Add more data types as needed
         }
-        nan_variations = ['nan', 'NaN', 'Nan', 'naN', 'NAN']  # Add more variations if needed
-        
+        # Add more variations if needed
+        nan_variations = ['nan', 'NaN', 'Nan', 'naN', 'NAN']
+
         for col in df.columns:
             dtype = df[col].dtype.name
             if dtype in nan_replacements:
                 # Replace variations of NaN values
-                df[col] = df[col].map(lambda x: nan_replacements[dtype] if str(x).strip().lower() in nan_variations else x)
-        
+                df[col] = df[col].map(lambda x: nan_replacements[dtype] if str(
+                    x).strip().lower() in nan_variations else x)
+
         return df
-
-
 
     def alter_table_column_add_or_drop(self, table_name, column_name=None, column_details=None, action: ColumnActions = ColumnActions.ADD):
         """
@@ -200,7 +245,7 @@ class SchemaUtils:
         try:
             # Reflect the existing table from the database
             table = Table(table_name, self.metadata,
-                          autoload=True, autoload_with=self._engine)
+                          autoload=True, autoload_with=self.engine)
 
             if action == ColumnActions.DROP:
                 table._columns.remove(table.c[column_name])
@@ -215,8 +260,8 @@ class SchemaUtils:
                 raise NotImplementedError
 
             # Save changes to the database
-            self.metadata.drop_all(self._engine)
-            self.metadata.create_all(self._engine)
+            self.metadata.drop_all(self.engine)
+            self.metadata.create_all(self.engine)
 
             return True, action
         except OperationalError as e:
@@ -233,9 +278,9 @@ class SchemaUtils:
             tuple: A tuple indicating the success status and a message.
         """
         try:
-            self.metadata.reflect(bind=self._engine, only=[table_name])
+            self.metadata.reflect(bind=self.engine, only=[table_name])
             existing_table = self.metadata.tables[table_name]
-            existing_table.drop(self._engine)
+            existing_table.drop(self.engine)
 
             return True, f"Table '{table_name}' has been dropped."
         except Exception as e:
@@ -254,9 +299,9 @@ class SchemaUtils:
                    The message provides information about the truncation result.
         """
         try:
-            self.metadata.reflect(bind=self._engine, only=[table_name])
+            self.metadata.reflect(bind=self.engine, only=[table_name])
             table = self.metadata.tables[table_name]
-            with self._engine.connect() as connection:
+            with self.engine.connect() as connection:
                 delete_statement = table.delete()
                 connection.execute(delete_statement)
 
@@ -347,8 +392,8 @@ class SchemaUtils:
             spark_df = spark_df.withColumn(
                 col, spark_df[col].cast(spark_dtype))
         return spark_df
-    
-    def write_batches(self, data):
+
+    def write_data(self, data, table_name='openetl_batches', if_exists='append', schema="public"):
         """
         Writes data to a table in etl_batches.
 
@@ -358,20 +403,20 @@ class SchemaUtils:
         """
 
         try:
-            etl_batches_df = pd.DataFrame(data,index=[0])
-            with self._engine.connect() as con:
-                etl_batches_df.to_sql('openetl_batches', con=con, if_exists='append', index=False)
+            df = pd.DataFrame(data, index=[0])
+            with self.engine.connect() as con:
+                df.to_sql(
+                    table_name, con=con, if_exists=if_exists, index=False, schema=schema)
             return True
         except Exception as e:
             logging.error(e)
             return False
 
-
     def create_session(self):
         """
         Create a new session and initialize metadata and base.
         """
-        Session = sessionmaker(bind=self._engine)
+        Session = sessionmaker(bind=self.engine)
         self.session = Session()
         self.Base = declarative_base()
         self.metadata = MetaData()
@@ -412,4 +457,139 @@ class SchemaUtils:
         Dispose the session and engine.
         """
         logging.info("DISPOSING SCHEMA UTILS SQLALCHEMY ENGINE")
-        self._engine.dispose()
+        self.engine.dispose()
+
+    def create_schema_if_not_exists(self, schema_name='open_etl'):
+        """
+        Creates a schema in the database if it does not already exist.
+
+        Parameters:
+            schema_name (str): The name of the schema to create. Defaults to 'open_etl'.
+
+        Returns:
+            None
+        """
+        with self.engine.connect() as connection:
+            connection.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
+
+    def alter_table_column_add_primary_key(self, table_name, column_name='id', schema_name='open_etl'):
+        """
+        Alter a table by adding a primary key to a specified column.
+
+        Args:
+            table_name (str): The name of the table to alter.
+            column_name (str): The name of the column to set as the primary key. Defaults to 'id'.
+            Currently not working changes do not reflect in the database.
+
+        Returns:
+            bool: True if the primary key addition is successful, False otherwise.
+        """
+
+        try:
+            existing_table = Table(
+                table_name, self.metadata, autoload_with=self.engine, schema=schema_name)
+            column = existing_table.columns[column_name]
+            primary_key_constraint = PrimaryKeyConstraint(column, column_name)
+            existing_table.append_constraint(primary_key_constraint)
+
+            self.metadata.create_all(self.engine)
+            return True
+
+        except Exception as e:
+            return False
+
+    def create_document_table(self):
+        """
+        Creates a document table in the database.
+
+        This function creates a table named 'openetl_documents' in the 'open_etl' schema of the database. The table has the following columns:
+        - document_id: an integer column representing the ID of the document.
+        - document: a string column representing the document itself.
+        - document_type: a string column representing the type of the document.
+        - connection_name: a string column representing the name of the connection.
+        - pipeline_name: a string column representing the name of the pipeline.
+        - connection_type: a string column representing the type of the connection.
+
+        The function uses the pandas DataFrame constructor to create an empty DataFrame with the specified column names and data types. The DataFrame is then passed to the `create_table` method of the `DatabaseUtils` class to create the table in the database.
+
+        After creating the table, the function calls the `alter_table_column_add_primary_key` method to add a primary key constraint on the 'document_id' column of the table.
+
+        Parameters:
+        - self: The instance of the `DatabaseUtils` class.
+
+        Returns:
+        - None
+        """
+
+        data = {
+            'document_id': 'int',
+            'document': 'str',
+            'document_type': 'str',
+            'connection_name': 'str',
+            'pipeline_name': 'str',
+            'connection_type': 'str'
+        }
+
+        df = pd.DataFrame({}, columns=data.keys()).astype(data)
+        self.create_table('openetl_documents', df, target_schema='open_etl')
+
+        self.alter_table_column_add_primary_key(
+            'openetl_documents', 'document_id')
+
+    def fetch_rows(self, table_name='openetl_documents', schema_name='open_etl', conditions: dict = {}):
+        """
+        Executes a select query on the specified table with the provided conditions.
+
+        Args:
+            table_name (str, optional): The name of the table to fetch rows from. Defaults to 'openetl_documents'.
+            schema_name (str, optional): The schema of the table. Defaults to 'open_etl'.
+            conditions (dict, optional): The conditions to filter the rows. Defaults to {}.
+
+        Returns:
+            ResultProxy: The result of the select query.
+        """
+
+        table = Table(table_name, self.metadata,
+                      autoload_with=self.engine, schema=schema_name)
+        document_column = table.columns.document
+        where_condition = []
+
+        for key, value in conditions.items():
+            where_condition.append(table.columns[key] == value)
+
+        columns = [table.columns[column_name]
+                   for column_name in table.columns.keys()]
+        data = ''
+        result = None
+        # Execute a select query with the WHERE clause
+        with self.engine.connect() as connection:
+            query = select(columns).where(and_(*where_condition))
+            result = connection.execute(query)
+        return result
+
+    def fetch_document(self, table_name='openetl_documents', schema_name='open_etl', conditions: dict = {}):
+        """
+        Fetches a single document based on the specified table, schema, and conditions.
+
+        Args:
+            table_name (str, optional): The name of the table to fetch the document from. Defaults to 'openetl_documents'.
+            schema_name (str, optional): The schema of the table. Defaults to 'open_etl'.
+            conditions (dict, optional): The conditions to filter the document retrieval. Defaults to {}.
+
+        Returns:
+            dict: A dictionary representing the fetched document with column names as keys.
+        """
+
+        result = self.fetch_rows(
+            table_name=table_name, schema_name=schema_name, conditions=conditions)
+        data = result.fetchall()
+        columns = result.keys()
+        rows_with_column_names = [
+            {column_name: row_value for column_name, row_value in zip(columns, row)} for row in data]
+
+        return rows_with_column_names[0]
+
+    def write_document(self, document, table_name='openetl_documents', schema_name='open_etl'):
+        document['document'] = json.dumps(document['document'])
+        self.write_data(data=document, table_name=table_name,
+                        schema=schema_name)

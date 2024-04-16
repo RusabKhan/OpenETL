@@ -10,7 +10,7 @@ Classes:
     - Create_API: Represents a class for creating API connections with methods like file_uploader_design and submit_data_for_processing.
 """
 
-from utils.schema_utils import SchemaUtils
+from utils.database_utils import SchemaUtils
 import json
 from utils.api_utils import parse_json, parse_xml, test_api
 from streamlit_ace import st_ace

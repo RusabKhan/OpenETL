@@ -1,6 +1,5 @@
 import streamlit as st
 from utils.cache import *
-from .style_utils import load_css
 import jaydebeapi
 import zipfile
 import requests
@@ -8,7 +7,7 @@ import sys
 from .local_connection_utils import check_jar_exists
 import os
 import pandas as pd
-load_css()
+
 
 
 class JDBCEngine():

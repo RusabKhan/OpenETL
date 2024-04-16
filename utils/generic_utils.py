@@ -1,6 +1,6 @@
 """This module contains utilitiy functions which can be used in particular case and are not relevant to any one scenario.
 """
-from .sqlalchemy_engine_utils import SQLAlchemyEngine
+from .database_utils import DatabaseUtils
 from .local_connection_utils import read_connection_config
 import streamlit as st
 from .jdbc_engine_utils import JDBCEngine
@@ -65,7 +65,7 @@ def fetch_metadata(connection):
             tables = read_api_tables(metadata['api'])
             return {"tables": [tables], "schema": ["public"]}
 
-        metadata = SQLAlchemyEngine(**metadata).get_metadata()
+        metadata = DatabaseUtils(**metadata).get_metadata()
         return metadata
     except Exception as e:
         st.error("Data does not exist for selected type of connection")
@@ -86,7 +86,7 @@ def execute(connection, query, is_java=False):
 
     if is_java:
         return JDBCEngine(**metadata).execute_query(query)
-    return SQLAlchemyEngine(**metadata).execute_query(query)
+    return DatabaseUtils(**metadata).execute_query(query)
 
 
 def check_missing_values(**kwargs):

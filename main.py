@@ -2,7 +2,6 @@ import streamlit as st
 from st_pages import Page, Section, show_pages, add_page_title, hide_pages
 import utils.generic_utils as gu
 from utils.local_connection_utils import create_con_directory
-from utils.style_utils import load_css
 
 gu.set_page_config(page_title="OpenETL", page_icon=None, initial_sidebar_state="expanded",
                    layout="wide", menu_items={}, page_style_state_variable="home")
@@ -83,7 +82,7 @@ def set_session():
 def __init__():
     set_session()
     create_con_directory()
-    load_css()
+
 
 
 __init__()
@@ -95,7 +94,7 @@ show_pages(
         Page("connection/create_connection.py", "Create a new connection"),
         Page("connection/connection.py", "Connections"),
         # Page("query_editor/query.py","Query Editor"),
-        Page("api/create_api.py", "Create API"),
+        #Page("api/create_api.py", "Create API"),
         Page("pipeline/pipelines.py", "My ETL"),
         Page("pipeline/create_pipelines.py", "Create ETL"),
         # Page("api/fetch_data.py","Fetch Data"),

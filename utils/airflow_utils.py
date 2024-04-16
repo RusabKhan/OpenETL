@@ -8,10 +8,9 @@ Functions:
 - post_process_data: Performs post-processing tasks on the data.
 - validate_data: Validates the data to ensure quality and consistency.
 """
-from utils import schema_utils as schema_utils
 import utils.api_utils as api
 import utils.jdbc_engine_utils as jdbc_utils
-import utils.sqlalchemy_engine_utils as sqla
+import utils.database_utils as database_utils
 from utils.enums import *
 import utils.spark_utils as sp_ut
 from datetime import datetime, timedelta
@@ -61,8 +60,8 @@ def create_airflow_dag(config):
     with open(f"{os.getcwd()}/utils/airflow_templates/full_load.py", 'r') as file:
         template = file.read()
     template = template.format(
-        integration_name=integration_name, source_connection=op_args[
-            "config"]["source"], target_connection=op_args["config"]["target"], mapping=config["mapping"],
+        integration_name=integration_name, source_connection=op_args["config"]["source"], 
+        target_connection=op_args["config"]["target"],
         spark_config=config["spark_config"], hadoop_config=config["hadoop_config"], default_args=default_args)
     with open(f"{os.getcwd()}/.local/dags/{config['integration_name']}.py", "w") as f:
         f.write(template)
@@ -85,14 +84,14 @@ def read_data(connection_type, table, schema, connection_name):
     Raises:
         ValueError: If the connection type is not "database" or "api".
     """
-    if connection_type.lower() not in [ConnectionType.DATABASE, ConnectionType.API]:
+    if connection_type.lower() not in [ConnectionType.DATABASE.value, ConnectionType.API.value]:
         raise ValueError(f"Unsupported connection type: {connection_type}")
 
-    if connection_type.lower() == ConnectionType.DATABASE:
-        spark = spark_utils.SparkConnection(config)
+    if connection_type.lower() == ConnectionType.DATABASE.value:
+        spark = sp_ut.SparkConnection(config)
         df = spark.read_via_spark()
         return df
-    elif connection_type.lower() == ConnectionType.API:
+    elif connection_type.lower() == ConnectionType.API.value:
         data = api.read_connection_table(
             table=table, connection_name=connection_name)
         print("################################")
@@ -154,7 +153,7 @@ def run_pipeline(source_connection_type, source_table, source_schema, source_con
         con_string = jdbc_connection_strings[engine].format(
             **connection_details)
 
-        schema_ops = schema_utils.SchemaUtils(connection_details)
+        schema_ops = database_utils.DatabaseUtils(connection_details)
         df = schema_ops.cast_columns(df)
         df = schema_ops.fill_na_based_on_dtype(df)
 

@@ -3,17 +3,20 @@ import streamlit as st
 from utils.local_connection_utils import read_all_connection_configs, read_connection_config
 from utils.airflow_utils import create_airflow_dag
 from utils.generic_utils import extract_connections_db_or_api, fetch_metadata, check_missing_values, set_page_config
-from utils.sqlalchemy_engine_utils import SQLAlchemyEngine
+from utils.database_utils import DatabaseUtils
+from utils.enums import *
 import pandas as pd
 import json
 from datetime import date
 
-set_page_config(page_title="Create ETL", page_icon=None, initial_sidebar_state="expanded", 
+set_page_config(page_title="Create ETL", page_icon=None, initial_sidebar_state="expanded",
                 layout="wide", menu_items={}, page_style_state_variable="pipeline_create_pipeline")
 
 # (steps=["Select Source & Target", "Spark Settings", "Finish"])
-source_type = "Database"
-con_type = ["Database", "API"]
+target_type = ConnectionType.DATABASE.value
+con_type = [
+    ConnectionType.DATABASE.value,
+    ConnectionType.API.value]
 
 configs = read_all_connection_configs()
 source_target, spark, finish = st.tabs(
@@ -39,7 +42,6 @@ source_int_schema = 0
 slide_col1, slide_col2 = st.columns([4, 1])
 
 
-
 with source_target:
     source = ""
     source_div = st.expander("Source", expanded=True)
@@ -50,10 +52,10 @@ with source_target:
         options = []
         subcol1, subcol2 = st.columns([3, 1])
         with subcol2:
-            source_type = st.radio(
+            target_type = st.radio(
                 "Source Type", con_type)
-            st.session_state.source_type = source_type
-            options = extract_connections_db_or_api(source_type, configs)
+            st.session_state.source_type = target_type
+            options = extract_connections_db_or_api(target_type, configs)
         with subcol1:
             source = st.selectbox("Source", options=options)
             st.session_state.source_connection_name = source
@@ -184,10 +186,8 @@ with spark:
         hadoop_config = _config_hadoop.set_index(
             'Configuration')['Average Setting'].to_dict()
 
-
-
-    st.session_state.integration_spark_config = spark_config 
-    st.session_state.integration_hadoop_config = hadoop_config 
+    st.session_state.integration_spark_config = spark_config
+    st.session_state.integration_hadoop_config = hadoop_config
 
 
 with finish:

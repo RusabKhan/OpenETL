@@ -208,7 +208,6 @@ jdbc_connection_strings = {
     'Google Cloud Datastore': 'jdbc:datastore://{project_id}'
 }
 
-
 jdbc_engine_drivers = {
     "MySQL": "com.mysql.cj.jdbc.Driver",
     "PostgreSQL": "org.postgresql.Driver",
