@@ -81,13 +81,17 @@ class GenerateForm():
                 if check[0]:
                     st.error(f"{check[1]} is missing")
                 else:
-                    test_passed = DatabaseUtils(connection_name=connection_name,
-                                                   hostname=host, username=username, password=password, port=port, database=database, engine=engine).test()
-
-                    json_data = {"hostname": host, "username": username, "password": password,
-                                 "port": port, "database": database, "engine": engine, "connection_type": "database"}
-                    stored = store_connection_config(
-                        connection_name=connection_name, json_data=json_data) if test_passed else False
+                    try: 
+                        test_passed = DatabaseUtils(connection_name=connection_name,
+                                                    hostname=host, username=username, password=password, port=port, database=database, engine=engine).test()
+                    except Exception as e:
+                        st.error(e)
+                        
+                    json_data = {"connection_credentials":{"hostname": host, "username": username, "password": password,
+                                 "port": port, "database": database, "engine": engine, "connection_type": "database"},
+                                 "connection_name": connection_name, "connection_type": "database"
+                                 }
+                    stored = DatabaseUtils(engine=engine).write_document(json_data)
                     if stored:
                         st.success('Connection created!', icon="✅")
 

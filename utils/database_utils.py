@@ -13,10 +13,11 @@ Methods:
 """
 import sys
 import os
+sys.path.append(os.getenv('OPENETL_HOME'))
 import sqlalchemy as sq
 import pandas as pd
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Enum, Date, DateTime, Float, \
-    and_, or_, select, PrimaryKeyConstraint
+    and_, or_, select, PrimaryKeyConstraint, func, JSON, text
 from sqlalchemy.orm import sessionmaker
 from utils.cache import sqlalchemy_database_engines
 from sqlalchemy.exc import OperationalError
@@ -30,6 +31,18 @@ import logging
 import base64
 import json
 
+
+
+Base = declarative_base()
+
+class OpenETLDocument(Base):
+    __tablename__ = 'openetl_documents'
+    __table_args__ = {'schema': 'open_etl'}
+
+    document_id = Column(Integer, primary_key=True)
+    connection_credentials = Column(JSON)
+    connection_name = Column(String)
+    connection_type = Column(String)
 
 class DatabaseUtils():
     """A class to connect with any database using SQLAlchemy.
@@ -404,6 +417,7 @@ class DatabaseUtils():
 
         try:
             df = pd.DataFrame(data, index=[0])
+            print(df)
             with self.engine.connect() as con:
                 df.to_sql(
                     table_name, con=con, if_exists=if_exists, index=False, schema=schema)
@@ -487,12 +501,13 @@ class DatabaseUtils():
 
         try:
             existing_table = Table(
-                table_name, self.metadata, autoload_with=self.engine, schema=schema_name)
-            column = existing_table.columns[column_name]
-            primary_key_constraint = PrimaryKeyConstraint(column, column_name)
-            existing_table.append_constraint(primary_key_constraint)
+            table_name, self.metadata, autoload_with=self.engine, schema=schema_name)
 
+            column = existing_table.columns[column_name]
+            primary_key_constraint = PrimaryKeyConstraint(column)
+            existing_table.append_constraint(primary_key_constraint)
             self.metadata.create_all(self.engine)
+
             return True
 
         except Exception as e:
@@ -520,21 +535,9 @@ class DatabaseUtils():
         Returns:
         - None
         """
+            
+        OpenETLDocument.metadata.create_all(self.engine)
 
-        data = {
-            'document_id': 'int',
-            'document': 'str',
-            'document_type': 'str',
-            'connection_name': 'str',
-            'pipeline_name': 'str',
-            'connection_type': 'str'
-        }
-
-        df = pd.DataFrame({}, columns=data.keys()).astype(data)
-        self.create_table('openetl_documents', df, target_schema='open_etl')
-
-        self.alter_table_column_add_primary_key(
-            'openetl_documents', 'document_id')
 
     def fetch_rows(self, table_name='openetl_documents', schema_name='open_etl', conditions: dict = {}):
         """
@@ -589,7 +592,36 @@ class DatabaseUtils():
 
         return rows_with_column_names[0]
 
-    def write_document(self, document, table_name='openetl_documents', schema_name='open_etl'):
-        document['document'] = json.dumps(document['document'])
-        self.write_data(data=document, table_name=table_name,
-                        schema=schema_name)
+    def write_document(self, document, table_name='openetl_documents', schema_name='open_etl') -> bool:
+        """
+        Writes a document to the specified table in the database.
+
+        Args:
+            document (dict): The document to be written. It should contain a 'document' key with the document content.
+            table_name (str, optional): The name of the table to write the document to. Defaults to 'openetl_documents'.
+            schema_name (str, optional): The schema of the table. Defaults to 'open_etl'.
+
+        Returns:
+            bool: True if the document is successfully written, False otherwise.
+
+        Raises:
+            Exception: If an error occurs while writing the document. The error message is logged.
+        """
+        try:
+            df = pd.DataFrame([document])
+            df['connection_credentials'] = df['connection_credentials'].apply(json.dumps)
+            
+            table_name_expr = text(f"{schema_name}.{table_name}")
+            max_document_id = self.engine.execute(select([func.max(OpenETLDocument.document_id)])).scalar()
+            df["document_id"] = max_document_id + 1 if max_document_id else 1
+            
+            with self.engine.connect() as con:
+                df.to_sql(
+                    table_name, con=con, if_exists="append", index=False, schema=schema_name)
+            return True
+        except Exception as e:
+            logging.error(e)
+            return False
+
+
+
