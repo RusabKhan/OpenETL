@@ -64,7 +64,7 @@ class Connector(API):
     def get_table_schema(self, api_session, table):
         table_data = super().get_table_schema(
             api_session, table)[self.main_response_key]
-        return SchemaUtils().dataframe_details(self.return_final_df(table_data))
+        return DatabaseUtils().dataframe_details(self.return_final_df(table_data))
 
     def install_missing_libraries(self):
         return super().install_missing_libraries()

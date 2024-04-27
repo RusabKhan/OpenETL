@@ -7,6 +7,7 @@ from . enums import *
 import re
 from collections import abc
 from utils.generic_utils import install_libraries
+from utils.database_utils import DatabaseUtils
 
 
 class API:

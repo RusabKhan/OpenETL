@@ -6,7 +6,22 @@ import streamlit as st
 from .jdbc_engine_utils import JDBCEngine
 from .api_utils import read_api_tables
 import subprocess
+import os
 
+def get_open_etl_document_connection_details():
+    """Get connection details for OpenETL Document"""
+    print(os.getenv("OPENETL_DOCUMENT_ENGINE"))
+    print(os.getenv("OPENETL_HOME"))
+
+    
+    return {
+        "engine": os.getenv("OPENETL_DOCUMENT_ENGINE"),
+        "hostname": os.getenv("OPENETL_DOCUMENT_HOST"),
+        "username": os.getenv("OPENETL_DOCUMENT_USER"),
+        "password": os.getenv("OPENETL_DOCUMENT_PASS"),
+        "port": os.getenv("OPENETL_DOCUMENT_PORT"),
+        "database": os.getenv("OPENETL_DOCUMENT_DB")
+    }
 
 
 def set_page_config(page_title="OpenETL", menu_items={}, initial_sidebar_state="expanded", page_icon=None, layout="wide", page_style_state_variable=None):

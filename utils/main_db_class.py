@@ -48,7 +48,7 @@ class DatabaseUtils():
     """A class to connect with any database using SQLAlchemy.
     """
 
-    def __init__(self, engine = None, hostname = None, username = None, password = None, port = None, database = None, connection_name=None, connection_type=None):
+    def __init__(self, engine, hostname, username, password, port, database, connection_name=None, connection_type=None):
         """Initialize class
 
         Args:
@@ -61,18 +61,14 @@ class DatabaseUtils():
             connection_name (string, optional): _description_. Defaults to None.
             connection_type (string, optional): _description_. Defaults to None.
         """
-        if engine is None:
-            pass
-        
-        else:
-            engine = sqlalchemy_database_engines[engine]
-            url = f"{engine}://{username}:{password}@{hostname}:{port}/{database}"
+        engine = sqlalchemy_database_engines[engine]
+        url = f"{engine}://{username}:{password}@{hostname}:{port}/{database}"
 
-            self.engine = sq.create_engine(
-                url=url
-            )
+        self.engine = sq.create_engine(
+            url=url
+        )
 
-            self.create_session()
+        self.create_session()
 
     def test(self):
         """Test connection to database

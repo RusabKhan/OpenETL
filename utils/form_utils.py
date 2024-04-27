@@ -13,7 +13,7 @@ from .jdbc_engine_utils import JDBCEngine
 from .database_utils import DatabaseUtils
 import pandas as pd
 from .local_connection_utils import store_connection_config, read_api_config
-from .generic_utils import check_missing_values
+from .generic_utils import check_missing_values, get_open_etl_document_connection_details
 import json
 import os
 from utils.api_utils import test_api
@@ -91,7 +91,7 @@ class GenerateForm():
                                  "port": port, "database": database, "engine": engine, "connection_type": "database"},
                                  "connection_name": connection_name, "connection_type": "database"
                                  }
-                    stored = DatabaseUtils(engine=engine).write_document(json_data)
+                    stored = DatabaseUtils(**get_open_etl_document_connection_details()).write_document(json_data)
                     if stored:
                         st.success('Connection created!', icon="✅")
 
@@ -104,7 +104,7 @@ class GenerateForm():
         con_data = con_utils.get_connector_auth_details(engine, ConnectionType.API)
         auth_types = list(con_data.keys())
         auth_value = {}
-        api_name = None
+        connection_name = None
 
         col1, col2 = st.columns(2)
 
@@ -114,7 +114,7 @@ class GenerateForm():
             st.session_state.con_tab_selected_index_auth_types = auth_types.index(
                 authentication_type)
         with col2:
-            api_name = st.text_input("Connection Name", "my_api_connection")
+            connection_name = st.text_input("Connection Name", "my_api_connection")
 
         for auth_type, auth_details in con_data.items():
             if auth_type == authentication_type:
@@ -133,7 +133,16 @@ class GenerateForm():
                 test = con_utils.connector_test_connection(auth_type=authentication_type, connector_type=ConnectionType.API, 
                                                        connector_name=engine, **auth_value)
                 if test == True:
-                    st.success("Connection created successfully!") 
+                    auth_value["connector_name"] = engine
+                    auth_value["auth_type"] = authentication_type.value
+                    
+                    json_data = {"connection_credentials": auth_value,
+                                 "connection_name": connection_name, "connection_type": "api"
+                                 }
+                    vals = get_open_etl_document_connection_details()
+                    stored = DatabaseUtils(**vals).write_document(json_data)
+                    if stored:
+                        st.success('Connection created!', icon="✅")
                 else:
                     st.error("Connection failed. Please try again. Or check the connection details.")
 
