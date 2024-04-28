@@ -10,7 +10,6 @@ class Connector(DB):
     def __init__(self):
         super().__init__()
         self.required_libs = ["psycopg2-binary==2.9.9"]
-        self.authentication_details = super().authentication_details
 
     def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="PostgreSQL"):
         return super().create_engine(engine, hostname, username, password, port, database, connection_name=None, connection_type=None)

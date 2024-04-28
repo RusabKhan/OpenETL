@@ -90,18 +90,19 @@ class GenerateForm():
                 test = con_utils.connector_test_connection(auth_type=authentication_type, connector_type=engine_type, 
                                                        connector_name=engine, **auth_value)
                 if test == True:
-                    auth_value["connector_name"] = engine
-                    auth_value["auth_type"] = authentication_type.value
+
                     
-                    json_data = {"connection_credentials": auth_value,
-                                 "connection_name": connection_name, "connection_type": engine_type.value
+                    json_data = {"connection_credentials": auth_value,"connector_name": engine, "auth_type": authentication_type
+                                 ,"connection_name": connection_name, "connection_type": engine_type.value
                                  }
                     vals = get_open_etl_document_connection_details()
                     stored = DatabaseUtils(**vals).write_document(json_data)
-                    if stored:
+                    if stored[0]:
                         st.success('Connection created!', icon="✅")
+                    else:
+                        st.error(f"Connection failed. Please try again. Or check the connection details: {stored[1]}",icon="❌")
                 else:
-                    st.error("Connection failed. Please try again. Or check the connection details.")
+                    st.error("Connection failed. Please try again. Or check the connection details:")
 
 
 def on_button_click(button_name):

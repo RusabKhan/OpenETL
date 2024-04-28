@@ -13,13 +13,13 @@ Methods:
 """
 import sys
 import os
-sys.path.append(os.getenv('OPENETL_HOME'))
 import sqlalchemy as sq
 import pandas as pd
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Enum, Date, DateTime, Float, \
     and_, or_, select, PrimaryKeyConstraint, func, JSON, text
 from sqlalchemy.orm import sessionmaker
 from utils.cache import sqlalchemy_database_engines
+from utils.enums import ColumnActions, AuthType
 from sqlalchemy.exc import OperationalError
 from utils.enums import ColumnActions
 import numpy as np
@@ -30,7 +30,7 @@ import re
 import logging
 import base64
 import json
-
+from datetime import datetime
 
 
 Base = declarative_base()
@@ -43,6 +43,10 @@ class OpenETLDocument(Base):
     connection_credentials = Column(JSON)
     connection_name = Column(String, unique=True)
     connection_type = Column(String)
+    auth_type = Column(Enum(AuthType))
+    connector_name = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class DatabaseUtils():
     """A class to connect with any database using SQLAlchemy.
@@ -612,17 +616,30 @@ class DatabaseUtils():
             Exception: If an error occurs while writing the document. The error message is logged.
         """
         try:
-            df = pd.DataFrame([document])
-            df['connection_credentials'] = df['connection_credentials'].apply(json.dumps)
             
-            table_name_expr = text(f"{schema_name}.{table_name}")
-            max_document_id = self.engine.execute(select([func.max(OpenETLDocument.document_id)])).scalar()
-            df["document_id"] = max_document_id + 1 if max_document_id else 1
-            
-            with self.engine.connect() as con:
-                df.to_sql(
-                    table_name, con=con, if_exists="append", index=False, schema=schema_name)
-            return True
+            Session = sessionmaker(bind=self.engine)
+            session = Session()
+
+            # Create an instance of OpenETLDocument
+            new_document = OpenETLDocument(
+                connection_credentials=document['connection_credentials'],
+                connection_name=document['connection_name'],
+                connection_type=document['connection_type'],
+                auth_type=document['auth_type'],
+                connector_name=document['connector_name'],
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            session.add(new_document)
+            session.commit()
+
+            session.close()
+            return True, ""
         except Exception as e:
             logging.error(e)
-            return False
+            return False, e
+        
+        
+        
+        
+DatabaseUtils("PostgreSQL", "localhost", "rusab1", "1234", "5432", "airflow").create_document_table()

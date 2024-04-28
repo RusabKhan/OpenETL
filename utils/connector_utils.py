@@ -63,17 +63,18 @@ def import_module(module_name, module_path, class_name="Connector", *args, **kwa
     """
     try:
         # Import the module
-        spec = importlib.util.spec_from_file_location(module_name, module_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        if os.path.exists(module_path):
+            spec = importlib.util.spec_from_file_location(module_name, module_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
 
-        # Get the class from the module
-        class_ = getattr(module, class_name)
+            # Get the class from the module
+            class_ = getattr(module, class_name)
 
-        # Initialize the class with provided arguments
-        instance = class_(*args, **kwargs)
+            # Initialize the class with provided arguments
+            instance = class_(*args, **kwargs)
 
-        return instance
+            return instance
     except ImportError as e:
         print(f"Error: Module '{module_name}' not found. {str(e)}.")
     except AttributeError as e:
