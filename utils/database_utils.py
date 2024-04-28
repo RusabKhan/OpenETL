@@ -41,7 +41,7 @@ class OpenETLDocument(Base):
 
     document_id = Column(Integer, primary_key=True)
     connection_credentials = Column(JSON)
-    connection_name = Column(String)
+    connection_name = Column(String, unique=True)
     connection_type = Column(String)
 
 class DatabaseUtils():
@@ -626,6 +626,3 @@ class DatabaseUtils():
         except Exception as e:
             logging.error(e)
             return False
-
-
-

@@ -5,6 +5,7 @@ from utils.enums import *
 from urllib.parse import urlencode
 import sys
 import os
+import pandas as pd
 
 
 sys.path.append(os.getenv('OPENETL_HOME'))
@@ -37,10 +38,10 @@ class Connector(API):
         self.main_response_key = "results"
         self.required_libs = []
 
-    def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params):
+    def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params) -> bool:
         return super().connect_to_api(auth_type, **auth_params)
 
-    def fetch_data(self, api_session, table):
+    def fetch_data(self, api_session, table) -> pd.DataFrame:
         arr = []
         endpoint = self.construct_endpoint(table)
         while True:
@@ -55,19 +56,19 @@ class Connector(API):
                 break
         return self.return_final_df(arr)
 
-    def return_final_df(self, responses):
+    def return_final_df(self, responses) -> pd.DataFrame:
         return super().return_final_df(responses)
 
-    def construct_endpoint(self, endpoint):
+    def construct_endpoint(self, endpoint) -> str:
         return super().construct_endpoint(endpoint)
 
-    def get_table_schema(self, api_session, table):
+    def get_table_schema(self, api_session, table) -> dict:
         table_data = super().get_table_schema(
             api_session, table)[self.main_response_key]
         return DatabaseUtils().dataframe_details(self.return_final_df(table_data))
 
-    def install_missing_libraries(self):
+    def install_missing_libraries(self) -> bool:
         return super().install_missing_libraries()
 
-    def test_connection(self, api_session):
+    def test_connection(self, api_session) -> bool:
         return super().test_connection(api_session)

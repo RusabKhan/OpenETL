@@ -15,12 +15,12 @@ def get_open_etl_document_connection_details():
 
     
     return {
-        "engine": os.getenv("OPENETL_DOCUMENT_ENGINE"),
-        "hostname": os.getenv("OPENETL_DOCUMENT_HOST"),
-        "username": os.getenv("OPENETL_DOCUMENT_USER"),
-        "password": os.getenv("OPENETL_DOCUMENT_PASS"),
-        "port": os.getenv("OPENETL_DOCUMENT_PORT"),
-        "database": os.getenv("OPENETL_DOCUMENT_DB")
+        "engine": os.getenv("OPENETL_DOCUMENT_ENGINE","PostgreSQL"),
+        "hostname": os.getenv("OPENETL_DOCUMENT_HOST","localhost"),
+        "username": os.getenv("OPENETL_DOCUMENT_USER","rusab1"),
+        "password": os.getenv("OPENETL_DOCUMENT_PASS","1234"),
+        "port": os.getenv("OPENETL_DOCUMENT_PORT","5432"),
+        "database": os.getenv("OPENETL_DOCUMENT_DB","airflow")
     }
 
 

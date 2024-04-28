@@ -74,14 +74,14 @@ def import_module(module_name, module_path, class_name="Connector", *args, **kwa
         instance = class_(*args, **kwargs)
 
         return instance
-    except ImportError:
-        print(f"Error: Module '{module_name}' not found.")
-    except AttributeError:
+    except ImportError as e:
+        print(f"Error: Module '{module_name}' not found. {str(e)}.")
+    except AttributeError as e:
         print(
-            f"Error: Class '{class_name}' not found in module '{module_name}'.")
+            f"Error: Class '{class_name}' not found in module '{module_name}'. {str(e)}.")
     except Exception as e:
         print(
-            f"Error initializing class '{class_name}' from module '{module_name}': {e}")
+            f"Error initializing class '{class_name}' from module '{module_name}': {str(e)}.")
 
 
 def connector_test_connection(connector_name, connector_type=ConnectionType.DATABASE, auth_type=AuthType.BASIC, **auth_params):
@@ -95,10 +95,17 @@ def connector_test_connection(connector_name, connector_type=ConnectionType.DATA
     Returns:
         bool: True if the connection is successful, False otherwise.
     """
-    if connector_type == ConnectionType.DATABASE:
-        path = f"{connectors_directory}/database/{connector_name}.py"
-    elif connector_type == ConnectionType.API:
-        path = f"{connectors_directory}/api/{connector_name}.py"
-    module = import_module(connector_name, path)
-    api_session = module.connect_to_api(auth_type=auth_type, **auth_params)
-    return module.test_connection(api_session)
+    try:
+        if connector_type == ConnectionType.DATABASE:
+            path = f"{connectors_directory}/database/{connector_name}.py"
+            module = import_module(connector_name, path)
+            module.create_engine(**auth_params)
+            return module.test_connection()
+        
+        elif connector_type == ConnectionType.API:
+            path = f"{connectors_directory}/api/{connector_name}.py"
+            module = import_module(connector_name, path)
+            api_session = module.connect_to_api(auth_type=auth_type, **auth_params)
+            return module.test_connection(api_session)
+    except Exception as e:
+        print(f"Error: {str(e)}")
