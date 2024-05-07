@@ -88,6 +88,7 @@ class DatabaseUtils():
             self.engine.connect()
             return True
         except Exception as e:
+            print(str(e))
             return False
 
     def get_metadata(self):

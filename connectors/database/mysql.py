@@ -1,17 +1,20 @@
 import sys
 import os
-from utils.main_db_class import DB
 
+sys.path.append(os.environ['OPENETL_HOME'])
+
+from utils.main_db_class import DB
 
 
 
 class Connector(DB):
     
     def __init__(self):
-        self.required_libs = ["psycopg2-binary==2.9.9"]
+        self.required_libs = ["pymysql==1.1.0"]
         super().__init__()
+        
 
-    def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="PostgreSQL"):
+    def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="MySQL"):
         return super().create_engine(engine, hostname, username, password, port, database, connection_name=None, connection_type=None)
         
     def test_connection(self):
