@@ -20,8 +20,9 @@ class Connector(DB):
     def test_connection(self):
         return super().test_connection()
     
-    def get_metadata(self):
-        return super().get_metadata()
+    def get_metadata(self, *args, **kwargs):
+        auth_details = kwargs
+        return super().get_metadata(**auth_details)
     
     def execute_query(self, query):
         return super().execute_query(query)

@@ -3,6 +3,8 @@ import os
 import sys
 home = os.environ['OPENETL_HOME']
 sys.path.append(home)
+import json
+from utils.database_utils import DatabaseUtils, OpenETLDocument
 from utils.enums import *
 
 
@@ -110,3 +112,41 @@ def connector_test_connection(connector_name, connector_type=ConnectionType.DATA
             return module.test_connection(api_session)
     except Exception as e:
         print(f"Error: {str(e)}")
+        
+        
+def get_connector_metadata(connector_name, connector_type=ConnectionType.DATABASE.value):
+    """
+    Returns the metadata for the specified connector.
+
+    Args:
+        connector_name (str): The name of the connector.
+        connector_type (ConnectionType): The type of connector, defaults to ConnectionType.DATABASE.
+
+    Returns:
+        dict: A dictionary containing the metadata for the specified connector.
+    """
+    if connector_type == ConnectionType.DATABASE.value:
+        path = f"{connectors_directory}/database/{connector_name}.py"
+    elif connector_type == ConnectionType.API.value:
+        path = f"{connectors_directory}/api/{connector_name}.py"
+    module = import_module(connector_name, path)
+    return module.get_metadata()
+
+
+def get_created_connections(connector_type=ConnectionType.DATABASE.value) -> list:
+    """
+    Returns a list of created connections for the specified connector type.
+
+    Args:
+        connector_type (ConnectionType): The value of type of connector, defaults to ConnectionType.DATABASE.value
+
+    Returns:
+        list: A list of created connections.
+    """
+    return json.loads(DatabaseUtils(engine=os.getenv("OPENETL_DOCUMENT_ENGINE"),
+                               hostname=os.getenv("OPENETL_DOCUMENT_HOST"),
+                               port=os.getenv("OPENETL_DOCUMENT_PORT"),
+                               username=os.getenv("OPENETL_DOCUMENT_USER"),
+                               password=os.getenv("OPENETL_DOCUMENT_PASS"),
+                               database=os.getenv("OPENETL_DOCUMENT_DB")).get_created_connections(connector_type=connector_type).to_json(orient='records'))
+    

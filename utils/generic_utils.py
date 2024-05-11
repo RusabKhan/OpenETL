@@ -7,6 +7,7 @@ from .jdbc_engine_utils import JDBCEngine
 from .api_utils import read_api_tables
 import subprocess
 import os
+from utils import connector_utils
 
 def get_open_etl_document_connection_details():
     """Get connection details for OpenETL Document"""
@@ -57,15 +58,16 @@ def extract_connections_db_or_api(db_or_api, configs):
         _type_: list
     """
     options = []
-    if db_or_api == "Database":
-        options.extend(config["connection_name"]
-                       for config in configs['database'])
-    else:
-        options.extend(config["connection_name"] for config in configs['api'])
+    if db_or_api == "database":
+        for config in configs['database']:
+            options.append(config["connection_name"]) if config["connection_type"] == "database" else None
+    elif db_or_api == "api":
+        for config in configs['api']:
+            options.append(config["connection_name"]) if config["connection_type"] == "api" else None
     return options
 
 
-def fetch_metadata(connection):
+def fetch_metadata(connection, auth_options, connection_type):
     """Fetch metadata from the given connection.
 
     Args:
@@ -75,13 +77,14 @@ def fetch_metadata(connection):
         dict: {"tables": [],"schema":[]}
     """
     try:
-        metadata = read_connection_config(connection)['data']
-        if metadata['connection_type'] == "api":
-            tables = read_api_tables(metadata['api'])
-            return {"tables": [tables], "schema": ["public"]}
-
-        metadata = DatabaseUtils(**metadata).get_metadata()
-        return metadata
+        main_data = None
+        for data in auth_options:
+            if data["connection_name"] == connection:
+                main_data = data
+            module = connector_utils.import_module(data["connection_name"], f"{connector_utils.connectors_directory}/{connection_type}/{data['connector_name']}.py")
+            auth_details = main_data["connection_credentials"]
+            return module.get_metadata(**auth_details)
+                    
     except Exception as e:
         st.error("Data does not exist for selected type of connection")
         return {"tables": [], "schema": []}
@@ -124,4 +127,6 @@ def install_libraries(libs):
     except Exception as e:
         st.error(f"Error: {str(e)}")
         return False
+ 
+ 
  

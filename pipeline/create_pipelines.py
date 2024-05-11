@@ -3,11 +3,14 @@ import streamlit as st
 from utils.local_connection_utils import read_all_connection_configs, read_connection_config
 from utils.airflow_utils import create_airflow_dag
 from utils.generic_utils import extract_connections_db_or_api, fetch_metadata, check_missing_values, set_page_config
-from utils.database_utils import DatabaseUtils
 from utils.enums import *
 import pandas as pd
 import json
 from datetime import date
+from utils.connector_utils import get_created_connections
+
+
+
 
 set_page_config(page_title="Create ETL", page_icon=None, initial_sidebar_state="expanded",
                 layout="wide", menu_items={}, page_style_state_variable="pipeline_create_pipeline")
@@ -18,7 +21,13 @@ con_type = [
     ConnectionType.DATABASE.value,
     ConnectionType.API.value]
 
-configs = read_all_connection_configs()
+database_configs = get_created_connections(ConnectionType.DATABASE.value)
+api_configs = get_created_connections(ConnectionType.API.value)
+
+
+database_configs_names = [config["connection_name"] for config in database_configs]
+api_configs_names = [config["connection_name"] for config in api_configs]
+
 source_target, spark, finish = st.tabs(
     ["Select Source & Target", "Spark Config", "Finish"])
 
@@ -38,6 +47,7 @@ no_source = False
 
 source_int_schema = 0
 
+schedule_dates = []
 
 slide_col1, slide_col2 = st.columns([4, 1])
 
@@ -52,36 +62,32 @@ with source_target:
         options = []
         subcol1, subcol2 = st.columns([3, 1])
         with subcol2:
-            target_type = st.radio(
+            source_type = st.radio(
                 "Source Type", con_type)
-            st.session_state.source_type = target_type
-            options = extract_connections_db_or_api(target_type, configs)
+            st.session_state.source_type = source_type
+            if source_type == ConnectionType.DATABASE.value:
+                options = database_configs_names
+                auth_options = database_configs
+                
+            elif source_type == ConnectionType.API.value:
+                options = api_configs_names
+                auth_options = api_configs
+                
         with subcol1:
             source = st.selectbox("Source", options=options)
-            st.session_state.source_connection_name = source
 
         table_col, schema_col = st.columns([2, 3])
-        metadata = fetch_metadata(source)
-        source_schema = metadata['schema']
+        metadata = fetch_metadata(source, auth_options, source_type)
+        source_schema = metadata.keys()
         no_source = False if source_schema is not None else True
-        source_tables = metadata['tables']
 
         with table_col:
             source_int_schema = st.selectbox(
                 "Source Schema", source_schema, disabled=no_source)
-            if source_int_schema is not None:
-                st.session_state.source_selected_schema_index = source_schema.index(
-                    source_int_schema)
-                st.session_state.source_selected_schema = source_int_schema
-        with schema_col:
-            if source_int_schema is not None:
-                if len(source_tables[st.session_state.source_selected_schema_index]) < st.session_state.source_selected_table_index:
-                    st.session_state.source_selected_table_index = 0
-                source_int_tables = st.selectbox(
-                    "Source Table", source_tables[st.session_state.source_selected_schema_index], index=st.session_state.source_selected_table_index)
-                st.session_state.source_selected_table_index = source_tables[st.session_state.source_selected_schema_index].index(
-                    source_int_tables)
-                st.session_state.source_selected_tables = source_int_tables
+        if source_int_schema is not None:
+            with schema_col:
+                if source_int_schema is not None:
+                    source_int_tables = st.selectbox("Source Tables", metadata[source_int_schema], disabled=no_source)
 
     target_div = st.expander("Target")
     with target_div:
@@ -92,22 +98,20 @@ with source_target:
         subcol1, subcol2 = st.columns([3, 1])
         with subcol2:
             target_type = st.radio(
-                "Target Type", ["Database"])
-            st.session_state.target_type = target_type
-            options = extract_connections_db_or_api(target_type, configs)
+                "Target Type", [ConnectionType.DATABASE.value])
+            target_options = database_configs_names
+            target_auth_options = database_configs
         with subcol1:
-            target = st.selectbox("Target", options=options,
-                                  index=st.session_state.target_selected_index)
-            st.session_state.target_connection_name = target
-            st.session_state.target_selected_index = options.index(
-                target) if target is not None else 0
-
+            target = st.selectbox("Target", options=target_options)
         if target is not None:
             schema_col, table_col = st.columns([2, 3])
-            metadata = fetch_metadata(target)
-            target_schema = metadata['schema']
-            target_tables = metadata['tables']
+            metadata = fetch_metadata(target, target_auth_options, target_type)
+            target_schema = metadata.keys()
 
+            with schema_col:
+                target_int_schema = st.selectbox(
+                    "Target Schema", target_schema)
+                
             with table_col:
                 existing_or_new_table = st.radio(
                     "Existing or New Table", ["Existing", "New"])
@@ -116,17 +120,8 @@ with source_target:
                         "Enter Target Table Name")
                 else:
                     target_int_tables = st.selectbox(
-                        "Target Table", target_tables[st.session_state.target_selected_schema_index], index=st.session_state.target_selected_table_index)
-                    st.session_state.target_selected_table_index = target_tables[st.session_state.target_selected_schema_index].index(
-                        target_int_tables)
-                    st.session_state.target_selected_tables = target_int_tables
+                        "Target Tables", metadata[target_int_schema])
 
-            with schema_col:
-                target_int_schema = st.selectbox(
-                    "Target Schema", target_schema, index=st.session_state.target_selected_schema_index)
-                st.session_state.target_selected_schema_index = target_schema.index(
-                    target_int_schema)
-                st.session_state.target_selected_schema = target_int_schema
 
 
 with spark:
@@ -186,8 +181,6 @@ with spark:
         hadoop_config = _config_hadoop.set_index(
             'Configuration')['Average Setting'].to_dict()
 
-    st.session_state.integration_spark_config = spark_config
-    st.session_state.integration_hadoop_config = hadoop_config
 
 
 with finish:
@@ -210,11 +203,11 @@ with finish:
     with col2:
         schedule_date = st.date_input("Schedule dates", disabled=disable_dates)
         schedule_time = st.time_input("Schedule time")
-        if schedule_date not in st.session_state.integration_selected_dates:
-            st.session_state.integration_selected_dates.append(schedule_date)
+        if schedule_date not in schedule_dates:
+            schedule_dates.append(schedule_date)
 
-    selected_dates = st.multiselect("Selected Dates", options=st.session_state.integration_selected_dates,
-                                    default=st.session_state.integration_selected_dates, disabled=disable_dates)
+    selected_dates = st.multiselect("Selected Dates", options=schedule_dates,
+                                    default=schedule_dates, disabled=disable_dates)
 
     gap, button_col = st.columns([4, 1])
 
@@ -247,8 +240,8 @@ with finish:
             st.stop()
 
         pipeline_json = {
-            'spark_config': st.session_state.integration_spark_config,
-            'hadoop_config': st.session_state.integration_hadoop_config,
+            'spark_config': spark_config,
+            'hadoop_config': hadoop_config,
             'integration_name': integration_name,
             'is_frequency': disable_frequency,
             'selected_dates': formatted_dates,
@@ -256,14 +249,14 @@ with finish:
             'frequency': frequencey,
             'schedule_dates': schedule_date.strftime('%Y-%m-%d'),
             "run_details": {f"{date.today()}": {"rows_read": 0, "rows_write": 0, "start_time": "00:00:00", "end_time": "00:00:00", "status": "Not Started"}},
-            "target_table": st.session_state.target_selected_tables,
-            "source_table": st.session_state.source_selected_tables,
-            "target_schema": st.session_state.target_selected_schema,
-            "source_schema": st.session_state.source_selected_schema,
-            "source_connection_name": st.session_state.source_connection_name,
-            "target_connection_name": st.session_state.target_connection_name,
-            "source_type": st.session_state.source_type,
-            "target_type": st.session_state.target_type
+            "target_table": target_tables,
+            "source_table": source_tables,
+            "target_schema": target_schema,
+            "source_schema": source_schema,
+            "source_connection_name": source,
+            "target_connection_name": target,
+            "source_type": source_type,
+            "target_type": target_type
         }
         stored = create_airflow_dag(pipeline_json)
         if not stored:

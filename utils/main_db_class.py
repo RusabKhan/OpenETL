@@ -162,3 +162,13 @@ class DB(DatabaseUtils):
         """
         if len(self.required_libs) > 0:
             return install_libraries(self.required_libs)
+        
+    def get_metadata(self, *args, **kwargs) -> dict:
+        """
+        Returns the metadata for the API.
+
+        Returns:
+            dict: A dictionary containing the metadata for the API.
+        """
+        self.create_engine(**kwargs)
+        return super().get_metadata()

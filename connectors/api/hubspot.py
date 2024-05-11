@@ -72,3 +72,6 @@ class Connector(API):
 
     def test_connection(self, api_session) -> bool:
         return super().test_connection(api_session)
+
+    def get_metadata(self,*args, **kwargs) -> dict:
+        return super().get_metadata()

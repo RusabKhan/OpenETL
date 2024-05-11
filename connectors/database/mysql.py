@@ -17,8 +17,9 @@ class Connector(DB):
     def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="MySQL"):
         return super().create_engine(engine, hostname, username, password, port, database, connection_name=None, connection_type=None)
         
-    def test_connection(self):
-        return super().test_connection()
+    def get_metadata(self, *args, **kwargs):
+        auth_details = kwargs
+        return super().get_metadata(**auth_details)
     
     def get_metadata(self):
         return super().get_metadata()

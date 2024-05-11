@@ -203,3 +203,12 @@ class API:
                     return True
             except Exception as e:
                 return False
+
+    def get_metadata(self,*args, **kwargs) -> dict:
+        """
+        Returns the metadata for the API.
+
+        Returns:
+            dict: A dictionary containing the metadata for the API.
+        """
+        return {"public":self.tables}

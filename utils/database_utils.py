@@ -19,7 +19,7 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
     and_, or_, select, PrimaryKeyConstraint, func, JSON, text
 from sqlalchemy.orm import sessionmaker
 from utils.cache import sqlalchemy_database_engines
-from utils.enums import ColumnActions, AuthType
+from utils.enums import ColumnActions, AuthType, ConnectionType
 from sqlalchemy.exc import OperationalError
 from utils.enums import ColumnActions
 import numpy as np
@@ -76,7 +76,7 @@ class DatabaseUtils():
                 url=url
             )
 
-            self.create_session()
+            session = self.create_session()
 
     def test(self):
         """Test connection to database
@@ -100,12 +100,12 @@ class DatabaseUtils():
         try:
             inspector = sq.inspect(self.engine)
             schemas = inspector.get_schema_names()
-            tables = []
+            tables = None
 
             for schema in schemas:
                 print(f"schema: {schema}")
-                tables.append(inspector.get_table_names(schema=schema))
-            return {"tables": tables, "schema": schemas}
+                tables = inspector.get_table_names(schema=schema)
+            return {schema:tables}
         except Exception as e:
             return {"tables": tables, "schema": []}
 
@@ -641,6 +641,26 @@ class DatabaseUtils():
             return False, e
         
         
+    def get_created_connections(self,connector_type=ConnectionType.DATABASE.value) -> pd.DataFrame:
+        """
+        Returns a list of created connections for the specified connector type.
+
+        Args:
+            connector_type (ConnectionType): The value of type of connector, defaults to ConnectionType.DATABASE.
+
+        Returns:
+            list: A dataframe of created connections.
+        """
+        columns_to_fetch = [
+            OpenETLDocument.connection_name,
+            OpenETLDocument.connection_type,
+            OpenETLDocument.auth_type,
+            OpenETLDocument.connector_name,
+            OpenETLDocument.connection_credentials
+        ]
+        select_query = select(columns_to_fetch).where(OpenETLDocument.connection_type == connector_type)
+        data = pd.read_sql(select_query, self.session.bind)
+
+        return data
+
         
-        
-DatabaseUtils("PostgreSQL", "localhost", "rusab1", "1234", "5432", "airflow").create_document_table()
