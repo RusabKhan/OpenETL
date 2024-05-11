@@ -10,8 +10,6 @@ from datetime import date
 from utils.connector_utils import get_created_connections
 
 
-
-
 set_page_config(page_title="Create ETL", page_icon=None, initial_sidebar_state="expanded",
                 layout="wide", menu_items={}, page_style_state_variable="pipeline_create_pipeline")
 
@@ -25,7 +23,8 @@ database_configs = get_created_connections(ConnectionType.DATABASE.value)
 api_configs = get_created_connections(ConnectionType.API.value)
 
 
-database_configs_names = [config["connection_name"] for config in database_configs]
+database_configs_names = [config["connection_name"]
+                          for config in database_configs]
 api_configs_names = [config["connection_name"] for config in api_configs]
 
 source_target, spark, finish = st.tabs(
@@ -45,84 +44,60 @@ frequencey = ""
 schedule_date = ""
 no_source = False
 
-source_int_schema = 0
+schema = 0
 
 schedule_dates = []
 
 slide_col1, slide_col2 = st.columns([4, 1])
 
+final_values = {}
 
-with source_target:
-    source = ""
-    source_div = st.expander("Source", expanded=True)
-    with source_div:
-        source_schema = ""
-        source_tables = ""
 
-        options = []
-        subcol1, subcol2 = st.columns([3, 1])
-        with subcol2:
-            source_type = st.radio(
-                "Source Type", con_type)
-            st.session_state.source_type = source_type
-            if source_type == ConnectionType.DATABASE.value:
-                options = database_configs_names
-                auth_options = database_configs
-                
-            elif source_type == ConnectionType.API.value:
-                options = api_configs_names
-                auth_options = api_configs
-                
-        with subcol1:
-            source = st.selectbox("Source", options=options)
+def render_section(section):
 
-        table_col, schema_col = st.columns([2, 3])
-        metadata = fetch_metadata(source, auth_options, source_type)
-        source_schema = metadata.keys()
-        no_source = False if source_schema is not None else True
+    con_type.remove('api') if section.lower() == 'target' else None
+    final_values[section] = {}
+    with source_target:
+        source = ""
+        source_div = st.expander(section, expanded=True)
+        with source_div:
+            source_schema = ""
+            source_tables = ""
 
-        with table_col:
-            source_int_schema = st.selectbox(
-                "Source Schema", source_schema, disabled=no_source)
-        if source_int_schema is not None:
-            with schema_col:
-                if source_int_schema is not None:
-                    source_int_tables = st.selectbox("Source Tables", metadata[source_int_schema], disabled=no_source)
+            options = []
+            subcol1, subcol2 = st.columns([3, 1])
+            with subcol2:
+                final_values[section]["connection_type"] = st.radio(
+                    f"{section} Type", con_type)
+                if final_values[section]["connection_type"] == ConnectionType.DATABASE.value:
+                    options = database_configs_names
+                    auth_options = database_configs
 
-    target_div = st.expander("Target")
-    with target_div:
-        target_schema = ""
-        target_tables = ""
+                elif final_values[section]["connection_type"] == ConnectionType.API.value:
+                    options = api_configs_names
+                    auth_options = api_configs
 
-        options = []
-        subcol1, subcol2 = st.columns([3, 1])
-        with subcol2:
-            target_type = st.radio(
-                "Target Type", [ConnectionType.DATABASE.value])
-            target_options = database_configs_names
-            target_auth_options = database_configs
-        with subcol1:
-            target = st.selectbox("Target", options=target_options)
-        if target is not None:
-            schema_col, table_col = st.columns([2, 3])
-            metadata = fetch_metadata(target, target_auth_options, target_type)
-            target_schema = metadata.keys()
+            with subcol1:
+                final_values[section]["source"] = st.selectbox(
+                    label=section, options=options)
 
-            with schema_col:
-                target_int_schema = st.selectbox(
-                    "Target Schema", target_schema)
-                
+            table_col, schema_col = st.columns([2, 3])
+            metadata = fetch_metadata(
+                final_values[section]["source"], auth_options, final_values[section]["connection_type"])
+            source_schema = metadata.keys()
+            no_source = False if source_schema is not None else True
+
             with table_col:
-                existing_or_new_table = st.radio(
-                    "Existing or New Table", ["Existing", "New"])
-                if existing_or_new_table == "New":
-                    target_int_tables = st.text_input(
-                        "Enter Target Table Name")
-                else:
-                    target_int_tables = st.selectbox(
-                        "Target Tables", metadata[target_int_schema])
+                final_values[section]["schema"] = st.selectbox(
+                    f"{section} Schema", source_schema, disabled=no_source)
+            if final_values[section]["schema"] is not None:
+                with schema_col:
+                    final_values[section]["table"] = st.selectbox(
+                        f"{section} Tables", metadata[final_values[section]["schema"]], disabled=no_source)
 
 
+render_section("Source")
+render_section("Target")
 
 with spark:
 
@@ -148,7 +123,7 @@ with spark:
                 '1',
                 '1',
                 "local[*]",
-                f"{source}_to_{target}",
+                f"{final_values['Source']['source']}_to_{final_values['Target']['source']}",
             ]
         }
 
@@ -182,7 +157,6 @@ with spark:
             'Configuration')['Average Setting'].to_dict()
 
 
-
 with finish:
 
     submit = False
@@ -213,54 +187,40 @@ with finish:
 
     with button_col:
         submit = st.button("Create Integration")
+        if submit:
 
-    if submit:
+            formatted_dates = [date.strftime('%Y-%m-%d')
+                               for date in selected_dates]
 
-        formatted_dates = [date.strftime('%Y-%m-%d')
-                           for date in selected_dates]
+            pipeline_dict = {
+                'spark_config': spark_config,
+                'hadoop_config': hadoop_config,
+                'integration_name': integration_name,
+                'is_frequency': disable_frequency,
+                'selected_dates': formatted_dates,
+                'schedule_time': schedule_time.strftime('%H:%M:%S'),
+                'frequency': frequencey,
+                'schedule_dates': schedule_date.strftime('%Y-%m-%d'),
+                "run_details": {f"{date.today()}": {"rows_read": 0, "rows_write": 0, "start_time": "00:00:00", "end_time": "00:00:00", "status": "Not Started"}},
+                "target_table": final_values["Target"]["table"],
+                "source_table": final_values["Source"]["table"],
+                "target_schema": final_values["Target"]["schema"],
+                "source_schema": final_values["Source"]["schema"],
+                "target_connection_name": final_values["Target"]["source"],
+                "source_connection_name": final_values["Source"]["source"],
+                "target_type": final_values["Target"]["connection_type"],
+                "source_type": final_values["Source"]["connection_type"]
+            }
 
-        miss = check_missing_values(**{
-            'spark_config': st.session_state.integration_spark_config,
-            'hadoop_config': st.session_state.integration_hadoop_config,
-            'integration_name': integration_name,
-            'is_frequency': disable_frequency,
-            'selected_dates': formatted_dates,
-            'schedule_time': schedule_time.strftime('%H:%M:%S'),
-            'frequency': frequencey,
-            'schedule_dates': schedule_date.strftime('%Y-%m-%d'),
-            "run_details": {},
-            "target_table": st.session_state.target_selected_tables,
-            "source_table": st.session_state.source_selected_tables,
-            "target_schema": st.session_state.target_selected_schema,
-            "source_table": st.session_state.source_selected_schema
-        })
+            miss = check_missing_values(**pipeline_dict)
 
-        if miss[0]:
-            st.error("Missing value for: "+miss[1])
-            st.stop()
+            if miss[0]:
+                st.error("Missing value for: "+miss[1])
+                st.stop()
 
-        pipeline_json = {
-            'spark_config': spark_config,
-            'hadoop_config': hadoop_config,
-            'integration_name': integration_name,
-            'is_frequency': disable_frequency,
-            'selected_dates': formatted_dates,
-            'schedule_time': schedule_time.strftime('%H:%M:%S'),
-            'frequency': frequencey,
-            'schedule_dates': schedule_date.strftime('%Y-%m-%d'),
-            "run_details": {f"{date.today()}": {"rows_read": 0, "rows_write": 0, "start_time": "00:00:00", "end_time": "00:00:00", "status": "Not Started"}},
-            "target_table": target_tables,
-            "source_table": source_tables,
-            "target_schema": target_schema,
-            "source_schema": source_schema,
-            "source_connection_name": source,
-            "target_connection_name": target,
-            "source_type": source_type,
-            "target_type": target_type
-        }
-        stored = create_airflow_dag(pipeline_json)
-        if not stored:
-            st.error("Unable to create integration. Please try again.")
-        else:
-            st.success("Integration Created Successfully")
-            # spark_work(**stored[1])
+            stored = create_airflow_dag(pipeline_dict)
+            if not stored:
+                st.error("Unable to create integration. Please try again.")
+            else:
+                st.success("Integration Created Successfully")
+                # spark_work(**stored[1])
