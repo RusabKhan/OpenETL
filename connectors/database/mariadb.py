@@ -11,6 +11,7 @@ class Connector(DB):
     
     def __init__(self):
         self.required_libs = ["pymysql==1.1.0"]
+        self.logo = "https://upload.wikimedia.org/wikipedia/commons/0/04/MariaDB_Logo.png"
         super().__init__()
         
 

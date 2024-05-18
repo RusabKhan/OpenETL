@@ -171,3 +171,5 @@ assets
 con.json
 
 .local.json
+
+main.env

@@ -2,6 +2,9 @@ import streamlit as st
 from st_pages import Page, Section, show_pages, add_page_title, hide_pages
 import utils.generic_utils as gu
 from utils.local_connection_utils import create_con_directory
+import os
+from dotenv import load_dotenv
+
 
 gu.set_page_config(page_title="OpenETL", page_icon=None, initial_sidebar_state="expanded",
                    layout="wide", menu_items={}, page_style_state_variable="home")
@@ -63,6 +66,9 @@ def set_session():
 
     if "style_setting" not in st.session_state:
         st.session_state.style_setting = {}
+        
+    load_dotenv(dotenv_path='.env')
+        
 
     # STYLE VARIABLES
     # if "connection_create_connection_style_set" not in st.session_state:

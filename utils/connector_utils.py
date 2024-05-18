@@ -173,3 +173,22 @@ def fetch_metadata(connection, auth_options, connection_type):
     except Exception as e:
         st.error("Data does not exist for selected type of connection")
         return {"tables": [], "schema": []}
+    
+    
+    
+def get_connector_image(connector_name,connection_type):
+    """Fetch metadata from the given connection.
+
+    Args:
+        connections (string): name of the connection 
+
+    Returns:
+        dict: {"tables": [],"schema":[]}
+    """
+    try:
+        module = import_module(connector_name, f"{connectors_directory}/{connection_type}/{connector_name}.py")
+        return module.logo
+                    
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return "https://cdn5.vectorstock.com/i/1000x1000/42/09/connection-vector-28634209.jpg"

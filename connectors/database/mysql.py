@@ -11,6 +11,7 @@ class Connector(DB):
     
     def __init__(self):
         self.required_libs = ["pymysql==1.1.0"]
+        self.logo = "https://upload.wikimedia.org/wikipedia/commons/6/6e/MySQL_Logo.svg"
         super().__init__()
         
 

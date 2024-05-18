@@ -9,6 +9,7 @@ class Connector(DB):
     
     def __init__(self):
         self.required_libs = ["psycopg2-binary==2.9.9"]
+        self.logo = "https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg"
         super().__init__()
 
     def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="PostgreSQL"):

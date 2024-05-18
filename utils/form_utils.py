@@ -23,9 +23,6 @@ import utils.connector_utils as con_utils
 """This module contains functions related to form generation and card generation.
 """
 
-default_img = "https://cdn5.vectorstock.com/i/1000x1000/42/09/connection-vector-28634209.jpg"
-
-
 class GenerateForm():
     """
     A class which generates form.
@@ -114,7 +111,7 @@ def on_button_click(button_name):
     st.session_state.clicked_button = button_name
 
 
-def create_button_columns(names, num_columns=7):
+def create_button_columns(data,connection_type, num_columns=5):
     """
     Create columns of buttons.
 
@@ -123,14 +120,19 @@ def create_button_columns(names, num_columns=7):
 
     """
     # Calculate the number of columns
-    num_names = len(names)
+    num_names = len(data)
     num_rows = (num_names + num_columns - 1) // num_columns
+    
     for row in range(num_rows):
         cols = st.columns(num_columns)
-
+        
         start_index = row * num_columns
         end_index = min(start_index + num_columns, num_names)
-
+        
         for i in range(start_index, end_index):
-            cols[i % num_columns].image(default_img, width=150)
-            cols[i % num_columns].button(names[i], use_container_width=True)
+            default_img = con_utils.get_connector_image(data[i]['connector_name'], connection_type)
+            with cols[i % num_columns]:
+                # Creating a container for the image and button
+                    st.image(default_img, width=100)
+                    st.button(data[i]['connection_name'])
+
