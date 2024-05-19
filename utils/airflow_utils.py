@@ -8,7 +8,6 @@ Functions:
 - post_process_data: Performs post-processing tasks on the data.
 - validate_data: Validates the data to ensure quality and consistency.
 """
-import utils.api_utils as api
 import utils.jdbc_engine_utils as jdbc_utils
 import utils.database_utils as database_utils
 from utils.enums import *

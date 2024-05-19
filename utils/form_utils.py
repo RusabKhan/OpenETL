@@ -16,7 +16,6 @@ from .local_connection_utils import store_connection_config, read_api_config
 from .generic_utils import check_missing_values, get_open_etl_document_connection_details
 import json
 import os
-from utils.api_utils import test_api
 from utils.enums import *
 import utils.connector_utils as con_utils
 

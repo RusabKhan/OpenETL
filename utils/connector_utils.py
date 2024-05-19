@@ -134,7 +134,7 @@ def get_connector_metadata(connector_name, connector_type=ConnectionType.DATABAS
     return module.get_metadata()
 
 @st.cache_data
-def get_created_connections(connector_type=ConnectionType.DATABASE.value) -> list:
+def get_created_connections(connector_type=ConnectionType.DATABASE.value, connection_name = None) -> list:
     """
     Returns a list of created connections for the specified connector type.
 
@@ -149,7 +149,7 @@ def get_created_connections(connector_type=ConnectionType.DATABASE.value) -> lis
                                port=os.getenv("OPENETL_DOCUMENT_PORT"),
                                username=os.getenv("OPENETL_DOCUMENT_USER"),
                                password=os.getenv("OPENETL_DOCUMENT_PASS"),
-                               database=os.getenv("OPENETL_DOCUMENT_DB")).get_created_connections(connector_type=connector_type).to_json(orient='records'))
+                               database=os.getenv("OPENETL_DOCUMENT_DB")).get_created_connections(connector_type=connector_type, connection_name = connection_name).to_json(orient='records'))
     
 @st.cache_data
 def fetch_metadata(connection, auth_options, connection_type):
@@ -175,7 +175,7 @@ def fetch_metadata(connection, auth_options, connection_type):
         return {"tables": [], "schema": []}
     
     
-    
+@st.cache_data
 def get_connector_image(connector_name,connection_type):
     """Fetch metadata from the given connection.
 
@@ -192,3 +192,42 @@ def get_connector_image(connector_name,connection_type):
     except Exception as e:
         print(f"Error: {str(e)}")
         return "https://cdn5.vectorstock.com/i/1000x1000/42/09/connection-vector-28634209.jpg"
+
+
+
+def fetch_data_from_connector(connection_name, connection_type, table, schema="public",page_limit = 10000):
+    """
+    Fetches data from a connector based on the provided connection details.
+
+    Args:
+        connection_name (str): The name of the connection.
+        connection_type (str): The type of the connection.
+        table (str): The name of the table to fetch data from.
+        schema (str, optional): The schema of the table. Defaults to "public".
+        page_limit (int, optional): The maximum number of pages to fetch. Defaults to 10000.
+
+    Returns:
+        None
+    """
+    connector_details = get_created_connections(connection_type, connection_name=connection_name)[0]
+    connector_name = connector_details['connector_name']
+    auth_type = AuthType(connector_details['auth_type']['value'])
+    auth_params = connector_details['connection_credentials']
+    module = import_module(connector_name, f"{connectors_directory}/{connection_type}/{connector_name}.py")
+    if connection_type == "api":
+        api_session = module.connect_to_api(auth_type=auth_type, **auth_params)
+        arr = []
+        for page in module.fetch_data(api_session, table):
+            print(module.return_final_df(page)) # apply yield here to with page_limit 
+    elif connection_type == "database":
+        module.create_engine(**auth_params)
+        print(module.read_table(table))  
+    
+
+
+# if __name__ == "__main__":
+#     source_connection = {'table': 'get_all_contacts', 'schema': 'public', 'connection_type': 'api', 
+#                          'connection_name': 'my_connection'}
+    
+
+#     fetch_data_from_connector("my_connection", "api", "get_all_contacts","public")

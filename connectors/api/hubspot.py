@@ -49,12 +49,13 @@ class Connector(API):
             limit_query = urlencode(self.limit)
             paginated_endpoint = f"{endpoint}?{pagination_query}&{limit_query}"
             resp = super().fetch_data(api_session, paginated_endpoint)
-            arr.append(resp[self.main_response_key])
+            yield resp[self.main_response_key]
+
             if "paging" in resp and "next" in resp["paging"]:
                 self.pagination["after"] = resp["paging"]["next"]["after"]
             else:
                 break
-        return self.return_final_df(arr)
+        
 
     def return_final_df(self, responses) -> pd.DataFrame:
         return super().return_final_df(responses)

@@ -4,7 +4,6 @@ from .database_utils import DatabaseUtils
 from .local_connection_utils import read_connection_config
 import streamlit as st
 from .jdbc_engine_utils import JDBCEngine
-from .api_utils import read_api_tables
 import subprocess
 import os
 from utils import connector_utils

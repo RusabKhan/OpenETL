@@ -641,7 +641,7 @@ class DatabaseUtils():
             return False, e
         
         
-    def get_created_connections(self,connector_type=ConnectionType.DATABASE.value) -> pd.DataFrame:
+    def get_created_connections(self,connector_type=None, connection_name = None) -> pd.DataFrame:
         """
         Returns a list of created connections for the specified connector type.
 
@@ -658,7 +658,17 @@ class DatabaseUtils():
             OpenETLDocument.connector_name,
             OpenETLDocument.connection_credentials
         ]
-        select_query = select(columns_to_fetch).where(OpenETLDocument.connection_type == connector_type)
+        conditions = []
+        
+        if connector_type is not None:
+            conditions.append(OpenETLDocument.connection_type == connector_type)
+        if connection_name is not None:
+            conditions.append(OpenETLDocument.connection_name == connection_name)
+
+        if conditions:
+            select_query = select(columns_to_fetch).where(and_(*conditions))
+        else:
+            select_query = select(columns_to_fetch) 
         data = pd.read_sql(select_query, self.session.bind)
 
         return data

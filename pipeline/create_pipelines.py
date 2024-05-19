@@ -1,4 +1,3 @@
-import extra_streamlit_components as stx
 import streamlit as st
 from utils.local_connection_utils import read_all_connection_configs, read_connection_config
 from utils.airflow_utils import create_airflow_dag
@@ -13,7 +12,6 @@ from utils.connector_utils import get_created_connections, fetch_metadata
 set_page_config(page_title="Create ETL", page_icon=None, initial_sidebar_state="expanded",
                 layout="wide", menu_items={}, page_style_state_variable="pipeline_create_pipeline")
 
-# (steps=["Select Source & Target", "Spark Settings", "Finish"])
 target_type = ConnectionType.DATABASE.value
 con_type = [
     ConnectionType.DATABASE.value,
@@ -92,8 +90,18 @@ def render_section(section):
                     f"{section} Schema", source_schema, disabled=no_source)
             if final_values[section]["schema"] is not None:
                 with schema_col:
-                    final_values[section]["table"] = st.selectbox(
-                        f"{section} Tables", metadata[final_values[section]["schema"]], disabled=no_source)
+                    if section == "Source":
+                        final_values[section]["table"] = st.selectbox(
+                            f"{section} Tables", metadata[final_values[section]["schema"]], disabled=no_source)
+                    else:
+                        new_or_existing = st.radio(
+                            f"{section} Tables", ["New", "Existing"])
+                        if new_or_existing == "Existing":
+                            final_values[section]["table"] = st.selectbox(
+                                f"{section} Tables", metadata[final_values[section]["schema"]], disabled=no_source)
+                        else:
+                            final_values[section]["table"] = st.text_input(
+                                f"{section} Tables", disabled=no_source)
 
 
 render_section("Source")
