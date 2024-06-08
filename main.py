@@ -131,7 +131,8 @@ st.markdown("---")  # Divider
 
 # Displaying the dataframe below the metrics
 st.subheader("Pipeline Details")
-st.dataframe(df)
+with st.container():
+    st.dataframe(df, use_container_width=True, height=300,hide_index=True)
 
 
 __init__()
