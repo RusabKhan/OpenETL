@@ -43,6 +43,7 @@ def get_connector_auth_details(connector_name, connector_type=ConnectionType.DAT
     Returns:
         dict: A dictionary containing the authentication details for the specified connector.
     """
+    path = None
     if connector_type == ConnectionType.DATABASE:
         path = f"{connectors_directory}/database/{connector_name}.py"
     elif connector_type == ConnectionType.API:
@@ -50,6 +51,11 @@ def get_connector_auth_details(connector_name, connector_type=ConnectionType.DAT
     module = import_module(connector_name, path)
     return module.authentication_details
 
+
+def get_db_connector_engine(connector_name):
+    path = f"{connectors_directory}/database/{connector_name}.py"
+    module = import_module(connector_name, path)
+    return module.engine
 
 def import_module(module_name, module_path, class_name="Connector", *args, **kwargs):
     """
@@ -218,10 +224,10 @@ def fetch_data_from_connector(connection_name, connection_type, table, schema="p
         api_session = module.connect_to_api(auth_type=auth_type, **auth_params)
         arr = []
         for page in module.fetch_data(api_session, table):
-            print(module.return_final_df(page)) # apply yield here to with page_limit 
+            yield module.return_final_df(page) # apply yield here to with page_limit 
     elif connection_type == "database":
         module.create_engine(**auth_params)
-        print(module.read_table(table))  
+        yield module.read_table(table)
     
 
 
