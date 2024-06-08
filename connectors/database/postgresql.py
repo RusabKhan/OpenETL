@@ -1,6 +1,7 @@
 import sys
 import os
 from utils.main_db_class import DB
+from utils.enums import ConnectionType, AuthType
 
 
 
@@ -10,7 +11,10 @@ class Connector(DB):
     def __init__(self):
         self.required_libs = ["psycopg2-binary==2.9.9"]
         self.logo = "https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg"
+        self.engine = "PostgreSQL"
         super().__init__()
+
+
 
     def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="PostgreSQL"):
         return super().create_engine(engine, hostname, username, password, port, database, connection_name=None, connection_type=None)

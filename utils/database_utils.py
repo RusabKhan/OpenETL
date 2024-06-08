@@ -31,6 +31,7 @@ import logging
 import base64
 import json
 from datetime import datetime
+from sqlalchemy.dialects.postgresql import UUID
 
 
 Base = declarative_base()
@@ -47,6 +48,24 @@ class OpenETLDocument(Base):
     connector_name = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class OpenETLBatch(Base):
+    __tablename__ = 'openetl_batches'
+    __table_args__ = {'schema': 'open_etl'}
+
+    uid = Column(Integer, primary_key=True)
+    batch_id = Column(UUID(as_uuid=True))
+    start_date = Column(DateTime, nullable=True)
+    end_date = Column(DateTime, nullable=True)
+    batch_type = Column(String)
+    batch_status = Column(String)
+    integration_name = Column(String)
+    rows_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    
 
 class DatabaseUtils():
     """A class to connect with any database using SQLAlchemy.
@@ -546,6 +565,14 @@ class DatabaseUtils():
         """
             
         OpenETLDocument.metadata.create_all(self.engine)
+        
+    
+    def create_batch_table(self):
+        """
+        Creates a batch table in the database using the OpenETLBatch metadata and the engine.
+        """
+        
+        OpenETLBatch.metadata.create_all(self.engine)
 
 
     def fetch_rows(self, table_name='openetl_documents', schema_name='open_etl', conditions: dict = {}):
@@ -673,4 +700,50 @@ class DatabaseUtils():
 
         return data
 
+    
+    def insert_openetl_batch(self, start_date, batch_type, batch_status, batch_id, integration_name,rows_count=0, end_date=None):
+    # Get the current highest batch_id
+        session = self.session
+        max_id = session.query(OpenETLBatch).order_by(OpenETLBatch.uid.desc()).first()
+        new_id = 1 if max_id is None else max_id.uid + 1
+
+        # Create new OpenETLBatch instance
+        new_batch = OpenETLBatch(
+            uid=new_id,
+            batch_id=batch_id,
+            start_date=start_date,
+            end_date=end_date,
+            batch_type=batch_type,
+            batch_status=batch_status,
+            integration_name=integration_name,
+            rows_count=rows_count
+        )
+
+        # Add and commit the new batch to the session
+        session.add(new_batch)
+        session.commit()
+        return new_batch
+    
+    
+    def update_openetl_batch(self, batch_id, **kwargs):
         
+        session = self.session
+        # Find the batch by batch_id
+        batch = session.query(OpenETLBatch).filter(OpenETLBatch.batch_id == batch_id).one_or_none()
+
+        if batch is not None:
+            # Update the specified fields
+            for key, value in kwargs.items():
+                if key in ['rows_count']:
+                    existing_value = getattr(batch, key)
+                    value = existing_value + value
+                setattr(batch, key, value)
+            
+            # Commit the changes to the session
+            session.commit()
+            return batch
+        else:
+            raise Exception(f"Batch with id {batch_id} not found.")
+
+
+
