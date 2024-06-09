@@ -13,6 +13,11 @@ from utils.local_connection_utils import create_con_directory
 from dotenv import load_dotenv
 import pandas as pd
 from utils.database_utils import DatabaseUtils
+from console.console import get_logger
+
+logging = get_logger()
+
+# Redirecting stdout to a stream
 
 gu.set_page_config(page_title="OpenETL", page_icon=None, initial_sidebar_state="expanded",
                    layout="wide", menu_items={}, page_style_state_variable="home")
@@ -154,6 +159,7 @@ show_pages(
         #Page("api/create_api.py", "Create API"),
         #Page("pipeline/pipelines.py", "My ETL"),
         Page("pipeline/create_pipelines.py", "Create ETL"),
+        Page("console/console.py", "Console"),
         # Page("api/fetch_data.py","Fetch Data"),
 
     ]

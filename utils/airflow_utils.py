@@ -16,7 +16,7 @@ import sys
 import uuid
 import utils.connector_utils as con_utils
 import sys
-import logging
+from console.console import get_logger
 import pandas as pd
 from utils.cache import *
 import utils.local_connection_utils as loc
@@ -28,7 +28,7 @@ import utils.database_utils as database_utils
 import utils.jdbc_engine_utils as jdbc_utils
 
 
-logging.basicConfig(level=logging.INFO)
+logging = get_logger()
 
 
 def create_airflow_dag(config):

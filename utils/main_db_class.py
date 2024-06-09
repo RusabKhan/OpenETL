@@ -27,12 +27,13 @@ from sqlalchemy.ext.declarative import declarative_base
 from pyspark.sql.types import StringType, IntegerType, FloatType, DoubleType, BooleanType, TimestampType, DateType, \
     ArrayType, MapType
 import re
-import logging
+from console.console import get_logger
 import base64
 import json
 from utils.generic_utils import install_libraries
 from utils.enums import ConnectionType, AuthType
 
+logging = get_logger()
 
 class DB(DatabaseUtils):
     """A class to connect with any database using SQLAlchemy.
