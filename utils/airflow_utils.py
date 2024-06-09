@@ -165,7 +165,8 @@ def run_pipeline(source_connection_type, source_table, source_schema, source_con
         #     target_connection_config['table'], df)
         # if not created:
         #     raise Exception(message)
-
+        logging.info("PRINTING OUT JARS")
+        logging.info(jar)
         spark_class = sp_ut.SparkConnection(spark_configuration=spark_config,
                                             hadoop_configuration=hadoop_config, jar=jar, connection_string=con_string)
         spark_session = spark_class.initializeSpark()
