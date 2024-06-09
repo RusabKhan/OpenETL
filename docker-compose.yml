@@ -42,7 +42,9 @@ services:
 
   airflow-webserver:
     <<: *airflow-common
-    image: apache/airflow:2.8.4
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     depends_on:
@@ -53,7 +55,9 @@ services:
 
   airflow-scheduler:
     <<: *airflow-common
-    image: apache/airflow:2.8.4
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on:
       - "airflow-init"
       - "postgresql"
@@ -62,9 +66,10 @@ services:
 
   airflow-init:
     <<: *airflow-common
-    image: apache/airflow:2.8.4
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on:
       - "postgresql"
     entrypoint: /bin/bash
     command: -c "airflow db init && airflow users create -r Admin -u admin -e admin@example.com -f Admin -l User -p admin && exit"
-
