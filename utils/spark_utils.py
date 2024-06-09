@@ -16,8 +16,9 @@ from pyspark.sql.functions import lit
 from pyspark.sql.types import *
 from utils.cache import *
 import os
-import logging
+from console.console import get_logger
 
+logging = get_logger()
 
 class SparkConnection():
 

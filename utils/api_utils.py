@@ -11,8 +11,9 @@ from . enums import *
 import re
 from collections import abc
 from utils.local_connection_utils import read_connection_config
-import logging
+from console.console import get_logger
 
+logging = get_logger()
 
 def parse_json(json_content):
     try:
