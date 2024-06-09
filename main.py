@@ -12,7 +12,7 @@ from utils import generic_utils as gu
 from utils.local_connection_utils import create_con_directory
 from dotenv import load_dotenv
 import pandas as pd
-
+from utils.database_utils import DatabaseUtils
 
 gu.set_page_config(page_title="OpenETL", page_icon=None, initial_sidebar_state="expanded",
                    layout="wide", menu_items={}, page_style_state_variable="home")
@@ -95,6 +95,13 @@ def set_session():
 def __init__():
     set_session()
     create_con_directory()
+    DatabaseUtils(engine=os.getenv('OPENETL_DOCUMENT_ENGINE'),
+                 hostname=os.getenv('OPENETL_DOCUMENT_HOST'),
+                 port=os.getenv('OPENETL_DOCUMENT_PORT'),
+                 username=os.getenv('OPENETL_DOCUMENT_USER'),
+                 password=os.getenv('OPENETL_DOCUMENT_PASS'),
+                 database=os.getenv('OPENETL_DOCUMENT_DB')).create_document_table()
+    
 
 
 col1, col2, col3, col4 = st.columns(4)

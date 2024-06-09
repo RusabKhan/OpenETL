@@ -32,6 +32,9 @@ import base64
 import json
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.schema import CreateSchema
+
+
 
 
 Base = declarative_base()
@@ -563,7 +566,11 @@ class DatabaseUtils():
         Returns:
         - None
         """
-            
+        try:
+            self.engine.execute(CreateSchema('open_etl'))
+        except Exception as e:
+            # If schema already exists, it will raise a ProgrammingError which we can ignore
+            pass
         OpenETLDocument.metadata.create_all(self.engine)
         
     
@@ -571,7 +578,11 @@ class DatabaseUtils():
         """
         Creates a batch table in the database using the OpenETLBatch metadata and the engine.
         """
-        
+        try:
+            self.engine.execute(CreateSchema('open_etl'))
+        except Exception as e:
+            # If schema already exists, it will raise a ProgrammingError which we can ignore
+            pass
         OpenETLBatch.metadata.create_all(self.engine)
 
 
