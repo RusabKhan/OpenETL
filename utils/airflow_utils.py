@@ -67,7 +67,7 @@ def create_airflow_dag(config):
         integration_name=integration_name, source_connection=op_args["config"]["source"],
         target_connection=op_args["config"]["target"],
         spark_config=config["spark_config"], hadoop_config=config["hadoop_config"], default_args=default_args)
-    with open(f"{os.getcwd()}/.local/dags/{config['integration_name']}.py", "w") as f:
+    with open(f"{os.getenv('AIRFLOW_HOME')}/dags/{integration_name}.py", "w") as f:
         f.write(template)
     return True
 
