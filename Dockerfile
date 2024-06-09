@@ -1,5 +1,22 @@
 # Use a slim version of Python 3.11 as the base image
-FROM python:3.11-slim
+FROM python:3.11-slim-bullseye
+
+# Set up dependencies for Spark and Java
+RUN apt-get update \
+    && apt-get install -y wget \
+    && apt-get install -y openjdk-11-jdk \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up Spark
+ENV SPARK_VERSION=3.4.3
+ENV HADOOP_VERSION=3
+ENV SPARK_HOME=/opt/spark
+
+# Download and extract Spark binary distribution
+RUN wget -qO- "https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" | tar xz -C /opt \
+    && mv "/opt/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}" /opt/spark \
+    && echo "export SPARK_HOME=/opt/spark" >> ~/.bashrc \
+    && echo "export PATH=\$PATH:\$SPARK_HOME/bin" >> ~/.bashrc
 
 # Set the working directory to /app
 WORKDIR /app

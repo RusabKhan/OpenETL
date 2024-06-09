@@ -58,8 +58,6 @@ class SparkConnection():
         self.spark_configuration = spark_configuration
         self.hadoop_configuration = hadoop_configuration
         self.jar = jar
-        self.required_libs = ["pyspark==3.5.1"]
-        install_libraries(self.required_libs)
 
     def initializeSpark(self) -> SparkSession:
         """

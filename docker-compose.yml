@@ -15,6 +15,7 @@ x-airflow-common: &airflow-common
     - OPENETL_DOCUMENT_ENGINE=PostgreSQL
   volumes:
     - /Users/rusab1/docker/airflow_openetl/dags:/opt/airflow/dags
+    - /Users/rusab1/docker/airflow_openetl/logs:/opt/airflow/logs
     - .:/app
 
 services:
