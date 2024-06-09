@@ -73,7 +73,7 @@ sqlalchemy_database_engines = {
 
 jdbc_database_jars = {
     'MySQL': 'mysql:mysql-connector-java:8.0.0',
-    'PostgreSQL': 'org.postgresql:postgresql:42.2.0',
+    'PostgreSQL': 'org.postgresql:postgresql:42.2.6',
     'SQLite': 'org.xerial:sqlite-jdbc:3.34.0',
     'Oracle': 'com.oracle.database.jdbc:ojdbc8:19.8.0.0',
     'Microsoft SQL Server': 'com.microsoft.sqlserver:mssql-jdbc:9.4.0.jre11',
