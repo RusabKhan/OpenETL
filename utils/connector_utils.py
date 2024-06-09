@@ -139,7 +139,6 @@ def get_connector_metadata(connector_name, connector_type=ConnectionType.DATABAS
     module = import_module(connector_name, path)
     return module.get_metadata()
 
-@st.cache_data
 def get_created_connections(connector_type=ConnectionType.DATABASE.value, connection_name = None) -> list:
     """
     Returns a list of created connections for the specified connector type.

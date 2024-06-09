@@ -1,7 +1,25 @@
-version: '3'
+version: '3.8'
+
+x-airflow-common: &airflow-common
+  environment:
+    - AIRFLOW_HOME=/opt/airflow
+    - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgresql/airflow
+    - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+    - OPENETL_HOME=/app
+    - OPENETL_DOCUMENT_HOST=postgresql
+    - OPENETL_DOCUMENT_PORT=5432
+    - OPENETL_DOCUMENT_USER=airflow
+    - OPENETL_DOCUMENT_PASS=airflow
+    - OPENETL_DOCUMENT_DB=airflow
+    - OPENETL_DOCUMENT_ENGINE=PostgreSQL
+  volumes:
+    - /Users/rusab1/docker/airflow_openetl/dags:/opt/airflow/dags
+    - .:/app
 
 services:
-  streamlit:
+  streamlit-openetl:
+    <<: *airflow-common
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,14 +27,7 @@ services:
       - "8500:8500"
     volumes:
       - .:/app
-    environment:
-      - OPENETL_HOME=/app
-      - OPENETL_DOCUMENT_HOST=postgresql
-      - OPENETL_DOCUMENT_PORT=5432
-      - OPENETL_DOCUMENT_USER=airflow
-      - OPENETL_DOCUMENT_PASS=airflow
-      - OPENETL_DOCUMENT_DB=airflow
-      - OPENETL_DOCUMENT_ENGINE=PostgreSQL
+      - /Users/rusab1/docker/airflow_openetl:/opt/airflow
 
   postgresql:
     image: postgres:latest
@@ -30,6 +41,7 @@ services:
       - "5433:5432"
 
   airflow-webserver:
+    <<: *airflow-common
     image: apache/airflow:2.8.4
     ports:
       - "8080:8080"
@@ -37,33 +49,22 @@ services:
       - "postgresql"
       - "airflow-scheduler"
       - "airflow-init"
-    environment:
-      - AIRFLOW_HOME=/opt/airflow
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgresql/airflow
-    volumes:
-      - /Users/rusab1/docker/logs:/usr/local/airflow/logs
-      - /Users/rusab1/docker/dags:/usr/local/airflow/dags
     command: airflow webserver
 
   airflow-scheduler:
+    <<: *airflow-common
     image: apache/airflow:2.8.4
     depends_on:
       - "airflow-init"
       - "postgresql"
-    environment:
-      - AIRFLOW_HOME=/opt/airflow
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgresql/airflow
-    volumes:
-      - /Users/rusab1/docker/logs:/usr/local/airflow/logs
-      - /Users/rusab1/docker/dags:/usr/local/airflow/dags
     command: airflow scheduler
+    restart: always
 
   airflow-init:
+    <<: *airflow-common
     image: apache/airflow:2.8.4
     depends_on:
       - "postgresql"
     entrypoint: /bin/bash
     command: -c "airflow db init && airflow users create -r Admin -u admin -e admin@example.com -f Admin -l User -p admin && exit"
-    environment:
-      - AIRFLOW_HOME=/opt/airflow
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgresql/airflow
+
