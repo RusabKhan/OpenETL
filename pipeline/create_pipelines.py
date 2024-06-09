@@ -145,16 +145,8 @@ with spark:
     with hadoop_col:
         data = {
             'Configuration': [
-                'spark.hadoop.fs.s3a.access.key',
-                'spark.hadoop.fs.s3a.secret.key',
-                'spark.hadoop.fs.s3a.endpoint',
-                'spark.hadoop.fs.s3a.impl',
             ],
             'Average Setting': [
-                None,
-                None,
-                None,
-                None
             ]
         }
         df = pd.DataFrame(data)
@@ -168,7 +160,10 @@ with spark:
 with finish:
 
     submit = False
-    integration_name = st.text_input("Enter unique integration name")
+    integration_name_value =final_values["Source"]["source"]+"_" +final_values["Source"]["table"] + "_to_" + final_values["Target"]["source"]+"_"+final_values["Target"]["table"]
+    integration_name = st.text_input("Enter unique integration name",
+                                     key="integration_name",
+                                     value=integration_name_value)
     col1, col2 = st.columns(2)
     options = []
 
