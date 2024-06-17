@@ -27,9 +27,6 @@ COPY requirements.txt .
 # Install the required Python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Apache Airflow
-RUN pip install apache-airflow
-
 # Set environment variables for Airflow and OpenETL
 ENV AIRFLOW_HOME=/opt/airflow \
     OPENETL_HOME=/app \
@@ -51,3 +48,5 @@ RUN mv /app/airflow.cfg $AIRFLOW_HOME/
 
 # Expose ports for Streamlit and Airflow
 EXPOSE 8500 8080
+
+CMD ["streamlit", "run", "main.py"]
