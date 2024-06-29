@@ -9,8 +9,6 @@ from utils.connector_utils import get_created_connections
 from utils.enums import *
 
 
-set_page_config(page_title="Connections", page_icon=None, initial_sidebar_state="expanded",
-                layout="wide", menu_items={}, page_style_state_variable="connection_connection")
 
 
 Database = st.container()

@@ -7,8 +7,6 @@ from utils.local_connection_utils import read_all_pipeline_configs, read_pipelin
 from utils.form_utils import create_button_columns
 
 
-set_page_config(page_title="My Pipelines", page_icon=None,
-                initial_sidebar_state="expanded", layout="wide", menu_items={}, page_style_state_variable="pipeline_pipelines")
 
 
 
