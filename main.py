@@ -109,7 +109,7 @@ __init__()
 
 current_page = st.navigation({
     "Home": [
-        st.Page("Home.py", title="Home")],
+        st.Page("Home.py", title="Home", default=True),],
     "Connections": [
         st.Page("connection/create_connection.py", title="Create a new connection"),
         st.Page("connection/connection.py", title="Connections")
@@ -124,5 +124,22 @@ current_page = st.navigation({
 
     ]}
 )
+st.set_page_config(layout="wide")
+st.markdown(
+    """
+    <style>
+    .block-container.st-emotion-cache-1jicfl2.ea3mdgi5 {
+    padding: 3rem 1rem 10rem;
+    }
+
+    .stDeployButton {
+        visibility: hidden;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 current_page.run()
