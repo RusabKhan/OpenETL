@@ -567,7 +567,8 @@ class DatabaseUtils():
         - None
         """
         try:
-            self.engine.execute(CreateSchema('open_etl'))
+            if not self.engine.dialect.has_schema(self.engine, "open_etl"):
+                self.engine.execute(CreateSchema('open_etl'))
         except Exception as e:
             # If schema already exists, it will raise a ProgrammingError which we can ignore
             pass
