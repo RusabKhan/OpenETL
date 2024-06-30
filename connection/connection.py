@@ -4,7 +4,6 @@ from streamlit_option_menu import option_menu
 
 from utils.local_connection_utils import read_all_connection_configs
 from utils.form_utils import create_button_columns
-from utils.generic_utils import set_page_config
 from utils.connector_utils import get_created_connections
 from utils.enums import *
 

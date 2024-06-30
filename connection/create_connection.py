@@ -7,10 +7,6 @@ from utils.enums import *
 from console.console import get_logger
 
 logging = get_logger()
-# set_page_config(page_title="Create Connection", page_icon=None, initial_sidebar_state="expanded",
-#                 layout="wide", menu_items={}, page_style_state_variable="connection_create_connection")
-
-# 
 
 
 global type_, engine, gen

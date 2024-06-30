@@ -1,7 +1,7 @@
 import streamlit as st
 from utils.local_connection_utils import read_all_connection_configs, read_connection_config
 from utils.airflow_utils import create_airflow_dag
-from utils.generic_utils import extract_connections_db_or_api, check_missing_values, set_page_config
+from utils.generic_utils import extract_connections_db_or_api, check_missing_values
 from utils.enums import *
 import pandas as pd
 import json
