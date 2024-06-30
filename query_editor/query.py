@@ -9,7 +9,6 @@ from utils.generic_utils import (
 )
 import pandas as pd
 from sqlalchemy import text
-from utils.generic_utils import set_page_config
 #from pandas_profiling import ProfileReport
 from datetime import datetime
 from streamlit_ace import st_ace
