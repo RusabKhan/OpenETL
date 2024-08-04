@@ -7,6 +7,11 @@ if "OPENETL_HOME" not in os.environ:
 
 import streamlit as st
 
+if "style_setting_set" not in st.session_state:
+    st.set_page_config(layout="wide",page_icon="utils/logo/favicon.png", page_title="OpenETL")
+    st.session_state.style_setting_set = True
+
+
 from utils import generic_utils as gu
 from utils.local_connection_utils import create_con_directory
 from dotenv import load_dotenv
@@ -75,8 +80,14 @@ def set_session():
 
     if "style_setting" not in st.session_state:
         st.session_state.style_setting = {}
+        
+    if "dashboard_tab_data" not in st.session_state:
+        st.session_state.dashboard_tab_data = {}
+    if "dashboard_thread_started" not in st.session_state:
+        st.session_state.dashboard_thread_started = False
 
     load_dotenv(dotenv_path='.env')
+    print(os.environ.get("OPENETL_CACHE_TTL"))
 
 # STYLE VARIABLES
 # if "connection_create_connection_style_set" not in st.session_state:
@@ -102,7 +113,6 @@ def __init__():
                 username=os.getenv('OPENETL_DOCUMENT_USER'),
                 password=os.getenv('OPENETL_DOCUMENT_PASS'),
                 database=os.getenv('OPENETL_DOCUMENT_DB')).create_document_table()
-    st.set_page_config(layout="wide",page_icon="logo/favicon.png", page_title="OpenETL")
     st.markdown(
         """
         <style>
@@ -118,10 +128,13 @@ def __init__():
         """,
         unsafe_allow_html=True,
     )
-    st.logo("logo/logo.png")
+    st.logo("utils/logo/logo.png")
 
-
-__init__()
+try:
+    __init__()
+except Exception as e:
+    logging.exception(e)
+    st.rerun()
 
 
 current_page = st.navigation({

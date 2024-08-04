@@ -1,43 +1,69 @@
 import streamlit as st
 import pandas as pd
 from console.console import get_logger
+from utils.database_utils import DatabaseUtils
+import os
+from streamlit_autorefresh import st_autorefresh
 
+# Set up logging
 logging = get_logger()
 
-col1, col2, col3, col4 = st.columns(4)
 
-# sample data
-data = {
-    "Pipeline name": ["Pipeline A", "Pipeline B", "Pipeline C"],
-    "Pipeline status": ["Running", "Completed", "Failed"],
-    "Last run": ["2024-06-01 14:00", "2024-06-02 15:00", "2024-06-03 16:00"],
-    "Scheduled run": ["2024-06-05 14:00", "2024-06-06 15:00", "2024-06-07 16:00"],
-}
 
-df = pd.DataFrame(data)
+def format_keys(data):
+    formatted_data = []
+    for entry in data:
+        formatted_entry = {
+            key.replace('_', ' ').title(): value
+            for key, value in entry.items()
+        }
+        formatted_data.append(formatted_entry)
+    return formatted_data
 
-# Sample metrics for the blocks
-total_api_connections = 5
-total_db_connections = 10
-total_pipelines = 3
-total_rows_migrated = 100000
+# Function to fetch and display data
+@st.cache_data(ttl=int(os.environ.get("OPENETL_CACHE_TTL")))  # Cache data for 20 seconds
+def set_dashboard_data():
+    data = DatabaseUtils(engine=os.getenv('OPENETL_DOCUMENT_ENGINE'),
+                         hostname=os.getenv('OPENETL_DOCUMENT_HOST'),
+                         port=os.getenv('OPENETL_DOCUMENT_PORT'),
+                         username=os.getenv('OPENETL_DOCUMENT_USER'),
+                         password=os.getenv('OPENETL_DOCUMENT_PASS'),
+                         database=os.getenv('OPENETL_DOCUMENT_DB')).get_dashboard_data()
 
-with col1:
-    st.metric(label="Total API Connections", value=total_api_connections)
+    integrations_data = format_keys(data['integrations'])
 
-with col2:
-    st.metric(label="Total DB Connections", value=total_db_connections)
+    columns = list(integrations_data[0].keys())
+    
+    df = pd.DataFrame(data=integrations_data, columns=columns)
+    # Sample metrics for the blocks
+    total_api_connections = data['total_api_connections']
+    total_db_connections = data['total_db_connections']
+    total_pipelines = data['total_pipelines']
+    total_rows_migrated = data['total_rows_migrated']
 
-with col3:
-    st.metric(label="Total Pipelines", value=total_pipelines)
+    # Display metrics
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric(label="Total API Connections", value=total_api_connections)
 
-with col4:
-    st.metric(label="Total Rows Migrated", value=total_rows_migrated)
+    with col2:
+        st.metric(label="Total DB Connections", value=total_db_connections)
 
-st.markdown("---")  # Divider
+    with col3:
+        st.metric(label="Total Pipelines", value=total_pipelines)
 
-# Displaying the dataframe below the metrics
-st.subheader("Pipeline Details")
-with st.container():
-    st.dataframe(df, use_container_width=True, height=300, hide_index=True)
+    with col4:
+        st.metric(label="Total Rows Migrated", value=total_rows_migrated)
 
+    st.markdown("---")  # Divider
+
+    # Display the dataframe
+    st.subheader("Pipeline Details")
+    with st.container():
+        st.dataframe(df, use_container_width=True, height=300, hide_index=True)
+
+# Auto-refresh every 20 seconds
+st_autorefresh(interval=80*1000, key="data_refresh")
+
+# Fetch and display data
+set_dashboard_data()
