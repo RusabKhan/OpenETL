@@ -11,7 +11,7 @@ from utils.database_utils import DatabaseUtils
 
 
 class API:
-
+    
     logo = ""
     base_url = ""
     tables = {

@@ -24,7 +24,16 @@ import utils.connector_utils as con_utils
 
 class GenerateForm():
     """
-    A class which generates form.
+    A class that generates a form based on the specified engine type and engine.
+
+    Attributes:
+    - engine_type (string): Type of the engine, either 'database' or 'JDBC'.
+    - engine (string): Valid engine for SQLAlchemy connection, such as 'pymysql'.
+
+    Methods:
+    - __init__: Initializes the GenerateForm class with the engine type and engine.
+    - create_connection: Prints the arguments and keyword arguments, simulating the creation of a connection.
+    - connection_form: Generates a form for creating a connection based on the engine type and engine provided.
     """
 
     def __init__(self, engine_type, engine):

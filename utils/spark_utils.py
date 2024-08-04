@@ -21,6 +21,22 @@ from console.console import get_logger
 logging = get_logger()
 
 class SparkConnection():
+    
+    """
+    A class representing a connection to a Spark cluster.
+
+    Attributes:
+        connection_string (str): The connection string for the Spark cluster.
+        spark_configuration (dict): Dictionary containing Spark configuration details.
+        hadoop_configuration (dict, optional): Dictionary containing Hadoop configuration details.
+        jar (None): Placeholder for the JAR file.
+
+    Methods:
+        initializeSpark(): Initializes a Spark connection and configures the Spark session.
+        read_via_spark(): Reads data using Spark based on the specified connection format and credentials.
+        write_via_spark(dataframe, conn_string, table, driver, mode="append", format="jdbc"): Writes data using Spark.
+        __dispose__(): Disposes the Spark session and engine.
+    """
 
     def __init__(self, connection_string: str,
                  spark_configuration: dict,
