@@ -39,6 +39,7 @@ logging = get_logger()
 
 Base = declarative_base()
 
+
 class OpenETLDocument(Base):
     __tablename__ = 'openetl_documents'
     __table_args__ = {'schema': 'open_etl'}
@@ -50,7 +51,8 @@ class OpenETLDocument(Base):
     auth_type = Column(Enum(AuthType))
     connector_name = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow,
+                        onupdate=datetime.utcnow)
 
 
 class OpenETLBatch(Base):
@@ -66,15 +68,15 @@ class OpenETLBatch(Base):
     integration_name = Column(String)
     rows_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow,
+                        onupdate=datetime.utcnow)
 
-    
 
 class DatabaseUtils():
     """A class to connect with any database using SQLAlchemy.
     """
 
-    def __init__(self, engine = None, hostname = None, username = None, password = None, port = None, database = None, connection_name=None, connection_type=None):
+    def __init__(self, engine=None, hostname=None, username=None, password=None, port=None, database=None, connection_name=None, connection_type=None):
         """Initialize class
 
         Args:
@@ -89,7 +91,7 @@ class DatabaseUtils():
         """
         if engine is None:
             pass
-        
+
         else:
             engine = sqlalchemy_database_engines[engine]
             url = f"{engine}://{username}:{password}@{hostname}:{port}/{database}"
@@ -127,7 +129,7 @@ class DatabaseUtils():
             for schema in schemas:
                 print(f"schema: {schema}")
                 tables = inspector.get_table_names(schema=schema)
-            return {schema:tables}
+            return {schema: tables}
         except Exception as e:
             return {"tables": tables, "schema": []}
 
@@ -532,7 +534,7 @@ class DatabaseUtils():
 
         try:
             existing_table = Table(
-            table_name, self.metadata, autoload_with=self.engine, schema=schema_name)
+                table_name, self.metadata, autoload_with=self.engine, schema=schema_name)
 
             column = existing_table.columns[column_name]
             primary_key_constraint = PrimaryKeyConstraint(column)
@@ -573,8 +575,7 @@ class DatabaseUtils():
             # If schema already exists, it will raise a ProgrammingError which we can ignore
             pass
         OpenETLDocument.metadata.create_all(self.engine)
-        
-    
+
     def create_batch_table(self):
         """
         Creates a batch table in the database using the OpenETLBatch metadata and the engine.
@@ -585,7 +586,6 @@ class DatabaseUtils():
             # If schema already exists, it will raise a ProgrammingError which we can ignore
             pass
         OpenETLBatch.metadata.create_all(self.engine)
-
 
     def fetch_rows(self, table_name='openetl_documents', schema_name='open_etl', conditions: dict = {}):
         """
@@ -656,7 +656,7 @@ class DatabaseUtils():
             Exception: If an error occurs while writing the document. The error message is logged.
         """
         try:
-            
+
             Session = sessionmaker(bind=self.engine)
             session = Session()
 
@@ -678,9 +678,8 @@ class DatabaseUtils():
         except Exception as e:
             logging.error(e)
             return False, e
-        
-        
-    def get_created_connections(self,connector_type=None, connection_name = None) -> pd.DataFrame:
+
+    def get_created_connections(self, connector_type=None, connection_name=None) -> pd.DataFrame:
         """
         Returns a list of created connections for the specified connector type.
 
@@ -698,25 +697,27 @@ class DatabaseUtils():
             OpenETLDocument.connection_credentials
         ]
         conditions = []
-        
+
         if connector_type is not None:
-            conditions.append(OpenETLDocument.connection_type == connector_type)
+            conditions.append(
+                OpenETLDocument.connection_type == connector_type)
         if connection_name is not None:
-            conditions.append(OpenETLDocument.connection_name == connection_name)
+            conditions.append(
+                OpenETLDocument.connection_name == connection_name)
 
         if conditions:
             select_query = select(columns_to_fetch).where(and_(*conditions))
         else:
-            select_query = select(columns_to_fetch) 
+            select_query = select(columns_to_fetch)
         data = pd.read_sql(select_query, self.session.bind)
 
         return data
 
-    
-    def insert_openetl_batch(self, start_date, batch_type, batch_status, batch_id, integration_name,rows_count=0, end_date=None):
-    # Get the current highest batch_id
+    def insert_openetl_batch(self, start_date, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None):
+        # Get the current highest batch_id
         session = self.session
-        max_id = session.query(OpenETLBatch).order_by(OpenETLBatch.uid.desc()).first()
+        max_id = session.query(OpenETLBatch).order_by(
+            OpenETLBatch.uid.desc()).first()
         new_id = 1 if max_id is None else max_id.uid + 1
 
         # Create new OpenETLBatch instance
@@ -735,13 +736,13 @@ class DatabaseUtils():
         session.add(new_batch)
         session.commit()
         return new_batch
-    
-    
+
     def update_openetl_batch(self, batch_id, **kwargs):
-        
+
         session = self.session
         # Find the batch by batch_id
-        batch = session.query(OpenETLBatch).filter(OpenETLBatch.batch_id == batch_id).one_or_none()
+        batch = session.query(OpenETLBatch).filter(
+            OpenETLBatch.batch_id == batch_id).one_or_none()
 
         if batch is not None:
             # Update the specified fields
@@ -750,12 +751,74 @@ class DatabaseUtils():
                     existing_value = getattr(batch, key)
                     value = existing_value + value
                 setattr(batch, key, value)
-            
+
             # Commit the changes to the session
             session.commit()
             return batch
         else:
             raise Exception(f"Batch with id {batch_id} not found.")
 
+    def get_dashboard_data(self):
+        session = self.session
 
+        # Total API Connections
+        total_api_connections = session.query(OpenETLDocument).filter(
+            OpenETLDocument.connection_type == ConnectionType.API.value).count()
 
+        # Total DB Connections
+        total_db_connections = session.query(OpenETLDocument).filter(
+            OpenETLDocument.connection_type == ConnectionType.DATABASE.value).count()
+
+        # Total Pipelines
+        total_pipelines = session.query(OpenETLBatch).count()
+
+        # Total Rows Migrated
+        total_rows_migrated = session.query(
+            func.sum(OpenETLBatch.rows_count)).scalar()
+
+                # Integration name, status, start date, and end date
+        latest_runs_subquery = session.query(
+            OpenETLBatch.integration_name,
+            func.max(OpenETLBatch.start_date).label('latest_start_date')
+        ).group_by(OpenETLBatch.integration_name).subquery()
+
+        # Main query to get the integration details by the latest start_date
+        integrations = session.query(
+            OpenETLBatch.integration_name,
+            OpenETLBatch.batch_status.label('latest_batch_status'),
+            OpenETLBatch.start_date,
+            OpenETLBatch.end_date
+        ).join(
+            latest_runs_subquery,
+            (OpenETLBatch.integration_name == latest_runs_subquery.c.integration_name) & 
+            (OpenETLBatch.start_date == latest_runs_subquery.c.latest_start_date)
+        ).all()
+        
+        
+        batch_counts = session.query(
+            OpenETLBatch.integration_name,
+            func.count(OpenETLBatch.batch_id).label('batch_count'),
+        ).group_by(OpenETLBatch.integration_name).all()
+
+        # Create a dictionary to map batch counts by integration_name
+        batch_count_dict = {batch.integration_name: batch.batch_count for batch in batch_counts}
+
+        # Convert the query results to a list of dictionaries and add batch_count
+        integrations_dict = [
+            {
+                "integration_name": integration.integration_name,
+                "batch_status": integration.batch_status,
+                "start_date": integration.start_date.isoformat() if integration.start_date else None,
+                "end_date": integration.end_date.isoformat() if integration.end_date else None,
+                "batch_count": batch_count_dict.get(integration.integration_name, 0)
+            }
+            for integration in integrations
+        ]
+
+        return {
+            'total_api_connections': total_api_connections,
+            'total_db_connections': total_db_connections,
+            'total_pipelines': total_pipelines,
+            'total_rows_migrated': total_rows_migrated,
+            'integrations': integrations_dict
+        }
