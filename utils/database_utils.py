@@ -73,7 +73,53 @@ class OpenETLBatch(Base):
 
 
 class DatabaseUtils():
-    """A class to connect with any database using SQLAlchemy.
+    
+    """
+    A class to connect with any database using SQLAlchemy.
+
+    Attributes:
+    - engine (string): Sqlalchemy dialect
+    - hostname (string): Your database hostname
+    - username (string): Your database username
+    - password (string): Your database password
+    - port (string): Your database port
+    - database (string): Your database
+    - connection_name (string, optional): Description of the connection. Defaults to None.
+    - connection_type (string, optional): Description of the connection type. Defaults to None.
+
+    Methods:
+    - __init__: Initializes the class with database connection details.
+    - test: Tests the connection to the database.
+    - get_metadata: Retrieves schema metadata from the connection.
+    - execute_query: Executes a SQL query against the connection.
+    - get_metadata_df: Retrieves schema metadata in a dataframe format.
+    - dataframe_details: Generates details about each column in a DataFrame.
+    - create_table: Creates a new table in the database.
+    - fill_na_based_on_dtype: Replaces NaN values in a DataFrame based on column data types.
+    - alter_table_column_add_or_drop: Alters a table by adding or dropping a column.
+    - drop_table: Drops the specified table from the database.
+    - truncate_table: Truncates a table by deleting all rows.
+    - cast_columns: Casts columns in a DataFrame to specific data types.
+    - map_to_spark_type: Maps Pandas DataFrame data types to Spark DataFrame data types.
+    - match_pandas_schema_to_spark: Matches data types of columns in a Spark DataFrame to a specified schema.
+    - write_data: Writes data to a table in the database.
+    - create_session: Creates a new session and initializes metadata and base.
+    - commit_changes: Commits the changes made within the session.
+    - close_session: Closes the session and sets the session close flag.
+    - __enter__: Enters the 'with' context and creates a new session.
+    - __exit__: Exits the 'with' context, commits changes, and closes the session.
+    - __dispose__: Disposes the session and engine.
+    - create_schema_if_not_exists: Creates a schema in the database if it does not already exist.
+    - alter_table_column_add_primary_key: Alters a table by adding a primary key to a specified column.
+    - create_document_table: Creates a document table in the database.
+    - create_batch_table: Creates a batch table in the database.
+    - fetch_rows: Executes a select query on the specified table with provided conditions.
+    - fetch_document: Fetches a single document based on the specified table, schema, and conditions.
+    - write_document: Writes a document to the specified table in the database.
+    - get_created_connections: Returns a list of created connections for the specified connector type.
+    - insert_openetl_batch: Inserts a new OpenETLBatch instance into the database.
+    - update_openetl_batch: Updates an OpenETLBatch instance in the database.
+    - get_dashboard_data: Retrieves dashboard data including total counts and integration details.
     """
 
     def __init__(self, engine=None, hostname=None, username=None, password=None, port=None, database=None, connection_name=None, connection_type=None):
@@ -714,6 +760,21 @@ class DatabaseUtils():
         return data
 
     def insert_openetl_batch(self, start_date, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None):
+        """
+        Inserts a new OpenETLBatch instance into the database.
+
+        Args:
+            start_date (datetime): The start date of the batch.
+            batch_type (str): The type of the batch.
+            batch_status (str): The status of the batch.
+            batch_id (str): The unique identifier of the batch.
+            integration_name (str): The name of the integration.
+            rows_count (int, optional): The number of rows in the batch. Defaults to 0.
+            end_date (datetime, optional): The end date of the batch. Defaults to None.
+
+        Returns:
+            OpenETLBatch: The newly created OpenETLBatch instance.
+        """
         # Get the current highest batch_id
         session = self.session
         max_id = session.query(OpenETLBatch).order_by(
@@ -738,7 +799,20 @@ class DatabaseUtils():
         return new_batch
 
     def update_openetl_batch(self, batch_id, **kwargs):
+        """
+        Updates an OpenETLBatch object in the database with the specified batch_id.
 
+        Args:
+            batch_id (int): The ID of the batch to update.
+            **kwargs: Keyword arguments specifying the fields to update and their new values.
+
+        Returns:
+            OpenETLBatch: The updated OpenETLBatch object.
+
+        Raises:
+            Exception: If no OpenETLBatch object with the specified batch_id is found.
+        """
+        
         session = self.session
         # Find the batch by batch_id
         batch = session.query(OpenETLBatch).filter(
@@ -759,24 +833,26 @@ class DatabaseUtils():
             raise Exception(f"Batch with id {batch_id} not found.")
 
     def get_dashboard_data(self):
+        """
+        Retrieves dashboard data including total counts and integration details.
+
+        Returns:
+            dict: A dictionary containing total counts and integration details.
+        """
+
         session = self.session
 
-        # Total API Connections
+        # Retrieve total counts
         total_api_connections = session.query(OpenETLDocument).filter(
             OpenETLDocument.connection_type == ConnectionType.API.value).count()
-
-        # Total DB Connections
         total_db_connections = session.query(OpenETLDocument).filter(
             OpenETLDocument.connection_type == ConnectionType.DATABASE.value).count()
-
-        # Total Pipelines
         total_pipelines = session.query(OpenETLBatch).count()
-
-        # Total Rows Migrated
         total_rows_migrated = session.query(
             func.sum(OpenETLBatch.rows_count)).scalar()
 
-                # Integration name, status, start date, and end date
+        # Retrieve integration details
+        # Subquery to get the latest start_date for each integration_name
         latest_runs_subquery = session.query(
             OpenETLBatch.integration_name,
             func.max(OpenETLBatch.start_date).label('latest_start_date')
@@ -785,19 +861,19 @@ class DatabaseUtils():
         # Main query to get the integration details by the latest start_date
         integrations = session.query(
             OpenETLBatch.integration_name,
-            OpenETLBatch.batch_status.label('latest_batch_status'),
+            OpenETLBatch.batch_status,
             OpenETLBatch.start_date,
             OpenETLBatch.end_date
         ).join(
             latest_runs_subquery,
-            (OpenETLBatch.integration_name == latest_runs_subquery.c.integration_name) & 
+            (OpenETLBatch.integration_name == latest_runs_subquery.c.integration_name) &
             (OpenETLBatch.start_date == latest_runs_subquery.c.latest_start_date)
         ).all()
-        
-        
+
+        # Retrieve batch counts by integration_name
         batch_counts = session.query(
             OpenETLBatch.integration_name,
-            func.count(OpenETLBatch.batch_id).label('batch_count'),
+            func.count(OpenETLBatch.batch_id).label('batch_count')
         ).group_by(OpenETLBatch.integration_name).all()
 
         # Create a dictionary to map batch counts by integration_name
@@ -807,7 +883,7 @@ class DatabaseUtils():
         integrations_dict = [
             {
                 "integration_name": integration.integration_name,
-                "batch_status": integration.batch_status,
+                "latest_batch_status": integration.batch_status,
                 "start_date": integration.start_date.isoformat() if integration.start_date else None,
                 "end_date": integration.end_date.isoformat() if integration.end_date else None,
                 "batch_count": batch_count_dict.get(integration.integration_name, 0)
@@ -815,6 +891,7 @@ class DatabaseUtils():
             for integration in integrations
         ]
 
+        # Return the dashboard data
         return {
             'total_api_connections': total_api_connections,
             'total_db_connections': total_db_connections,
