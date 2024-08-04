@@ -1,10 +1,7 @@
 import logging
 import streamlit as st
 from datetime import datetime
-from streamlit_ace import st_ace
 
-
-global form_submit
 
 class StreamlitHandler(logging.Handler):
     def __init__(self):
@@ -42,6 +39,5 @@ def download_logs():
 
 logger = get_logger()
 
-st.write("# Log Viewer")
 st.text_area(label="", value=st.session_state.get('log_data', ""), height=300, max_chars=None, key=None)
 st.download_button('Download Logs', data=st.session_state.get('log_data', ""), file_name='logs.txt', mime='text/plain')

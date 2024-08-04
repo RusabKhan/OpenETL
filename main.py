@@ -17,9 +17,7 @@ from utils.local_connection_utils import create_con_directory
 from dotenv import load_dotenv
 import pandas as pd
 from utils.database_utils import DatabaseUtils
-from console.console import get_logger
 
-logging = get_logger()
 
 # Redirecting stdout to a stream
 
@@ -87,7 +85,6 @@ def set_session():
         st.session_state.dashboard_thread_started = False
 
     load_dotenv(dotenv_path='.env')
-    print(os.environ.get("OPENETL_CACHE_TTL"))
 
 # STYLE VARIABLES
 # if "connection_create_connection_style_set" not in st.session_state:
@@ -133,15 +130,14 @@ def __init__():
 try:
     __init__()
 except Exception as e:
-    logging.exception(e)
-    st.rerun()
+    pass
 
 
 current_page = st.navigation({
     "Home": [
         st.Page("Home.py", title="Home", default=True, icon=":material/home:"),],
     "Connections": [
-        st.Page("connection/create_connection.py", title="Create a new connection",
+        st.Page("connection/create_connection.py", title="Create connection",
                 icon=":material/add:"),
         st.Page("connection/connection.py", title="Connections",
                 icon=":material/list:")
