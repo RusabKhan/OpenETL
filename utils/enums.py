@@ -26,3 +26,10 @@ class ColumnActions(Enum):
     DROP = "drop"
     MODIFY = "modify"
     
+    
+class APIMethod(Enum):
+    GET = "get"
+    POST = "post"
+    PUT = "put"
+    PATCH = "patch"
+    DELETE = "delete"
