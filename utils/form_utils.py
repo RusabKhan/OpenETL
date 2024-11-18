@@ -9,6 +9,8 @@ Functions:
 - jdbc_form: Generates a JDBC form based on the specified engine.
 """
 import streamlit as st
+
+from utils.api_utils import send_request
 from .jdbc_engine_utils import JDBCEngine
 from .database_utils import DatabaseUtils
 import pandas as pd
@@ -51,7 +53,7 @@ class GenerateForm():
         print("Creating connection...")
 
     def connection_form(self, engine="",engine_type=""):
-        con_data = con_utils.get_connector_auth_details(engine, engine_type)
+        con_data = send_request("http://localhost:5009/connector/get_connector_auth_details/{}/{}".format(engine,engine_type.value), method=APIMethod.GET, timeout=10)
         auth_types = list(con_data.keys())
         auth_value = {}
         connection_name = None
@@ -92,16 +94,19 @@ class GenerateForm():
 
         with test_col:
             if st.button("Create Connection"):
-                test = con_utils.connector_test_connection(auth_type=authentication_type, connector_type=engine_type, 
-                                                       connector_name=engine, **auth_value)
+                data={"auth_type":authentication_type, "connector_type":engine_type.value, 
+                                                       "connector_name":engine, "auth_params":auth_value}
+                
+                test = send_request("http://localhost:5009/connector/test_connection",
+                                    method=APIMethod.POST, json=data, timeout=10)
                 if test == True:
 
                     
                     json_data = {"connection_credentials": auth_value,"connector_name": engine, "auth_type": authentication_type
                                  ,"connection_name": connection_name, "connection_type": engine_type.value
                                  }
-                    vals = get_open_etl_document_connection_details()
-                    stored = DatabaseUtils(**vals).write_document(json_data)
+                    stored = send_request("http://localhost:5009/connector/store_connection", method=APIMethod.POST, json=json_data, timeout=10)
+                    
                     if stored[0]:
                         st.success('Connection created!', icon="✅")
                     else:
@@ -138,7 +143,8 @@ def create_button_columns(data,connection_type, num_columns=5):
         end_index = min(start_index + num_columns, num_names)
         
         for i in range(start_index, end_index):
-            default_img = con_utils.get_connector_image(data[i]['connector_name'], connection_type)
+            url = "http://localhost:5009/connector/get_connector_image/{}/{}".format(data[i]['connector_name'],connection_type)
+            default_img = send_request(url, method=APIMethod.GET, timeout=10)
             with cols[i % num_columns]:
                 # Creating a container for the image and button
                     st.image(default_img, width=100)

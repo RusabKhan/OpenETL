@@ -33,8 +33,7 @@ import json
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.schema import CreateSchema
-
-logging = get_logger()
+import logging
 
 
 Base = declarative_base()
