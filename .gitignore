@@ -173,3 +173,4 @@ con.json
 .local.json
 
 main.env
+/.idea/*
