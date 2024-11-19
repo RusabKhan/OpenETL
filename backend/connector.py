@@ -41,3 +41,14 @@ async def get_connector_auth_details_api(request: Request, connector_name: str, 
 @router.get("/get_connector_image/{connector_name}/{connector_type}")
 async def get_connector_image_api(request: Request, connector_name: str, connector_type: str):
     return con_utils.get_connector_image(connector_name,connector_type)
+
+
+@router.get("/get_connector_metadata/{connector_name}/{connector_type}")
+async def get_connector_metadata_api(request: Request, connector_name: str, connector_type: str):
+    connector_type = ConnectionType(connector_type)
+    return con_utils.get_connector_metadata(connector_name, connector_type)
+
+
+@router.get("get_created_connections")
+async def get_created_connections_api(request: Request, connector_type: str = Body(...), connection_name: str = Body(...)):
+    return con_utils.get_created_connections(connector_type, connection_name)
