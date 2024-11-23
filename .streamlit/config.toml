@@ -1,9 +1,9 @@
 [theme]
-primaryColor="#2f2f9b"
-backgroundColor="#e5e5e5"
-secondaryBackgroundColor="#c4c6ca"
-textColor="#262730"
-font="sans serif"
+primaryColor="#4f46e5"
+backgroundColor="#ffffff"
+secondaryBackgroundColor="#e5e5e5"
+textColor="#6b7280"
+font="inter"
 fontSize = 9
 
 [server]

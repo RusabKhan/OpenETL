@@ -49,6 +49,13 @@ async def get_connector_metadata_api(request: Request, connector_name: str, conn
     return con_utils.get_connector_metadata(connector_name, connector_type)
 
 
-@router.get("get_created_connections")
-async def get_created_connections_api(request: Request, connector_type: str = Body(...), connection_name: str = Body(...)):
+@router.post("/get_created_connections")
+async def created_connections_api(request: Request, connector_type: str = Body(...), connection_name: str = Body(None) ):
     return con_utils.get_created_connections(connector_type, connection_name)
+
+
+@router.post("/fetch_metadata")
+async def connector_fetch_metadata_api(request: Request, connector_name: str = Body(...),
+                                           connector_type: str = Body(...), auth_options: list = Body(...)):
+    return con_utils.fetch_metadata(connector_name=connector_name, connector_type=connector_type,
+                                    auth_options=auth_options)

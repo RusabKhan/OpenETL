@@ -137,18 +137,18 @@ current_page = st.navigation({
     "Home": [
         st.Page("Home.py", title="Home", default=True, icon=":material/home:"),],
     "Connections": [
-        st.Page("connection/create_connection.py", title="Create connection",
+        st.Page("frontend/connection/create_connection.py", title="Create connection",
                 icon=":material/add:"),
-        st.Page("connection/connection.py", title="Connections",
+        st.Page("frontend/connection/connection.py", title="Connections",
                 icon=":material/list:")
     ],
     # Page("query_editor/query.py","Query Editor"),
     # Page("api/create_api.py", "Create API"),
     # Page("pipeline/pipelines.py", "My ETL"),
     "Pipelines": [
-        st.Page("pipeline/create_pipelines.py", title="Create ETL",
+        st.Page("frontend/pipeline/create_pipelines.py", title="Create ETL",
                 icon=":material/add:"),
-        st.Page("console/console.py", title="Console",
+        st.Page("frontend/console/console.py", title="Console",
                 icon=":material/terminal:"),
             # Page("api/fetch_data.py","Fetch Data"),
 

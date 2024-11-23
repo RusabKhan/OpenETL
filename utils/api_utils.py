@@ -11,7 +11,7 @@ from . enums import *
 import re
 from collections import abc
 from utils.local_connection_utils import read_connection_config
-from console.console import get_logger
+from frontend.console.console import get_logger
 from requests.exceptions import RequestException, Timeout, ConnectionError, HTTPError, TooManyRedirects
 
 
@@ -368,46 +368,47 @@ def send_request(url, method=APIMethod.GET, headers=None, params=None, data=None
     Returns:
     - dict or str: The response content, either as a JSON or string.
     """
-    
-    try:
-        # Make the request based on the method type
-        if method == APIMethod.GET:
-            response = requests.get(url, headers=headers, params=params, timeout=timeout)
-        elif method == APIMethod.POST:
-            response = requests.post(url, headers=headers, data=data, json=json, timeout=timeout)
-        elif method == APIMethod.PUT:
-            response = requests.put(url, headers=headers, data=data, json=json, timeout=timeout)
-        elif method == APIMethod.DELETE:
-            response = requests.delete(url, headers=headers, timeout=timeout)
-        else:
-            raise ValueError(f"Unsupported HTTP method: {method}")
-        
-        # Check for HTTP errors (non-2xx status codes)
-        response.raise_for_status()
-        
-        # If response is JSON, return the parsed data, otherwise return the raw text
-        if response.headers.get('Content-Type') == 'application/json':
-            return response.json()
-        else:
-            return response.text
-    
-    except Timeout:
-        return {"error": "The request timed out."}
-    
-    except ConnectionError:
-        return {"error": "Network problem occurred, check your internet connection."}
-    
-    except TooManyRedirects:
-        return {"error": "Too many redirects, the URL might be incorrect."}
-    
-    except HTTPError as http_err:
-        return {"error": f"HTTP error occurred: {http_err}"}
-    
-    except RequestException as req_err:
-        return {"error": f"A general error occurred: {req_err}"}
-    
-    except ValueError as val_err:
-        return {"error": f"Invalid method or data: {val_err}"}
-    
-    except Exception as err:
-        return {"error": f"An unexpected error occurred: {err}"}
+    with st.spinner(text="Please wait..."):
+        try:
+            #data = json.dumps(data)
+         #Make the request based on the method type
+            if method == APIMethod.GET:
+                response = requests.get(url, headers=headers, params=params, timeout=timeout)
+            elif method == APIMethod.POST:
+                response = requests.post(url, headers=headers, data=data, json=json, timeout=timeout)
+            elif method == APIMethod.PUT:
+                response = requests.put(url, headers=headers, data=data, json=json, timeout=timeout)
+            elif method == APIMethod.DELETE:
+                response = requests.delete(url, headers=headers, timeout=timeout)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+
+            # Check for HTTP errors (non-2xx status codes)
+            response.raise_for_status()
+
+            # If response is JSON, return the parsed data, otherwise return the raw text
+            if response.headers.get('Content-Type') == 'application/json':
+                return response.json()
+            else:
+                return response.text
+
+        except Timeout:
+            return {"error": "The request timed out."}
+
+        except ConnectionError:
+            return {"error": "Network problem occurred, check your internet connection."}
+
+        except TooManyRedirects:
+            return {"error": "Too many redirects, the URL might be incorrect."}
+
+        except HTTPError as http_err:
+            return {"error": f"HTTP error occurred: {http_err}"}
+
+        except RequestException as req_err:
+            return {"error": f"A general error occurred: {req_err}"}
+
+        except ValueError as val_err:
+            return {"error": f"Invalid method or data: {val_err}"}
+
+        except Exception as err:
+            return {"error": f"An unexpected error occurred: {err}"}

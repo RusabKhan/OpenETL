@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from console.console import get_logger
+from frontend.console.console import get_logger
 from utils.database_utils import DatabaseUtils
 import os
 from streamlit_autorefresh import st_autorefresh

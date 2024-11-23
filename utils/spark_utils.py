@@ -12,11 +12,8 @@ Functions:
 """
 from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
-from pyspark.sql.functions import lit
-from pyspark.sql.types import *
-from utils.cache import *
 import os
-from console.console import get_logger
+from frontend.console.console import get_logger
 
 logging = get_logger()
 
