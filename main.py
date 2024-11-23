@@ -12,11 +12,6 @@ if "style_setting_set" not in st.session_state:
     st.session_state.style_setting_set = True
 
 
-from utils import generic_utils as gu
-from utils.local_connection_utils import create_con_directory
-from dotenv import load_dotenv
-import pandas as pd
-from utils.database_utils import DatabaseUtils
 
 
 # Redirecting stdout to a stream
@@ -84,7 +79,6 @@ def set_session():
     if "dashboard_thread_started" not in st.session_state:
         st.session_state.dashboard_thread_started = False
 
-    load_dotenv(dotenv_path='.env')
 
 # STYLE VARIABLES
 # if "connection_create_connection_style_set" not in st.session_state:
@@ -103,13 +97,7 @@ def set_session():
 
 def __init__():
     set_session()
-    create_con_directory()
-    DatabaseUtils(engine=os.getenv('OPENETL_DOCUMENT_ENGINE'),
-                hostname=os.getenv('OPENETL_DOCUMENT_HOST'),
-                port=os.getenv('OPENETL_DOCUMENT_PORT'),
-                username=os.getenv('OPENETL_DOCUMENT_USER'),
-                password=os.getenv('OPENETL_DOCUMENT_PASS'),
-                database=os.getenv('OPENETL_DOCUMENT_DB')).create_document_table()
+    #create_con_directory()
     st.markdown(
         """
         <style>

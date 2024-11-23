@@ -14,11 +14,9 @@ Methods:
 import pandas as pd
 from sqlalchemy import MetaData, Table
 from utils.database_utils import DatabaseUtils
-from frontend.console.console import get_logger
-from utils.generic_utils import install_libraries
+from utils.connector_utils import install_libraries
 from utils.enums import ConnectionType, AuthType
-
-logging = get_logger()
+import logging
 
 class DB(DatabaseUtils):
     """A class to connect with any database using SQLAlchemy.

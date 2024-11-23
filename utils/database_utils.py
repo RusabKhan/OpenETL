@@ -11,6 +11,8 @@ Methods:
 - execute_query: Executes a SQL query against the connection.
 - get_metadata_df: Retrieves schema metadata in a dataframe format.
 """
+import os
+
 import sqlalchemy as sq
 import pandas as pd
 from sqlalchemy import MetaData, Table, Column, Integer, String, Enum, DateTime, and_, select, PrimaryKeyConstraint, func, JSON, text
@@ -736,17 +738,19 @@ class DatabaseUtils():
         conditions = []
 
         if connector_type is not None:
-            conditions.append(
-                OpenETLDocument.connection_type == connector_type)
+            conditions.append(OpenETLDocument.connection_type == connector_type)
         if connection_name is not None:
-            conditions.append(
-                OpenETLDocument.connection_name == connection_name)
+            conditions.append(OpenETLDocument.connection_name == connection_name)
 
+        # Construct the query
         if conditions:
-            select_query = select(columns_to_fetch).where(and_(*conditions))
+            select_query = select(*columns_to_fetch).where(and_(*conditions))
         else:
-            select_query = select(columns_to_fetch)
-        data = pd.read_sql(select_query, self.session.bind)
+            select_query = select(*columns_to_fetch)
+
+        # Execute the query and fetch data into a DataFrame
+        with self.session.begin():  # Ensure the session is properly managed
+            data = pd.read_sql(select_query, self.session.bind)
 
         return data
 
@@ -890,3 +894,16 @@ class DatabaseUtils():
             'total_rows_migrated': total_rows_migrated,
             'integrations': integrations_dict
         }
+
+
+def get_open_etl_document_connection_details():
+    """Get connection details for OpenETL Document"""
+
+    return {
+        "engine": os.getenv("OPENETL_DOCUMENT_ENGINE","PostgreSQL"),
+        "hostname": os.getenv("OPENETL_DOCUMENT_HOST","localhost"),
+        "username": os.getenv("OPENETL_DOCUMENT_USER","rusab1"),
+        "password": os.getenv("OPENETL_DOCUMENT_PASS","1234"),
+        "port": os.getenv("OPENETL_DOCUMENT_PORT","5432"),
+        "database": os.getenv("OPENETL_DOCUMENT_DB","airflow")
+    }

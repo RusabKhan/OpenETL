@@ -4,17 +4,21 @@ from cachetools import TTLCache
 import os
 import sys
 
-from utils.connector_utils import get_installed_connectors
-from utils.enums import ConnectionType
-from utils.generic_utils import get_open_etl_document_connection_details
 sys.path.append(os.environ['OPENETL_HOME'])
-from .models.database_models import initArgs
 from utils.database_utils import DatabaseUtils
-import utils.connector_utils as con_utils
 
 
 
 router = APIRouter(prefix="/database", tags=["database"])
 
+
+@router.get("/get_dashboard_data")
+async def get_dashboard_data_api(request: Request):
+    return  DatabaseUtils(engine=os.getenv('OPENETL_DOCUMENT_ENGINE'),
+                hostname=os.getenv('OPENETL_DOCUMENT_HOST'),
+                port=os.getenv('OPENETL_DOCUMENT_PORT'),
+                username=os.getenv('OPENETL_DOCUMENT_USER'),
+                password=os.getenv('OPENETL_DOCUMENT_PASS'),
+                database=os.getenv('OPENETL_DOCUMENT_DB')).get_dashboard_data()
 
 
