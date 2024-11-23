@@ -1,4 +1,6 @@
 import streamlit as st
+
+from utils.api_utils import send_request
 from utils.local_connection_utils import read_all_connection_configs, read_connection_config
 from utils.airflow_utils import create_airflow_dag
 from utils.generic_utils import extract_connections_db_or_api, check_missing_values
@@ -29,8 +31,15 @@ con_type = [
     ConnectionType.DATABASE.value,
     ConnectionType.API.value]
 
-database_configs = get_created_connections(ConnectionType.DATABASE.value)
-api_configs = get_created_connections(ConnectionType.API.value)
+database_configs = send_request('http://localhost:5009/connector/get_created_connections',
+                                method=APIMethod.POST,
+                                timeout=10,
+                                json={"connector_type": ConnectionType.DATABASE.value, "connector_name": None})
+
+api_configs = send_request('http://localhost:5009/connector/get_created_connections',
+                                method=APIMethod.POST,
+                                timeout=10,
+                                json={"connector_type": ConnectionType.API.value, "connector_name": None})
 
 database_configs_names = [config["connection_name"] for config in database_configs]
 api_configs_names = [config["connection_name"] for config in api_configs]
@@ -78,8 +87,21 @@ def render_section(section):
                     label=section, options=options)
 
             table_col, schema_col = st.columns([2, 3])
-            metadata = fetch_metadata(
-                final_values[section]["source"], auth_options, final_values[section]["connection_type"])
+            req_body = {"connector_name": final_values[section]["source"], "auth_options": auth_options, "connector_type": final_values[section]["connection_type"]}
+            connection_name = final_values[section]["source"]
+            connection_type = final_values[section]["connection_type"]
+            for options in auth_options:
+                if options["connection_name"] == connection_name:
+                    auth_options = options
+                    break
+
+            body = {"connector_name": connection_name, "auth_options": auth_options, "connector_type": connection_type}
+            metadata = send_request("http://localhost:5009/connector/fetch_metadata/"
+                         , method=APIMethod.POST, timeout=10,
+                         json=body)
+
+            #metadata = fetch_metadata(connection_name, auth_options, connection_type)
+
             source_schema = metadata.keys()
             no_source = False if source_schema else True
 

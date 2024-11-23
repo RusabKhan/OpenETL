@@ -168,16 +168,11 @@ def fetch_metadata(connection, auth_options, connection_type):
         dict: {"tables": [],"schema":[]}
     """
     try:
-        main_data = None
-        for data in auth_options:
-            if data["connection_name"] == connection:
-                main_data = data
-                module = import_module(data["connection_name"], f"{connectors_directory}/{connection_type}/{data['connector_name']}.py")
-                auth_details = main_data["connection_credentials"]
+        module = import_module(auth_options["connection_name"], f"{connectors_directory}/{connection_type}/{auth_options['connector_name']}.py")
+        auth_details = auth_options["connection_credentials"]
         return module.get_metadata(**auth_details)
                     
     except Exception as e:
-        st.error("Data does not exist for selected type of connection")
         return {"tables": [], "schema": []}
     
     

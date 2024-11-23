@@ -55,7 +55,13 @@ async def created_connections_api(request: Request, connector_type: str = Body(.
 
 
 @router.post("/fetch_metadata")
-async def connector_fetch_metadata_api(request: Request, connector_name: str = Body(...),
-                                           connector_type: str = Body(...), auth_options: list = Body(...)):
-    return con_utils.fetch_metadata(connector_name=connector_name, connector_type=connector_type,
-                                    auth_options=auth_options)
+async def connector_fetch_metadata_api(request: Request):
+    try:
+        body = await request.json()
+        connector_name = body.get("connector_name")
+        connector_type = body.get("connector_type")
+        auth_options = body.get("auth_options")
+        return con_utils.fetch_metadata(connection=connector_name, connection_type=connector_type,
+                                        auth_options=auth_options)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
