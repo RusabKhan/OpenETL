@@ -4,24 +4,7 @@ from .database_utils import DatabaseUtils
 from .local_connection_utils import read_connection_config
 import streamlit as st
 from .jdbc_engine_utils import JDBCEngine
-import subprocess
-import os
 from utils import connector_utils
-
-def get_open_etl_document_connection_details():
-    """Get connection details for OpenETL Document"""
-    print(os.getenv("OPENETL_DOCUMENT_ENGINE"))
-    print(os.getenv("OPENETL_HOME"))
-
-    
-    return {
-        "engine": os.getenv("OPENETL_DOCUMENT_ENGINE","PostgreSQL"),
-        "hostname": os.getenv("OPENETL_DOCUMENT_HOST","localhost"),
-        "username": os.getenv("OPENETL_DOCUMENT_USER","rusab1"),
-        "password": os.getenv("OPENETL_DOCUMENT_PASS","1234"),
-        "port": os.getenv("OPENETL_DOCUMENT_PORT","5432"),
-        "database": os.getenv("OPENETL_DOCUMENT_DB","airflow")
-    }
 
 
 def set_page_config(page_title="OpenETL", menu_items={}, initial_sidebar_state="expanded", page_icon=None, layout="wide", page_style_state_variable=None):
@@ -116,16 +99,6 @@ def check_missing_values(**kwargs):
         if len(str(value)) < 1:
             return True,  key
     return False, None
-
-
-def install_libraries(libs):
-    try:
-        for lib in libs:
-            subprocess.call(['pip', 'install', lib])
-        return True
-    except Exception as e:
-        st.error(f"Error: {str(e)}")
-        return False
  
  
  

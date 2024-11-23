@@ -1,9 +1,11 @@
 import streamlit as st
 import pandas as pd
 from frontend.console.console import get_logger
-from utils.database_utils import DatabaseUtils
+from utils.api_utils import send_request
 import os
 from streamlit_autorefresh import st_autorefresh
+
+from utils.enums import APIMethod
 
 # Set up logging
 logging = get_logger()
@@ -23,12 +25,7 @@ def format_keys(data):
 # Function to fetch and display data
 @st.cache_data(ttl=int(os.environ.get("OPENETL_CACHE_TTL")))  # Cache data for 20 seconds
 def set_dashboard_data():
-    data = DatabaseUtils(engine=os.getenv('OPENETL_DOCUMENT_ENGINE'),
-                         hostname=os.getenv('OPENETL_DOCUMENT_HOST'),
-                         port=os.getenv('OPENETL_DOCUMENT_PORT'),
-                         username=os.getenv('OPENETL_DOCUMENT_USER'),
-                         password=os.getenv('OPENETL_DOCUMENT_PASS'),
-                         database=os.getenv('OPENETL_DOCUMENT_DB')).get_dashboard_data()
+    data = send_request('localhost:5009/get_dashboard_data', method=APIMethod.GET, timeout=10)
 
     integrations_data = format_keys(data['integrations'])
 

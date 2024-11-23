@@ -1,17 +1,16 @@
 import importlib
 import os
+import subprocess
 import sys
 home = os.environ['OPENETL_HOME']
 sys.path.append(home)
 import json
 from utils.database_utils import DatabaseUtils, OpenETLDocument
 from utils.enums import *
-import streamlit as st
 
 
 connectors_directory = f"{home}/connectors"
 
-@st.cache_data(ttl=int(os.environ.get("OPENETL_CACHE_TTL")))
 def get_installed_connectors(connector_type=ConnectionType.DATABASE):
     """
     Checks the available connectors based on the specified connector type.
@@ -31,7 +30,6 @@ def get_installed_connectors(connector_type=ConnectionType.DATABASE):
     return [file.replace('.py', '') for file in files if file.endswith('.py')]
 
 
-@st.cache_data(ttl=int(os.environ.get("OPENETL_CACHE_TTL")))
 def get_connector_auth_details(connector_name, connector_type=ConnectionType.DATABASE):
     """
     Returns the authentication details for the specified connector.
@@ -120,7 +118,6 @@ def connector_test_connection(connector_name, connector_type=ConnectionType.DATA
     except Exception as e:
         print(f"Error: {str(e)}")
         
-@st.cache_data(ttl=int(os.environ.get("OPENETL_CACHE_TTL")))
 def get_connector_metadata(connector_name, connector_type=ConnectionType.DATABASE.value):
     """
     Returns the metadata for the specified connector.
@@ -156,8 +153,7 @@ def get_created_connections(connector_type: str =ConnectionType.DATABASE.value, 
                                username=os.getenv("OPENETL_DOCUMENT_USER"),
                                password=os.getenv("OPENETL_DOCUMENT_PASS"),
                                database=os.getenv("OPENETL_DOCUMENT_DB")).get_created_connections(connector_type=connector_type, connection_name = connection_name).to_json(orient='records'))
-    
-@st.cache_data(ttl=int(os.environ.get("OPENETL_CACHE_TTL")))
+
 def fetch_metadata(connection, auth_options, connection_type):
     """Fetch metadata from the given connection.
 
@@ -176,7 +172,6 @@ def fetch_metadata(connection, auth_options, connection_type):
         return {"tables": [], "schema": []}
     
     
-@st.cache_data
 def get_connector_image(connector_name,connection_type):
     """Fetch metadata from the given connection.
 
@@ -232,3 +227,11 @@ def fetch_data_from_connector(connection_name, connection_type, table, schema="p
     
 
 #     fetch_data_from_connector("my_connection", "api", "get_all_contacts","public")
+def install_libraries(libs):
+    try:
+        for lib in libs:
+            subprocess.call(['pip', 'install', lib])
+        return True
+    except Exception as e:
+        st.error(f"Error: {str(e)}")
+        return False

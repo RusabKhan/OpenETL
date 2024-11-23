@@ -1,8 +1,9 @@
 # sourcery skip: avoid-builtin-shadow
 import streamlit as st
+
+from utils.api_utils import send_request
 from utils.form_utils import GenerateForm
-from utils.connector_utils import get_installed_connectors
-from utils.enums import *
+from utils.enums import ConnectionType, APIMethod
 from frontend.console.console import get_logger
 
 logging = get_logger()
@@ -15,8 +16,11 @@ engine = None
 gen = None
 
 col1, col2 = st.columns([1, 1])
-database_sources = get_installed_connectors(ConnectionType.DATABASE)
-api_engines = get_installed_connectors(ConnectionType.API)
+main_set_engines = send_request('http://localhost:5009/connector/get_installed_connectors/',
+                                method=APIMethod.GET, timeout=10)
+
+database_engines = main_set_engines['database']
+api_engines = main_set_engines['api']
 
 type_values = ("Database", "API")
 
@@ -30,7 +34,7 @@ with col1:
 
 with col2:
     msg = "Select Database" if type_ == "Database" else "Select API"
-    vals = database_sources if type_ == "Database" else api_engines
+    vals = database_engines if type_ == "Database" else api_engines
 
     engine = st.selectbox(
         msg,

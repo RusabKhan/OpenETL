@@ -4,9 +4,9 @@ import sys
 
 from utils.connector_utils import get_installed_connectors
 from utils.enums import AuthType, ConnectionType
-from utils.generic_utils import get_open_etl_document_connection_details
+
 sys.path.append(os.environ['OPENETL_HOME'])
-from utils.database_utils import DatabaseUtils
+from utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details
 import utils.connector_utils as con_utils
 
 router = APIRouter(prefix="/connector", tags=["connector"])
@@ -51,7 +51,10 @@ async def get_connector_metadata_api(request: Request, connector_name: str, conn
 
 @router.post("/get_created_connections")
 async def created_connections_api(request: Request, connector_type: str = Body(...), connection_name: str = Body(None) ):
-    return con_utils.get_created_connections(connector_type, connection_name)
+    try:
+        return con_utils.get_created_connections(connector_type, connection_name)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/fetch_metadata")
