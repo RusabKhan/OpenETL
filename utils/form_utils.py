@@ -148,5 +148,5 @@ def create_button_columns(data,connection_type, num_columns=5):
             with cols[i % num_columns]:
                 # Creating a container for the image and button
                     st.image(default_img, width=100)
-                    st.button(data[i]['connection_name'])
+                    st.button(data[i]['connection_name'], key="{}{}{}".format(connection_type,data[i]['connector_name'],i))
 

@@ -2,6 +2,7 @@ import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
 from streamlit_option_menu import option_menu
 
+from utils.api_utils import send_request
 from utils.local_connection_utils import read_all_connection_configs
 from utils.form_utils import create_button_columns
 from utils.connector_utils import get_created_connections
@@ -14,8 +15,14 @@ Database = st.container()
 API = st.container()
 
 
-database_configs = get_created_connections(ConnectionType.DATABASE.value)
-api_configs = get_created_connections(ConnectionType.API.value)
+database_configs = send_request('http://localhost:5009/connector/get_created_connections',
+                                method=APIMethod.POST,
+                                timeout=10,
+                                json={"connector_type": ConnectionType.DATABASE.value, "connector_name": None})
+api_configs = send_request('http://localhost:5009/connector/get_created_connections',
+                                method=APIMethod.POST,
+                                timeout=10,
+                                json={"connector_type": ConnectionType.API.value, "connector_name": None})
 
 
 Database_selected = None

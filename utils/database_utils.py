@@ -11,25 +11,17 @@ Methods:
 - execute_query: Executes a SQL query against the connection.
 - get_metadata_df: Retrieves schema metadata in a dataframe format.
 """
-import sys
-import os
 import sqlalchemy as sq
 import pandas as pd
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Enum, Date, DateTime, Float, \
-    and_, or_, select, PrimaryKeyConstraint, func, JSON, text
+from sqlalchemy import MetaData, Table, Column, Integer, String, Enum, DateTime, and_, select, PrimaryKeyConstraint, func, JSON, text
 from sqlalchemy.orm import sessionmaker
 from utils.cache import sqlalchemy_database_engines
-from utils.enums import ColumnActions, AuthType, ConnectionType
+from utils.enums import AuthType, ConnectionType
 from sqlalchemy.exc import OperationalError
 from utils.enums import ColumnActions
 import numpy as np
 from sqlalchemy.ext.declarative import declarative_base
-from pyspark.sql.types import StringType, IntegerType, FloatType, DoubleType, BooleanType, TimestampType, DateType, \
-    ArrayType, MapType
-import re
-from console.console import get_logger
-import base64
-import json
+from pyspark.sql.types import StringType, IntegerType, FloatType, BooleanType, TimestampType, ArrayType, MapType
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.schema import CreateSchema

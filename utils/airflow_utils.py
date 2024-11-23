@@ -10,23 +10,16 @@ Functions:
 """
 
 import os
-import sys
 # base_dir = os.getenv('OPENETL_HOME')
 # sys.path.append(base_dir)
 import uuid
 import utils.connector_utils as con_utils
-import sys
-from console.console import get_logger
-import pandas as pd
+from frontend.console.console import get_logger
 from utils.cache import *
-import utils.local_connection_utils as loc
-import json
 from datetime import datetime, timedelta
 import utils.spark_utils as sp_ut
 from utils.enums import *
 import utils.database_utils as database_utils
-import utils.jdbc_engine_utils as jdbc_utils
-
 
 logging = get_logger()
 

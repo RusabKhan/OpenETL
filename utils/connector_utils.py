@@ -144,6 +144,7 @@ def get_created_connections(connector_type: str =ConnectionType.DATABASE.value, 
     Returns a list of created connections for the specified connector type.
 
     Args:
+        connection_name:
         connector_type (ConnectionType): The value of type of connector, defaults to ConnectionType.DATABASE.value
 
     Returns:

@@ -1,10 +1,9 @@
 # sourcery skip: avoid-builtin-shadow
 import streamlit as st
 from utils.form_utils import GenerateForm
-from utils.cache import *
 from utils.connector_utils import get_installed_connectors
 from utils.enums import *
-from console.console import get_logger
+from frontend.console.console import get_logger
 
 logging = get_logger()
 
