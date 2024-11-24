@@ -1,5 +1,6 @@
 
 import json
+import os
 import xml.etree.ElementTree as ET
 import streamlit as st
 import requests
@@ -11,12 +12,10 @@ from . enums import *
 import re
 from collections import abc
 from utils.local_connection_utils import read_connection_config
-from frontend.console.console import get_logger
 from requests.exceptions import RequestException, Timeout, ConnectionError, HTTPError, TooManyRedirects
 
 
-logging = get_logger()
-
+import logging
 def parse_json(json_content):
     try:
         data = json.loads(json_content)
@@ -351,8 +350,7 @@ def read_connection_table(connection_name, table, schema="public"):
             table, config['api'], config['auth_type'], token)
         return data
 
-
-def send_request(url, method=APIMethod.GET, headers=None, params=None, data=None, json=None, timeout=10):
+def send_request(endpoint, method=APIMethod.GET, headers=None, params=None, data=None, json=None, timeout=10):
     """
     A robust method to send HTTP requests with error handling for different types of errors.
     
@@ -370,6 +368,8 @@ def send_request(url, method=APIMethod.GET, headers=None, params=None, data=None
     """
     with st.spinner(text="Please wait..."):
         try:
+            backend_host = os.environ.get("BACKEND_HOST", "http://127.0.0.1:5009")
+            url = f"{backend_host}/{endpoint}"
             #data = json.dumps(data)
          #Make the request based on the method type
             if method == APIMethod.GET:

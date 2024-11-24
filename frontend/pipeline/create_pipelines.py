@@ -26,12 +26,12 @@ con_type = [
     ConnectionType.DATABASE.value,
     ConnectionType.API.value]
 
-database_configs = send_request('http://localhost:5009/connector/get_created_connections',
+database_configs = send_request('connector/get_created_connections',
                                 method=APIMethod.POST,
                                 timeout=10,
                                 json={"connector_type": ConnectionType.DATABASE.value, "connector_name": None})
 
-api_configs = send_request('http://localhost:5009/connector/get_created_connections',
+api_configs = send_request('connector/get_created_connections',
                                 method=APIMethod.POST,
                                 timeout=10,
                                 json={"connector_type": ConnectionType.API.value, "connector_name": None})
@@ -91,7 +91,7 @@ def render_section(section):
                     break
 
             body = {"connector_name": connection_name, "auth_options": auth_options, "connector_type": connection_type}
-            metadata = send_request("http://localhost:5009/connector/fetch_metadata/"
+            metadata = send_request("connector/fetch_metadata/"
                          , method=APIMethod.POST, timeout=10,
                          json=body)
 

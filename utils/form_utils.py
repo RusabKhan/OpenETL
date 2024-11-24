@@ -45,7 +45,7 @@ class GenerateForm():
         print("Creating connection...")
 
     def connection_form(self, engine="",engine_type=""):
-        con_data = send_request("http://localhost:5009/connector/get_connector_auth_details/{}/{}".format(engine,engine_type.value), method=APIMethod.GET, timeout=10)
+        con_data = send_request("connector/get_connector_auth_details/{}/{}".format(engine,engine_type.value), method=APIMethod.GET, timeout=10)
         auth_types = list(con_data.keys())
         auth_value = {}
         connection_name = None
@@ -89,7 +89,7 @@ class GenerateForm():
                 data={"auth_type":authentication_type, "connector_type":engine_type.value, 
                                                        "connector_name":engine, "auth_params":auth_value}
                 
-                test = send_request("http://localhost:5009/connector/test_connection",
+                test = send_request("connector/test_connection",
                                     method=APIMethod.POST, json=data, timeout=10)
                 if test == True:
 
@@ -97,7 +97,7 @@ class GenerateForm():
                     json_data = {"connection_credentials": auth_value,"connector_name": engine, "auth_type": authentication_type
                                  ,"connection_name": connection_name, "connection_type": engine_type.value
                                  }
-                    stored = send_request("http://localhost:5009/connector/store_connection", method=APIMethod.POST, json=json_data, timeout=10)
+                    stored = send_request("connector/store_connection", method=APIMethod.POST, json=json_data, timeout=10)
                     
                     if stored[0]:
                         st.success('Connection created!', icon="✅")
@@ -135,7 +135,7 @@ def create_button_columns(data,connection_type, num_columns=5):
         end_index = min(start_index + num_columns, num_names)
         
         for i in range(start_index, end_index):
-            url = "http://localhost:5009/connector/get_connector_image/{}/{}".format(data[i]['connector_name'],connection_type)
+            url = "connector/get_connector_image/{}/{}".format(data[i]['connector_name'],connection_type)
             default_img = send_request(url, method=APIMethod.GET, timeout=10)
             with cols[i % num_columns]:
                 # Creating a container for the image and button

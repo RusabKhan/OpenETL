@@ -3,8 +3,12 @@ primaryColor="#4f46e5"
 backgroundColor="#ffffff"
 secondaryBackgroundColor="#e5e5e5"
 textColor="#6b7280"
-font="inter"
+font="sans serif"
 fontSize = 9
+
+[browser]
+showDeployButton = false
+showSidebar = true
 
 [server]
 port = 8500

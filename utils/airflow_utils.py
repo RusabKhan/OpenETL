@@ -14,15 +14,13 @@ import os
 # sys.path.append(base_dir)
 import uuid
 import utils.connector_utils as con_utils
-from frontend.console.console import get_logger
 from utils.cache import *
 from datetime import datetime, timedelta
 import utils.spark_utils as sp_ut
 from utils.enums import *
 import utils.database_utils as database_utils
 
-logging = get_logger()
-
+import logging
 
 def create_airflow_dag(config):
     """Store pipeline configuration in .local/pipelines directory
