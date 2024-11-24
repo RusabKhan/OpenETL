@@ -4,11 +4,9 @@ from utils.form_utils import GenerateForm
 from utils.cache import *
 from utils.connector_utils import get_installed_connectors
 from utils.enums import *
+from console.console import get_logger
 
-# set_page_config(page_title="Create Connection", page_icon=None, initial_sidebar_state="expanded",
-#                 layout="wide", menu_items={}, page_style_state_variable="connection_create_connection")
-
-# 
+logging = get_logger()
 
 
 global type_, engine, gen

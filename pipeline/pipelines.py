@@ -1,14 +1,11 @@
 import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
 from streamlit_option_menu import option_menu
-from utils.generic_utils import set_page_config
 
 from utils.local_connection_utils import read_all_pipeline_configs, read_pipeline_detals
 from utils.form_utils import create_button_columns
 
 
-set_page_config(page_title="My Pipelines", page_icon=None,
-                initial_sidebar_state="expanded", layout="wide", menu_items={}, page_style_state_variable="pipeline_pipelines")
 
 
 

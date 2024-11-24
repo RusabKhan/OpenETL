@@ -1,74 +1,76 @@
-version: "3.8"
+version: '3.8'
+
+x-airflow-common: &airflow-common
+  environment:
+    - AIRFLOW_HOME=/opt/airflow
+    - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgresql/airflow
+    - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+    - OPENETL_HOME=/app
+    - OPENETL_DOCUMENT_HOST=postgresql
+    - OPENETL_DOCUMENT_PORT=5432
+    - OPENETL_DOCUMENT_USER=airflow
+    - OPENETL_DOCUMENT_PASS=airflow
+    - OPENETL_DOCUMENT_DB=airflow
+    - OPENETL_DOCUMENT_ENGINE=PostgreSQL
+  volumes:
+    - /Users/rusab1/docker/airflow_openetl/dags:/opt/airflow/dags
+    - /Users/rusab1/docker/airflow_openetl/logs:/opt/airflow/logs
+    - .:/app
 
 services:
-  appex-etl:
-    container_name: appex-etl
-    depends_on:
-      - postgres
-      - airflow
+  streamlit-openetl:
+    <<: *airflow-common
     build:
       context: .
-      dockerfile: Dockerfile # Replace with your Dockerfile name if different
+      dockerfile: Dockerfile
     ports:
       - "8500:8500"
-
     volumes:
-      - ./:/app # Replace 'your_app_directory' with your app directory
-    command: ["streamlit", "run", "main.py"] # Replace with your Streamlit app file name
+      - .:/app
+      - /Users/rusab1/docker/airflow_openetl:/opt/airflow
 
-  postgres:
-    image: postgres:12
-    container_name: dataomni_airflow_db
+  postgresql:
+    image: postgres:latest
     environment:
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=pass123!
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
       - POSTGRES_DB=airflow
-      - POSTGRES_PORT=5432
+    volumes:
+      - /Users/rusab1/docker/pgdata:/var/lib/postgresql/data
     ports:
-      - 5432:5432
-    volumes:
-      - ./postgres_data:/var/lib/postgresql/data
-
-  airflow: &airflow-common
-    image: apache/airflow:2.2.0-python3.9
-    container_name: airflow
-    environment:
-      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:pass123!@postgres:5432/airflow
-    volumes:
-      - ./dags:/opt/airflow/dags 
-      - ./logs:/opt/airflow/logs 
-    depends_on:
-      - postgres
-      
-  airflow-init:
-    <<: *airflow-common
-    container_name: dataomni_airflow_init
-    entrypoint: /bin/bash
-    command:
-    - -c
-    - >
-      airflow db init &&
-      airflow users create
-      --role Admin
-      --username user
-      --password pass123!
-      --email airflow@airflow.com
-      --firstname airflow
-      --lastname airflow
-
+      - "5433:5432"
 
   airflow-webserver:
     <<: *airflow-common
-    container_name: dataomni_airflow_webserver
-    command: airflow webserver
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - 8080:8080
-    restart: always
+      - "8080:8080"
+    depends_on:
+      - "postgresql"
+      - "airflow-scheduler"
+      - "airflow-init"
+    command: airflow webserver
 
   airflow-scheduler:
     <<: *airflow-common
-    command: airflow scheduler
-    container_name: dataomni_airflow_scheduler
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on:
-      - airflow-init
+      - "airflow-init"
+      - "postgresql"
+    command: airflow scheduler
     restart: always
+
+  airflow-init:
+    <<: *airflow-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - "postgresql"
+    entrypoint: /bin/bash
+    command: -c "airflow db init && airflow users create -r Admin -u admin -e admin@example.com -f Admin -l User -p admin && exit"

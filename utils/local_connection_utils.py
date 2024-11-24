@@ -10,9 +10,9 @@ connections_directory = f"{directory}/connections"
 profile_reports = f"{directory}/profile_reports"
 # jars_directory = f"{directory}/jars"
 api_directory = f"{directory}/api"
+dags_directory = f"{os.getenv('AIRFLOW_HOME')}/dags"
 
-dirs = [directory, pipelines_directory,
-        connections_directory, profile_reports, api_directory]
+dirs = [directory,dags_directory]
 json_files_data = None
 
 

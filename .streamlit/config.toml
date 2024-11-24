@@ -9,8 +9,10 @@ fontSize = 9
 [server]
 port = 8500
 enableCORS = true
-wideMode = true
 
 [logger]
 level = "info"
 messageFormat = "%(asctime)s %(message)s"
+
+[layout]
+wideMode = true
