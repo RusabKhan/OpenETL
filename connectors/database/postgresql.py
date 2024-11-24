@@ -1,9 +1,4 @@
-import sys
-import os
 from utils.main_db_class import DB
-from utils.enums import ConnectionType, AuthType
-
-
 
 
 class Connector(DB):

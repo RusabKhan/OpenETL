@@ -15,13 +15,13 @@ import os
 
 import sqlalchemy as sq
 import pandas as pd
-from backend.__migrations__.app import OpenETLDocument, OpenETLBatch
+from .__migrations__.app import OpenETLDocument, OpenETLBatch
 from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text
 from sqlalchemy.orm import sessionmaker
-from utils.cache import sqlalchemy_database_engines
-from utils.enums import ConnectionType
+from .cache import sqlalchemy_database_engines
+from .enums import ConnectionType
 from sqlalchemy.exc import OperationalError
-from utils.enums import ColumnActions
+from .enums import ColumnActions
 import numpy as np
 from sqlalchemy.ext.declarative import declarative_base
 from pyspark.sql.types import StringType, IntegerType, FloatType, BooleanType, TimestampType, ArrayType, MapType

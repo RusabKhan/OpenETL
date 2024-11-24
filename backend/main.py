@@ -1,15 +1,15 @@
-from fastapi import Body, FastAPI, HTTPException, Request
+from fastapi import FastAPI
 import os
 import sys
 
 from utils.database_utils import DatabaseUtils
 
 sys.path.append(os.environ['OPENETL_HOME'])
-from .database import router as db_router
-from .connector import router as connector_router
+from app.database import router as db_router
+from app.connector import router as connector_router
 from fastapi.responses import ORJSONResponse
-from .__migrations__.app import OpenETLDocument
-from .__migrations__.scheduler import OpenETLScheduler
+from utils.__migrations__.app import OpenETLDocument
+from utils.__migrations__.scheduler import OpenETLScheduler
 
 def __init__():
     db_class = DatabaseUtils(engine=os.getenv('OPENETL_DOCUMENT_ENGINE'),

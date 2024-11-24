@@ -5,8 +5,6 @@ from utils.api_utils import send_request
 from utils.form_utils import GenerateForm
 from utils.enums import ConnectionType, APIMethod
 
-import logging
-
 global type_, engine, gen
 page = st.container()
 type_ = None

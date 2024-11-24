@@ -4,16 +4,17 @@ import os
 import xml.etree.ElementTree as ET
 import streamlit as st
 import requests
+from requests import Timeout, ConnectionError, TooManyRedirects, HTTPError, RequestException
 from requests.auth import HTTPBasicAuth
 from streamlit_oauth import OAuth2Component
-from .local_connection_utils import api_directory
+
+from utils.enums import APIMethod
+from utils.local_connection_utils import api_directory
 import pandas as pd
-from . enums import *
+from utils.enums import *
 import re
 from collections import abc
 from utils.local_connection_utils import read_connection_config
-from requests.exceptions import RequestException, Timeout, ConnectionError, HTTPError, TooManyRedirects
-
 
 import logging
 def parse_json(json_content):
@@ -350,10 +351,11 @@ def read_connection_table(connection_name, table, schema="public"):
             table, config['api'], config['auth_type'], token)
         return data
 
+
 def send_request(endpoint, method=APIMethod.GET, headers=None, params=None, data=None, json=None, timeout=10):
     """
     A robust method to send HTTP requests with error handling for different types of errors.
-    
+
     Args:
     - url (str): The API endpoint URL.
     - method (str): The HTTP method ('GET', 'POST', 'PUT', 'DELETE'). Default is 'GET'.
@@ -362,7 +364,7 @@ def send_request(endpoint, method=APIMethod.GET, headers=None, params=None, data
     - data (dict): Optional data for POST/PUT requests.
     - json (dict): Optional JSON body for POST/PUT requests.
     - timeout (int): Timeout duration in seconds. Default is 10 seconds.
-    
+
     Returns:
     - dict or str: The response content, either as a JSON or string.
     """

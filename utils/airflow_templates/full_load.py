@@ -9,7 +9,6 @@ sys.path.append(base_dir)
 
 from utils.airflow_utils import run_pipeline
 from utils.enums import *
-import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 
