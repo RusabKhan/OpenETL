@@ -175,4 +175,5 @@ con.json
 main.env
 /.idea/*
 
+.DS_Store
 .*
