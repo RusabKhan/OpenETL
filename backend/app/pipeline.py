@@ -1,12 +1,11 @@
 import sys
 import os
-from fastapi import APIRouter, Body, FastAPI, HTTPException, Request
+from fastapi import APIRouter, Body, Request
 
-from backend.models.airflow_model import CreatePipelineModel
+from backend.app.models.airflow_model import CreatePipelineModel
 from utils import airflow_utils
 
 sys.path.append(os.environ['OPENETL_HOME'])
-from utils.database_utils import DatabaseUtils
 
 router = APIRouter(prefix="/airflow", tags=["airflow","scheduler","webserver"])
 

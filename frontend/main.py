@@ -131,18 +131,18 @@ except Exception as e:
 
 current_page = st.navigation({
     "Home": [
-        st.Page("Home.py", title="Home", default=True, icon=":material/home:"),],
+        st.Page("home.py", title="Home", default=True, icon=":material/home:"),],
     "Connections": [
-        st.Page("frontend/connection/create_connection.py", title="Create connection",
+        st.Page("app/connection/create_connection.py", title="Create connection",
                 icon=":material/add:"),
-        st.Page("frontend/connection/connection.py", title="Connections",
+        st.Page("app/connection/connection.py", title="Connections",
                 icon=":material/list:")
     ],
     # Page("query_editor/query.py","Query Editor"),
     # Page("api/create_api.py", "Create API"),
     # Page("pipeline/pipelines.py", "My ETL"),
     "Pipelines": [
-        st.Page("frontend/pipeline/create_pipelines.py", title="Create ETL",
+        st.Page("app/pipeline/create_pipelines.py", title="Create ETL",
                 icon=":material/add:"),
             # Page("api/fetch_data.py","Fetch Data"),
 

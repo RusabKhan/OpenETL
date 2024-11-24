@@ -1,9 +1,9 @@
 """This module contains utilitiy functions which can be used in particular case and are not relevant to any one scenario.
 """
-from .database_utils import DatabaseUtils
-from .local_connection_utils import read_connection_config
+from utils.database_utils import DatabaseUtils
+from utils.local_connection_utils import read_connection_config
 import streamlit as st
-from .jdbc_engine_utils import JDBCEngine
+from utils.jdbc_engine_utils import JDBCEngine
 from utils import connector_utils
 
 
