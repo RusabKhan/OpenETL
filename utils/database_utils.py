@@ -550,46 +550,18 @@ class DatabaseUtils():
         except Exception as e:
             return False
 
-    def create_document_table(self):
-        """
-        Creates a document table in the database.
 
-        This function creates a table named 'openetl_documents' in the 'open_etl' schema of the database. The table has the following columns:
-        - document_id: an integer column representing the ID of the document.
-        - document: a string column representing the document itself.
-        - document_type: a string column representing the type of the document.
-        - connection_name: a string column representing the name of the connection.
-        - pipeline_name: a string column representing the name of the pipeline.
-        - connection_type: a string column representing the type of the connection.
 
-        The function uses the pandas DataFrame constructor to create an empty DataFrame with the specified column names and data types. The DataFrame is then passed to the `create_table` method of the `DatabaseUtils` class to create the table in the database.
-
-        After creating the table, the function calls the `alter_table_column_add_primary_key` method to add a primary key constraint on the 'document_id' column of the table.
-
-        Parameters:
-        - self: The instance of the `DatabaseUtils` class.
-
-        Returns:
-        - None
-        """
+    def create_table_from_base(self, target_schema="public",base=None):
         try:
             if not self.engine.dialect.has_schema(self.engine, "public"):
-                self.engine.execute(CreateSchema('public'))
+                self.engine.execute(CreateSchema(target_schema))
         except Exception as e:
             # If schema already exists, it will raise a ProgrammingError which we can ignore
             pass
-        OpenETLDocument.metadata.create_all(self.engine)
+        base.metadata.create_all(self.engine)
 
-    def create_batch_table(self):
-        """
-        Creates a batch table in the database using the OpenETLBatch metadata and the engine.
-        """
-        try:
-            self.engine.execute(CreateSchema('open_etl'))
-        except Exception as e:
-            # If schema already exists, it will raise a ProgrammingError which we can ignore
-            pass
-        OpenETLBatch.metadata.create_all(self.engine)
+
 
     def fetch_rows(self, table_name='openetl_documents', schema_name='open_etl', conditions: dict = {}):
         """
