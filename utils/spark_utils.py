@@ -13,10 +13,8 @@ Functions:
 from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 import os
-from frontend.console.console import get_logger
 
-logging = get_logger()
-
+import logging
 class SparkConnection():
     
     """

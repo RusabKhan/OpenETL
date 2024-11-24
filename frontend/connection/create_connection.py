@@ -4,10 +4,8 @@ import streamlit as st
 from utils.api_utils import send_request
 from utils.form_utils import GenerateForm
 from utils.enums import ConnectionType, APIMethod
-from frontend.console.console import get_logger
 
-logging = get_logger()
-
+import logging
 
 global type_, engine, gen
 page = st.container()
@@ -16,7 +14,7 @@ engine = None
 gen = None
 
 col1, col2 = st.columns([1, 1])
-main_set_engines = send_request('http://localhost:5009/connector/get_installed_connectors/',
+main_set_engines = send_request('connector/get_installed_connectors/',
                                 method=APIMethod.GET, timeout=10)
 
 database_engines = main_set_engines['database']

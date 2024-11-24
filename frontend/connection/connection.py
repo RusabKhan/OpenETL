@@ -2,7 +2,7 @@ import streamlit as st
 from utils.api_utils import send_request
 from utils.form_utils import create_button_columns
 from utils.enums import *
-
+import os
 
 
 
@@ -10,11 +10,11 @@ Database = st.container()
 API = st.container()
 
 
-database_configs = send_request('http://localhost:5009/connector/get_created_connections',
+database_configs = send_request('connector/get_created_connections',
                                 method=APIMethod.POST,
                                 timeout=10,
                                 json={"connector_type": ConnectionType.DATABASE.value, "connector_name": None})
-api_configs = send_request('http://localhost:5009/connector/get_created_connections',
+api_configs = send_request('connector/get_created_connections',
                                 method=APIMethod.POST,
                                 timeout=10,
                                 json={"connector_type": ConnectionType.API.value, "connector_name": None})

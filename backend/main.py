@@ -7,10 +7,13 @@ from utils.database_utils import DatabaseUtils
 sys.path.append(os.environ['OPENETL_HOME'])
 from .database import router as db_router
 from .connector import router as connector_router
-
+from fastapi.responses import ORJSONResponse
 # Define the SQLAlchemy models
 # FastAPI app
-app = FastAPI()
+
+
+app = FastAPI(default_response_class=ORJSONResponse)
+
 app.include_router(db_router)
 app.include_router(connector_router)
 

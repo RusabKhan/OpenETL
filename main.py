@@ -104,8 +104,16 @@ def __init__():
         .block-container.st-emotion-cache-1jicfl2.ea3mdgi5 {
         padding: 3rem 1rem 10rem;
         }
-
-        .stDeployButton {
+        .reportview-container {
+            margin-top: -2em;
+        }
+        #MainMenu {visibility: hidden;}
+        .stAppDeployButton {display:none;}
+        footer {visibility: hidden;}
+        #stDecoration {display:none;}
+        
+        .stStatusWidget {
+            display: none;
             visibility: hidden;
         }
 
@@ -136,8 +144,6 @@ current_page = st.navigation({
     "Pipelines": [
         st.Page("frontend/pipeline/create_pipelines.py", title="Create ETL",
                 icon=":material/add:"),
-        st.Page("frontend/console/console.py", title="Console",
-                icon=":material/terminal:"),
             # Page("api/fetch_data.py","Fetch Data"),
 
     ]}
