@@ -5,7 +5,8 @@ import sys
 home = os.environ['OPENETL_HOME']
 sys.path.append(home)
 import json
-from utils.database_utils import DatabaseUtils, OpenETLDocument
+from utils.database_utils import DatabaseUtils
+from backend.__migrations__.app import OpenETLDocument
 from utils.enums import *
 
 

@@ -15,54 +15,19 @@ import os
 
 import sqlalchemy as sq
 import pandas as pd
-from sqlalchemy import MetaData, Table, Column, Integer, String, Enum, DateTime, and_, select, PrimaryKeyConstraint, func, JSON, text
+from backend.__migrations__.app import OpenETLDocument, OpenETLBatch
+from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text
 from sqlalchemy.orm import sessionmaker
 from utils.cache import sqlalchemy_database_engines
-from utils.enums import AuthType, ConnectionType
+from utils.enums import ConnectionType
 from sqlalchemy.exc import OperationalError
 from utils.enums import ColumnActions
 import numpy as np
 from sqlalchemy.ext.declarative import declarative_base
 from pyspark.sql.types import StringType, IntegerType, FloatType, BooleanType, TimestampType, ArrayType, MapType
 from datetime import datetime
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.schema import CreateSchema
 import logging
-
-
-Base = declarative_base()
-
-
-class OpenETLDocument(Base):
-    __tablename__ = 'openetl_documents'
-    __table_args__ = {'schema': 'open_etl'}
-
-    document_id = Column(Integer, primary_key=True)
-    connection_credentials = Column(JSON)
-    connection_name = Column(String, unique=True)
-    connection_type = Column(String)
-    auth_type = Column(Enum(AuthType))
-    connector_name = Column(String)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
-
-
-class OpenETLBatch(Base):
-    __tablename__ = 'openetl_batches'
-    __table_args__ = {'schema': 'open_etl'}
-
-    uid = Column(Integer, primary_key=True)
-    batch_id = Column(UUID(as_uuid=True))
-    start_date = Column(DateTime, nullable=True)
-    end_date = Column(DateTime, nullable=True)
-    batch_type = Column(String)
-    batch_status = Column(String)
-    integration_name = Column(String)
-    rows_count = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
 
 
 class DatabaseUtils():
@@ -608,8 +573,8 @@ class DatabaseUtils():
         - None
         """
         try:
-            if not self.engine.dialect.has_schema(self.engine, "open_etl"):
-                self.engine.execute(CreateSchema('open_etl'))
+            if not self.engine.dialect.has_schema(self.engine, "public"):
+                self.engine.execute(CreateSchema('public'))
         except Exception as e:
             # If schema already exists, it will raise a ProgrammingError which we can ignore
             pass
