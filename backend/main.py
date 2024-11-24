@@ -8,16 +8,18 @@ sys.path.append(os.environ['OPENETL_HOME'])
 from .database import router as db_router
 from .connector import router as connector_router
 from fastapi.responses import ORJSONResponse
-# Define the SQLAlchemy models
-# FastAPI app
+from .__migrations__.app import OpenETLDocument
+from .__migrations__.scheduler import OpenETLScheduler
 
 def __init__():
-    DatabaseUtils(engine=os.getenv('OPENETL_DOCUMENT_ENGINE'),
+    db_class = DatabaseUtils(engine=os.getenv('OPENETL_DOCUMENT_ENGINE'),
               hostname=os.getenv('OPENETL_DOCUMENT_HOST'),
               port=os.getenv('OPENETL_DOCUMENT_PORT'),
               username=os.getenv('OPENETL_DOCUMENT_USER'),
               password=os.getenv('OPENETL_DOCUMENT_PASS'),
-              database=os.getenv('OPENETL_DOCUMENT_DB')).create_document_table()
+              database=os.getenv('OPENETL_DOCUMENT_DB'))
+    db_class.create_table_from_base(base=OpenETLDocument)
+    db_class.create_table_from_base(base=OpenETLScheduler)
 
 app = FastAPI(default_response_class=ORJSONResponse, on_startup=[__init__])
 
