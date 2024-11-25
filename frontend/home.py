@@ -22,10 +22,11 @@ def format_keys(data):
 # Function to fetch and display data
 def set_dashboard_data():
     data = send_request('database/get_dashboard_data', method=APIMethod.GET, timeout=10)
-
+    columns = ["No integration found"]
     integrations_data = format_keys(data['integrations'])
 
-    columns = list(integrations_data[0].keys())
+    if integrations_data:
+        columns = list(integrations_data[0].keys())
     
     df = pd.DataFrame(data=integrations_data, columns=columns)
     # Sample metrics for the blocks
