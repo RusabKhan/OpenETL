@@ -16,7 +16,8 @@ import os
 import sqlalchemy as sq
 import pandas as pd
 from .__migrations__.app import OpenETLDocument, OpenETLBatch
-from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text
+from .__migrations__.scheduler import OpenETLScheduler
+from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect
 from sqlalchemy.orm import sessionmaker
 from .cache import sqlalchemy_database_engines
 from .enums import ConnectionType
@@ -281,12 +282,10 @@ class DatabaseUtils():
         Alters a SQLAlchemy table by either adding or dropping a column.
 
         Args:
+            action:
             table_name (str): The name of the table to be altered.
-            metadata (MetaData): The metadata object associated with the database.
-            engine (Engine): The SQLAlchemy engine object connected to the database.
             column_name (str): The name of the column to be added or dropped. Required if drop_column is False.
             column_details (str): The details of the column to be added. Required if drop_column is False.
-            drop_column (bool): Indicates whether to drop the column. If True, column_name is required.
 
         Returns:
             tuple: A tuple containing a boolean indicating success or failure and a message.
@@ -295,14 +294,14 @@ class DatabaseUtils():
         try:
             # Reflect the existing table from the database
             table = Table(table_name, self.metadata,
-                          autoload=True, autoload_with=self.engine)
+                          autoload_with=self.engine)
 
             if action == ColumnActions.DROP:
                 table._columns.remove(table.c[column_name])
                 action = f"Dropped column '{column_name}' from table '{table_name}'."
 
             elif action == ColumnActions.ADD:
-                new_column = Column(column_name, eval(column_details))
+                new_column = Column(column_name, column_details)
                 table.append_column(new_column)
                 action = f"Added column '{column_name}' to table '{table_name}'."
 
@@ -315,6 +314,8 @@ class DatabaseUtils():
 
             return True, action
         except OperationalError as e:
+            return False, str(e)
+        except Exception as e:
             return False, str(e)
 
     def drop_table(self, table_name: str):
@@ -368,7 +369,7 @@ class DatabaseUtils():
         - df: The DataFrame containing the columns to be cast
 
         Returns:
-        - df: The DataFrame with columns casted to specific data types
+        - df: The DataFrame with columns cast to specific data types
         """
         for col in df.columns:
             types_counts = {
@@ -414,7 +415,7 @@ class DatabaseUtils():
             'Interval': StringType(),
             'Enum': StringType(),  # Defaulting to StringType for Pandas categories
             'LargeBinary': StringType(),  # Defaulting to StringType for bytes
-            'UnicodeText': StringType(),  # Defaulting to StringType for unicode
+            'UnicodeText': StringType(),  # Defaulting to StringType for Unicode
             'Interval': StringType(),  # Defaulting to StringType for period
             # Mapping to ArrayType with StringType elements
             'Array': ArrayType(StringType()),
@@ -430,8 +431,8 @@ class DatabaseUtils():
         Match the data types of columns in a Spark DataFrame to a specified schema.
 
         Parameters:
+            schema_details:
             spark_df (DataFrame): Spark DataFrame.
-            schema_dict (dict): Dictionary where keys are column names and values are desired data types.
 
         Returns:
             DataFrame: Spark DataFrame with matched data types.
@@ -559,7 +560,40 @@ class DatabaseUtils():
         except Exception as e:
             # If schema already exists, it will raise a ProgrammingError which we can ignore
             pass
-        base.metadata.create_all(self.engine)
+        metadata = MetaData(schema=target_schema)
+
+        # Inspect the existing table structure to check for differences
+        inspector = inspect(self.engine)
+        table_exists = inspector.has_table(base.__tablename__, schema=target_schema)
+
+        if table_exists:
+            model_columns = {}
+            for column_name, column in base.__table__.columns.items():
+                model_columns[column_name] = column.type # Convert type to string
+
+            # Get columns from the table in the database
+            inspector = inspect(self.engine)
+            existing_columns = [col['name'] for col in inspector.get_columns(base.__tablename__)]
+
+            # Identify missing columns
+            missing_columns = {col: col_type for col, col_type in model_columns.items() if col not in existing_columns}
+
+            extra_columns = [col for col in existing_columns if col not in model_columns]
+
+            # Drop extra columns from the table
+            for column_name in extra_columns:
+                self.alter_table_column_add_or_drop(table_name=base.__tablename__,
+                                                    column_name=column_name,
+                                                    column_details=None, action=ColumnActions.DROP)
+
+            # Add missing columns to the table
+            for column_name, column_type_sql in missing_columns.items():
+                self.alter_table_column_add_or_drop(table_name=base.__tablename__,
+                                                        column_name=column_name,
+                                                    column_details=column_type_sql, action=ColumnActions.ADD)
+        else:
+            # Create the table if it doesn't exist
+            base.metadata.create_all(self.engine)
 
 
 
@@ -832,6 +866,78 @@ class DatabaseUtils():
             'total_rows_migrated': total_rows_migrated or 0,
             'integrations': integrations_dict
         }
+
+    def get_all_integration(self, page: int = 1, per_page: int = 30):
+        """
+        Get all integrations paginated.
+
+        Args:
+            page (int, optional): The page number. Defaults to 1.
+            per_page (int, optional): The number of items per page. Defaults to 30.
+
+        Returns:
+            dict: A dictionary containing the paginated results.
+        """
+        offset = (page - 1) * per_page
+
+        total_items = self.session.query(OpenETLScheduler).count()
+
+        schedulers = self.session.query(OpenETLScheduler) \
+            .offset(offset) \
+            .limit(per_page) \
+            .all()
+
+        results = [
+            {
+                "uid": scheduler.uid,
+                "integration_name": scheduler.integration_name,
+                "integration_type": scheduler.integration_type,
+                "cron_expression": scheduler.cron_expression,
+                "integration_status": scheduler.integration_status,
+                "last_run_status": scheduler.last_run_status,
+                "start_date": scheduler.start_date.isoformat() if scheduler.start_date else None,
+                "end_date": scheduler.end_date.isoformat() if scheduler.end_date else None,
+                "next_run_time": scheduler.next_run_time.isoformat() if scheduler.next_run_time else None,
+                "last_run_time": scheduler.last_run_time.isoformat() if scheduler.last_run_time else None,
+                "error_message": scheduler.error_message,
+                "is_enabled": scheduler.is_enabled,
+                "created_at": scheduler.created_at.isoformat() if scheduler.created_at else None,
+                "updated_at": scheduler.updated_at.isoformat() if scheduler.updated_at else None
+            }
+            for scheduler in schedulers
+        ]
+        total_pages = (total_items + per_page - 1) // per_page
+
+        return {
+            "page": page,
+            "per_page": per_page,
+            "total_items": total_items,
+            "total_pages": total_pages,
+            "data": results
+        }
+
+    def create_integration(self, integration_name, integration_type, cron_expression, integration_status, last_run_status, start_date, end_date, next_run_time, last_run_time, error_message, is_enabled, source_connection, target_connection, source_table, target_table):
+        scheduler = OpenETLScheduler(
+            integration_name=integration_name,
+            integration_type=integration_type,
+            cron_expression=cron_expression,
+            integration_status=integration_status,
+            last_run_status=last_run_status,
+            start_date=start_date,
+            end_date=end_date,
+            next_run_time=next_run_time,
+            last_run_time=last_run_time,
+            error_message=error_message,
+            is_enabled=is_enabled,
+            source_connection=source_connection,
+            target_connection=target_connection,
+            source_table=source_table,
+            target_table=target_table
+        )
+
+        self.session.add(scheduler)
+        self.session.commit()
+        return scheduler
 
 
 def get_open_etl_document_connection_details():
