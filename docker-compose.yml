@@ -12,7 +12,6 @@ services:
       - "5009:5009"
     env_file:
       - .env
-
     restart: always
 
   frontend:
@@ -29,6 +28,44 @@ services:
       - OPENETL_HOME=/app
     depends_on:
       - backend
+    restart: always
+
+  spark-master:
+    image: bitnami/spark:3.5.3
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_DRIVER_MEMORY=512m
+      - SPARK_EXECUTOR_MEMORY=512m
+    ports:
+      - "8080:8080"  # Spark Web UI
+      - "7077:7077"  # Spark Master
+    networks:
+      - openetl-network
+    restart: always
+
+  spark-worker-1:
+    image: bitnami/spark:3.5.3
+    container_name: spark-worker-1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1g
+    networks:
+      - openetl-network
+    restart: always
+
+  spark-worker-2:
+    image: bitnami/spark:3.5.3
+    container_name: spark-worker-2
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1g
+    networks:
+      - openetl-network
     restart: always
 
 networks:
