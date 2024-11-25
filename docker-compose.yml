@@ -11,7 +11,7 @@ services:
     ports:
       - "5009:5009"
     env_file:
-      - local.env
+      - .env
 
     restart: always
 

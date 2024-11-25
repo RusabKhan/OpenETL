@@ -821,14 +821,15 @@ class DatabaseUtils():
                 "batch_count": batch_count_dict.get(integration.integration_name, 0)
             }
             for integration in integrations
-        ]
+        ] if integrations else []
+
 
         # Return the dashboard data
         return {
-            'total_api_connections': total_api_connections,
-            'total_db_connections': total_db_connections,
-            'total_pipelines': total_pipelines,
-            'total_rows_migrated': total_rows_migrated,
+            'total_api_connections': total_api_connections or 0,
+            'total_db_connections': total_db_connections or 0,
+            'total_pipelines': total_pipelines or 0,
+            'total_rows_migrated': total_rows_migrated or 0,
             'integrations': integrations_dict
         }
 
