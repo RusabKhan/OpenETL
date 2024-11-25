@@ -1,4 +1,4 @@
-# Use Python 3.10 slim image as base
+# Use Python 3.12 slim image as base
 FROM python:3.12-slim
 
 # Set working directory in the container
@@ -10,11 +10,25 @@ COPY ./backend /app
 # Copy connectors folder
 COPY ./connectors /app/connectors
 
+# Copy utils folder
 COPY ./utils /app/utils
+
+
+# Install Spark (version 3.5.3) from the official Apache repo
+RUN apt-get update && apt-get install -y default-jre wget && \
+    wget -q "https://downloads.apache.org/spark/spark-3.5.3/spark-3.5.3-bin-hadoop3.tgz" && \
+    tar -xvf spark-3.5.3-bin-hadoop3.tgz -C /opt && \
+    rm spark-3.5.3-bin-hadoop3.tgz
 
 # Backend Dependencies
 RUN pip install --no-cache-dir --use-feature=fast-deps -r requirements_backend.txt
 
+
+# Set SPARK_HOME environment variable
+ENV SPARK_HOME=/opt/spark-3.5.3-bin-hadoop3
+
+# Add Spark binaries to the PATH
+ENV PATH=$SPARK_HOME/bin:$PATH
 
 # Expose the port for FastAPI
 EXPOSE 5009
