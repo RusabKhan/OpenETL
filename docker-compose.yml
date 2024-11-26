@@ -68,6 +68,39 @@ services:
       - openetl-network
     restart: always
 
+  redis:
+    image: redis
+    container_name: redis
+    networks:
+      - openetl-network
+    ports:
+      - "6379:6379"  # Redis port
+    restart: always
+
+  celery_beat:
+    container_name: openetl-celery-beat
+    image: openetl-backend  # Use the backend image
+    command: celery -A utils.celery_config beat --loglevel=info
+    networks:
+      - openetl-network
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    restart: always
+
+  celery_worker:
+    container_name: openetl-celery-worker
+    image: openetl-backend  # Use the backend image
+    command: celery -A utils.celery_config worker --loglevel=info
+    networks:
+      - openetl-network
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    restart: always
+
 networks:
   openetl-network:
     driver: bridge

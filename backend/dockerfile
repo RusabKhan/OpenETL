@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y default-jre wget && \
     rm spark-3.5.3-bin-hadoop3.tgz
 
 # Backend Dependencies
-RUN pip install --no-cache-dir --use-feature=fast-deps -r requirements_backend.txt
+RUN pip install --no-cache-dir -r requirements_backend.txt
 
 
 # Set SPARK_HOME environment variable

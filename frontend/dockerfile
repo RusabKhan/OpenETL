@@ -9,7 +9,7 @@ COPY ./frontend /app
 
 COPY ./utils /app/utils
 # Frontend Dependencies
-RUN pip install --no-cache-dir --use-feature=fast-deps -r requirements_frontend.txt
+RUN pip install --no-cache-dir -r requirements_frontend.txt
 
 # Expose the port for Streamlit
 EXPOSE 8500

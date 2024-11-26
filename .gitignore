@@ -177,3 +177,5 @@ main.env
 
 .DS_Store
 .*
+
+./app
