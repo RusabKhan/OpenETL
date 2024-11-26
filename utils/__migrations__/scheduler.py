@@ -7,12 +7,12 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
-class OpenETLScheduler(Base):
-    __tablename__ = 'openetl_scheduler'
+class OpenETLIntegrations(Base):
+    __tablename__ = 'openetl_integrations'
     __table_args__ = {'schema': 'public'}
 
     uid = Column(UUID, primary_key=True, autoincrement=True)  # Unique identifier
-    integration_name = Column(String, nullable=False)  # Name of the integration
+    integration_name = Column(String, nullable=False, unique=True)  # Name of the integration
     integration_type = Column(String, nullable=False)  # Type of integration (e.g., API, DB)
     cron_expression = Column(String, nullable=False)  # Cron schedule for periodic tasks
     source_connection = Column(ForeignKey(OpenETLDocument.document_id), nullable=False)  # Source table name
