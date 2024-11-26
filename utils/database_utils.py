@@ -16,7 +16,7 @@ import os
 import sqlalchemy as sq
 import pandas as pd
 from .__migrations__.app import OpenETLDocument, OpenETLBatch
-from .__migrations__.scheduler import OpenETLScheduler
+from .__migrations__.scheduler import OpenETLIntegrations
 from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect
 from sqlalchemy.orm import sessionmaker
 from .cache import sqlalchemy_database_engines
@@ -880,9 +880,9 @@ class DatabaseUtils():
         """
         offset = (page - 1) * per_page
 
-        total_items = self.session.query(OpenETLScheduler).count()
+        total_items = self.session.query(OpenETLIntegrations).count()
 
-        schedulers = self.session.query(OpenETLScheduler) \
+        schedulers = self.session.query(OpenETLIntegrations) \
             .offset(offset) \
             .limit(per_page) \
             .all()
@@ -917,7 +917,7 @@ class DatabaseUtils():
         }
 
     def create_integration(self, integration_name, integration_type, cron_expression, integration_status, last_run_status, start_date, end_date, next_run_time, last_run_time, error_message, is_enabled, source_connection, target_connection, source_table, target_table):
-        scheduler = OpenETLScheduler(
+        scheduler = OpenETLIntegrations(
             integration_name=integration_name,
             integration_type=integration_type,
             cron_expression=cron_expression,
@@ -938,6 +938,16 @@ class DatabaseUtils():
         self.session.add(scheduler)
         self.session.commit()
         return scheduler
+
+    def delete_integration(self, record_id):
+        self.session.query(OpenETLIntegrations).filter(OpenETLIntegrations.uid == record_id).delete(synchronize_session=False)
+        self.session.commit()
+
+    def update_integration(self, record_id, **kwargs):
+        kwargs = {key.lower().replace(" ", "_"): value for key, value in kwargs.items()}
+        self.session.query(OpenETLIntegrations).filter(OpenETLIntegrations.uid == record_id).update(kwargs)
+        self.session.commit()
+
 
 
 def get_open_etl_document_connection_details():
