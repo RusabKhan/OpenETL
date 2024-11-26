@@ -11,7 +11,7 @@ class OpenETLIntegrations(Base):
     __tablename__ = 'openetl_integrations'
     __table_args__ = {'schema': 'public'}
 
-    uid = Column(UUID, primary_key=True, autoincrement=True)  # Unique identifier
+    uid = Column(UUID, primary_key=True)  # Unique identifier
     integration_name = Column(String, nullable=False, unique=True)  # Name of the integration
     integration_type = Column(String, nullable=False)  # Type of integration (e.g., API, DB)
     cron_expression = Column(String, nullable=False)  # Cron schedule for periodic tasks
