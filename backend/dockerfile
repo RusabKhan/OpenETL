@@ -4,31 +4,34 @@ FROM python:3.12-slim
 # Set working directory in the container
 WORKDIR /app
 
-# Copy backend app code
-COPY ./backend /app
-
-# Copy connectors folder
-COPY ./connectors /app/connectors
-
-# Copy utils folder
-COPY ./utils /app/utils
-
+# Install required tools and OpenJDK 11
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    software-properties-common \
+    wget \
+    curl \
+    tar \
+    default-jre && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Spark (version 3.5.3) from the official Apache repo
-RUN apt-get update && apt-get install -y default-jre wget && \
-    wget -q "https://downloads.apache.org/spark/spark-3.5.3/spark-3.5.3-bin-hadoop3.tgz" && \
+RUN wget -q "https://downloads.apache.org/spark/spark-3.5.3/spark-3.5.3-bin-hadoop3.tgz" && \
     tar -xvf spark-3.5.3-bin-hadoop3.tgz -C /opt && \
     rm spark-3.5.3-bin-hadoop3.tgz
-
-# Backend Dependencies
-RUN pip install --no-cache-dir -r requirements_backend.txt
-
 
 # Set SPARK_HOME environment variable
 ENV SPARK_HOME=/opt/spark-3.5.3-bin-hadoop3
 
 # Add Spark binaries to the PATH
 ENV PATH=$SPARK_HOME/bin:$PATH
+
+# Copy backend application
+COPY ./backend /app
+COPY ./connectors /app/connectors
+COPY ./utils /app/utils
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements_backend.txt
 
 # Expose the port for FastAPI
 EXPOSE 5009
