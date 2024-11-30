@@ -20,13 +20,23 @@ class OpenETLIntegrations(Base):
     source_table = Column(String, nullable=False)  # Source table name
     target_table = Column(String, nullable=False)  # Target table name
     integration_status = Column(String, nullable=False, default="inactive")  # Status (active/inactive)
-    last_run_status = Column(String, nullable=True)  # Status of the last run (success/failure)
-    start_date = Column(DateTime, nullable=True)  # Scheduled start date
-    end_date = Column(DateTime, nullable=True)  # Scheduled end date
     next_run_time = Column(DateTime, nullable=True)  # Next scheduled run
     last_run_time = Column(DateTime, nullable=True)  # Time of the last run
-    error_message = Column(Text, nullable=True)  # Error message, if the last run failed
     is_enabled = Column(Boolean, default=True)  # Indicates whether the scheduler is enabled
     is_running = Column(Boolean, default=False)  # Indicates whether the scheduler is currently running
     created_at = Column(DateTime, default=datetime.utcnow)  # Record creation time
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)  # Record update time
+
+class OpenETLIntegrationsHistory(Base):
+    __tablename__ = 'openetl_integrations_history'
+    __table_args__ = {'schema': 'public'}
+
+    uid = Column(UUID, primary_key=True)  # Unique identifier
+    integration = Column(String, nullable=False)  # Name of the integration
+    created_at = Column(DateTime, default=datetime.utcnow)  # Record creation time
+    error_message = Column(Text, nullable=True)  # Error message, if the last run failed
+    last_run_status = Column(String, nullable=True)  # Status of the last run (success/failure)
+    start_date = Column(DateTime, nullable=True)  # Scheduled start date
+    celery_task_id = Column(String, nullable=True)  # Celery task ID
+    end_date = Column(DateTime, nullable=True)  # Scheduled end date
+
