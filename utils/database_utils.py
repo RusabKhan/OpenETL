@@ -16,7 +16,7 @@ import os
 import sqlalchemy as sq
 import pandas as pd
 from .__migrations__.app import OpenETLDocument, OpenETLBatch
-from .__migrations__.scheduler import OpenETLIntegrations
+from .__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsHistory
 from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect
 from sqlalchemy.orm import sessionmaker
 from .cache import sqlalchemy_database_engines
@@ -944,10 +944,29 @@ class DatabaseUtils():
         self.session.commit()
 
     def update_integration(self, record_id, **kwargs):
-        kwargs = {key.lower().replace(" ", "_"): value for key, value in kwargs.items()}
-        self.session.query(OpenETLIntegrations).filter(OpenETLIntegrations.uid == record_id).update(kwargs)
-        self.session.commit()
+        batch = self.session.query(OpenETLIntegrations).filter(OpenETLIntegrations.uid == record_id).first()
 
+        if not batch:
+            return ValueError(f"Record with id {record_id} not found.")
+        for key, value in kwargs.items():
+            if hasattr(batch, key):
+                setattr(batch, key, value)
+        self.session.commit()
+        return batch
+
+
+    def get_integrations_to_schedule(self):
+        return self.session.query(OpenETLIntegrations).filter(
+        OpenETLIntegrations.next_run_time <= datetime.now() and
+        OpenETLIntegrations.is_running == False and
+        OpenETLIntegrations.is_enabled == True).all()
+
+
+    def create_integration_history(self, **kwargs):
+        scheduler = OpenETLIntegrationsHistory(**kwargs)
+        self.session.add(scheduler)
+        self.session.commit()
+        return scheduler
 
 
 def get_open_etl_document_connection_details():
