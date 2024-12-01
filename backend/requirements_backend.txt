@@ -4,6 +4,7 @@ amqp==5.3.1
 annotated-types==0.7.0
 anyio==4.6.2.post1
 apprise==1.9.0
+APScheduler==3.11.0
 asgi-lifespan==2.1.0
 asyncpg==0.30.0
 attrs==24.2.0
