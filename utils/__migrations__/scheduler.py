@@ -1,6 +1,7 @@
+import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, DateTime, UUID, Boolean, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, UUID, Boolean, Text, ForeignKey, LargeBinary
 from .app import OpenETLDocument
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -11,27 +12,25 @@ class OpenETLIntegrations(Base):
     __tablename__ = 'openetl_integrations'
     __table_args__ = {'schema': 'public'}
 
-    uid = Column(UUID, primary_key=True)  # Unique identifier
+    id = Column(UUID, primary_key=True, default=uuid.uuid4)  # Unique identifier
     integration_name = Column(String, nullable=False, unique=True)  # Name of the integration
     integration_type = Column(String, nullable=False)  # Type of integration (e.g., API, DB)
     cron_expression = Column(String, nullable=False)  # Cron schedule for periodic tasks
-    source_connection = Column(ForeignKey(OpenETLDocument.document_id), nullable=False)  # Source table name
-    target_connection = Column(ForeignKey(OpenETLDocument.document_id), nullable=False)  # Target table name
+    source_connection = Column(ForeignKey(OpenETLDocument.id), nullable=False)  # Source table name
+    target_connection = Column(ForeignKey(OpenETLDocument.id), nullable=False)  # Target table name
     source_table = Column(String, nullable=False)  # Source table name
     target_table = Column(String, nullable=False)  # Target table name
     integration_status = Column(String, nullable=False, default="inactive")  # Status (active/inactive)
-    next_run_time = Column(DateTime, nullable=True)  # Next scheduled run
-    last_run_time = Column(DateTime, nullable=True)  # Time of the last run
     is_enabled = Column(Boolean, default=True)  # Indicates whether the scheduler is enabled
     is_running = Column(Boolean, default=False)  # Indicates whether the scheduler is currently running
     created_at = Column(DateTime, default=datetime.utcnow)  # Record creation time
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)  # Record update time
 
-class OpenETLIntegrationsHistory(Base):
+class OpenETLIntegrationsRuntimes(Base):
     __tablename__ = 'openetl_integrations_history'
     __table_args__ = {'schema': 'public'}
 
-    uid = Column(UUID, primary_key=True)  # Unique identifier
+    id = Column(UUID, primary_key=True, default=uuid.uuid4)  # Unique identifier
     integration = Column(String, nullable=False)  # Name of the integration
     created_at = Column(DateTime, default=datetime.utcnow)  # Record creation time
     error_message = Column(Text, nullable=True)  # Error message, if the last run failed
@@ -39,4 +38,7 @@ class OpenETLIntegrationsHistory(Base):
     start_date = Column(DateTime, nullable=True)  # Scheduled start date
     celery_task_id = Column(String, nullable=True)  # Celery task ID
     end_date = Column(DateTime, nullable=True)  # Scheduled end date
+    next_run_time = Column(DateTime, nullable=True)  # Next scheduled run
+    last_run_time = Column(DateTime, nullable=True)  # Time of the last run
+    job_state = Column(LargeBinary, nullable=True)  # Job state
 

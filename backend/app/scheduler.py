@@ -3,16 +3,16 @@ import os
 from http.client import HTTPException
 from celery.result import AsyncResult
 from fastapi import APIRouter, Body, Request
-from utils.celery_app import app as celery_app
+from utils.celery_utils import app as celery_app, get_task_details
 
 router = APIRouter(prefix="/scheduler", tags=["scheduler"])
 
-router.get("/task-status/{task_id}")
+@router.get("/task-status/{task_id}")
 async def get_task_status(task_id: str):
     """
     Fetch the status of a Celery task.
     """
-    task = AsyncResult(task_id, app=celery_app)
+    task = get_task_details(task_id)
 
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -28,3 +28,4 @@ async def get_task_status(task_id: str):
         "result": result,
         "traceback": traceback
     }
+

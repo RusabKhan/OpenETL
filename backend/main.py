@@ -10,7 +10,7 @@ from app.connector import router as connector_router
 from app.scheduler import router as celery_router
 from fastapi.responses import ORJSONResponse
 from utils.__migrations__.app import OpenETLDocument
-from utils.__migrations__.scheduler import OpenETLIntegrations
+from utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
 
 
 def __init__():
@@ -22,6 +22,7 @@ def __init__():
               database=os.getenv('OPENETL_DOCUMENT_DB'))
     db_class.create_table_from_base(base=OpenETLDocument)
     db_class.create_table_from_base(base=OpenETLIntegrations)
+    db_class.create_table_from_base(base=OpenETLIntegrationsRuntimes)
 
 
 

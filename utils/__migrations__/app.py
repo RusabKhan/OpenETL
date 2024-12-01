@@ -11,7 +11,7 @@ class OpenETLDocument(Base):
     __tablename__ = 'openetl_documents'
     __table_args__ = {'schema': 'public'}
 
-    document_id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     connection_credentials = Column(JSON)
     connection_name = Column(String, unique=True)
     connection_type = Column(String)
@@ -26,7 +26,7 @@ class OpenETLBatch(Base):
     __tablename__ = 'openetl_batches'
     __table_args__ = {'schema': 'public'}
 
-    uid = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     batch_id = Column(UUID(as_uuid=True))
     start_date = Column(DateTime, nullable=True)
     end_date = Column(DateTime, nullable=True)

@@ -12,17 +12,19 @@ Methods:
 - get_metadata_df: Retrieves schema metadata in a dataframe format.
 """
 import os
+import sys
+from typing import List
 
 import sqlalchemy as sq
 import pandas as pd
-from .__migrations__.app import OpenETLDocument, OpenETLBatch
-from .__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsHistory
+from utils.__migrations__.app import OpenETLDocument, OpenETLBatch
+from utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
 from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect
 from sqlalchemy.orm import sessionmaker
-from .cache import sqlalchemy_database_engines
-from .enums import ConnectionType
+from utils.cache import sqlalchemy_database_engines
+from utils.enums import ConnectionType
 from sqlalchemy.exc import OperationalError
-from .enums import ColumnActions
+from utils.enums import ColumnActions
 import numpy as np
 from sqlalchemy.ext.declarative import declarative_base
 from pyspark.sql.types import StringType, IntegerType, FloatType, BooleanType, TimestampType, ArrayType, MapType
@@ -955,23 +957,31 @@ class DatabaseUtils():
         return batch
 
 
-    def get_integrations_to_schedule(self):
+    def get_integrations_to_schedule(self) -> List[OpenETLIntegrations]:
         return self.session.query(OpenETLIntegrations).filter(
-        OpenETLIntegrations.next_run_time <= datetime.now() and
-        OpenETLIntegrations.is_running == False and
+        OpenETLIntegrations.is_running == False
+        and
         OpenETLIntegrations.is_enabled == True).all()
 
 
     def create_integration_history(self, **kwargs):
-        scheduler = OpenETLIntegrationsHistory(**kwargs)
+        scheduler = OpenETLIntegrationsRuntimes(**kwargs)
         self.session.add(scheduler)
         self.session.commit()
         return scheduler
 
 
-def get_open_etl_document_connection_details():
+def get_open_etl_document_connection_details(url=False):
     """Get connection details for OpenETL Document"""
 
+    if url:
+        return "postgresql+psycopg2://{username}:{password}@{hostname}:{port}/{database}".format(
+            username=os.getenv("OPENETL_DOCUMENT_USER","rusab1"),
+            password=os.getenv("OPENETL_DOCUMENT_PASS","1234"),
+            hostname=os.getenv("OPENETL_DOCUMENT_HOST","localhost"),
+            port=os.getenv("OPENETL_DOCUMENT_PORT","5432"),
+            database=os.getenv("OPENETL_DOCUMENT_DB","airflow")
+        )
     return {
         "engine": os.getenv("OPENETL_DOCUMENT_ENGINE","PostgreSQL"),
         "hostname": os.getenv("OPENETL_DOCUMENT_HOST","localhost"),
