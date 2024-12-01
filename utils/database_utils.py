@@ -942,11 +942,11 @@ class DatabaseUtils():
         return scheduler
 
     def delete_integration(self, record_id):
-        self.session.query(OpenETLIntegrations).filter(OpenETLIntegrations.uid == record_id).delete(synchronize_session=False)
+        self.session.query(OpenETLIntegrations).filter(OpenETLIntegrations.id == record_id).delete(synchronize_session=False)
         self.session.commit()
 
     def update_integration(self, record_id, **kwargs):
-        batch = self.session.query(OpenETLIntegrations).filter(OpenETLIntegrations.uid == record_id).first()
+        batch = self.session.query(OpenETLIntegrations).filter(OpenETLIntegrations.id == record_id).first()
 
         if not batch:
             return ValueError(f"Record with id {record_id} not found.")

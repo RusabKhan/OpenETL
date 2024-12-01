@@ -1,11 +1,13 @@
+from os import error
+
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 from datetime import datetime
-from celery import Celery
-from celery_utils import app, run_pipeline
+from celery_utils import app, run_pipeline, retry
 from database_utils import DatabaseUtils, get_open_etl_document_connection_details
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
+from utils.enums import RunStatus
 
 # Global database and engine initialization
 db = DatabaseUtils(**get_open_etl_document_connection_details())
@@ -20,7 +22,20 @@ def send_task_to_celery(integration_uid, task_name='task_test', **kwargs):
     :param kwargs: Additional arguments for the Celery task.
     """
     # Apply the task asynchronously using apply_async
-    app.send_task("utils.celery_app.run_pipeline", args=[integration_uid], kwargs=kwargs)
+    celery_app_details = app.send_task("utils.celery_app.run_pipeline", args=[integration_uid], kwargs=kwargs)
+
+    @retry(tries=3, delay=2)
+    def update_db():
+        db.update_integration(record_id=integration_uid, last_run=datetime.utcnow(), is_running=True)
+        db.create_integration_history(
+            celery_task_id=celery_app_details.id,
+            integration=integration_uid,
+            error_message="",
+            run_status=RunStatus.RUNNING,
+            start_date=datetime.utcnow(),
+        )
+    update_db()
+
 
 def check_and_schedule_tasks():
     """
@@ -31,7 +46,7 @@ def check_and_schedule_tasks():
 
     for integration in integrations:
         cron_time = integration.cron_expression  # Assume this is a valid cron expression string.
-        job_id = f"integration_{integration.id}"
+        job_id = f"{integration.id}"
 
         try:
             # Add or update a job with CronTrigger to send the task to Celery dynamically

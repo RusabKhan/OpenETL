@@ -33,3 +33,9 @@ class APIMethod(Enum):
     PUT = "put"
     PATCH = "patch"
     DELETE = "delete"
+
+
+class RunStatus(Enum):
+    SUCCESS = "success"
+    FAILED = "failed"
+    RUNNING = "running"
