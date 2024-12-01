@@ -1,47 +1,78 @@
-import time
-from datetime import datetime, timedelta
-from .celery_app import app
-from .database_utils import DatabaseUtils, get_open_etl_document_connection_details
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
+from datetime import datetime
+from celery import Celery
+from celery_utils import app, run_pipeline
+from database_utils import DatabaseUtils, get_open_etl_document_connection_details
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+from apscheduler.schedulers.background import BackgroundScheduler
 
-class Scheduler:
-    def __init__(self, celery_app = app):
-        self.celery_app = celery_app
+# Global database and engine initialization
+db = DatabaseUtils(**get_open_etl_document_connection_details())
+engine = db.engine.url  # Using engine URL for jobstore
 
-    def heartbeat(self):
+# Wrapper function for task execution
+def send_task_to_celery(integration_uid, task_name='task_test', **kwargs):
+    """
+    Wrapper function to send tasks to Celery dynamically using apply_async.
+    :param integration_uid: ID of the integration.
+    :param task_name: Name of the Celery task (defaults to 'task').
+    :param kwargs: Additional arguments for the Celery task.
+    """
+    # Apply the task asynchronously using apply_async
+    app.send_task("utils.celery_app.run_pipeline", args=[integration_uid], kwargs=kwargs)
+
+def check_and_schedule_tasks():
+    """
+    Check database for integrations and schedule tasks if needed.
+    """
+    now = datetime.utcnow()
+    integrations = db.get_integrations_to_schedule()
+
+    for integration in integrations:
+        cron_time = integration.cron_expression  # Assume this is a valid cron expression string.
+        job_id = f"integration_{integration.id}"
+
+        try:
+            # Add or update a job with CronTrigger to send the task to Celery dynamically
+            scheduler.add_job(
+                func=send_task_to_celery,  # Reference the send_task_to_celery function dynamically
+                trigger=CronTrigger.from_crontab(cron_time),
+                args=[integration.id],  # Pass the integration ID to the task
+                kwargs={'task_name': 'task_test'},  # You can dynamically pass the task name if needed
+                id=job_id,
+                replace_existing=False,
+            )
+            print(f"Integration {job_id} scheduled successfully with cron: {cron_time}")
+        except Exception as e:
+            pass
+
+
+def start_scheduler():
+    """
+    Start the APScheduler with PostgreSQL jobstore and periodic tasks.
+    """
+    global scheduler
+    scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=db.engine)})
+    scheduler.remove_all_jobs()
+
+    # Add a periodic job to check and schedule tasks every 30 seconds
+    scheduler.add_job(
+        func=check_and_schedule_tasks,
+        trigger=IntervalTrigger(seconds=10),
+        id='check_and_schedule',
+        replace_existing=True,
+    )
+    scheduler.start()
+    print("Scheduler started with PostgreSQL jobstore.")
+
+    # Gracefully handle shutdown
+    try:
         while True:
-            # Fetch all integrations from the table
-            conn = DatabaseUtils(**get_open_etl_document_connection_details())
-            integrations = conn.get_integrations_to_schedule()
-            now = datetime.utcnow()
+            pass
+    except (KeyboardInterrupt, SystemExit):
+        scheduler.shutdown(wait=False)
+        print("Scheduler shut down gracefully.")
 
-            for integration in integrations:
-                next_run_time = integration.next_run_time
-
-                # Check if the integration is due for scheduling
-                if next_run_time and next_run_time <= now:
-                    try:
-                        # Schedule the task using Celery
-                        celery_task = self.celery_app.send_task(
-                            'integration_task',  # Replace with your Celery task name
-                            args=[integration.uid],
-                            kwargs={'data': integration.additional_data}  # Optional: Pass additional data
-                        )
-
-                        # Update next_run_time (example: schedule after 1 hour)
-                        integration.next_run_time = now + timedelta(hours=1)
-                        conn.update_integration(record_id = integration.uid, next_run_time=integration.next_run_time,
-                                                is_running=True)
-                        conn.create_integration_history(integration=integration.uid,
-                                                        error_message=None,
-                                                        last_run_status=None,
-                                                        start_date=now,
-                                                        end_date=None,
-                                                        celery_task_id=celery_task.id
-                                                        )
-
-                        print(f"Integration {integration.uid} scheduled successfully.")
-                    except Exception as e:
-                        print(f"Failed to schedule integration {integration.uid}: {e}")
-
-            # Wait for 30 seconds before the next check
-            time.sleep(30)
+if __name__ == '__main__':
+    start_scheduler()
