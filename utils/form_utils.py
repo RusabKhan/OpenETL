@@ -50,6 +50,7 @@ class GenerateForm():
         auth_value = {}
         connection_name = None
         authentication_type = None
+        stored = None
 
         col1, col2 = st.columns(2)
 
@@ -97,12 +98,14 @@ class GenerateForm():
                     json_data = {"connection_credentials": auth_value,"connector_name": engine, "auth_type": authentication_type
                                  ,"connection_name": connection_name, "connection_type": engine_type.value
                                  }
-                    stored = send_request("connector/store_connection", method=APIMethod.POST, json=json_data, timeout=10)
-                    
+                    test_conn_request_data = {"auth_params": auth_value, "connector_name": engine,
+                                              "auth_type": authentication_type, "connector_type": engine_type.value}
+                    if send_request("connector/test_connection", method=APIMethod.POST, json=test_conn_request_data, timeout=10) == True:
+                        stored = send_request("connector/store_connection", method=APIMethod.POST, json=json_data, timeout=10)
                     if stored[0]:
                         st.success('Connection created!', icon="✅")
                     else:
-                        st.error(f"Connection failed. Please try again. Or check the connection details: {stored[1]}",icon="❌")
+                        st.error(f"Connection failed. Please try again. Or check the connection details:{stored[1]}",icon="❌")
                 else:
                     st.error("Connection failed. Please try again. Or check the connection details:")
 

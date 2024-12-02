@@ -39,3 +39,6 @@ class RunStatus(Enum):
     SUCCESS = "success"
     FAILED = "failed"
     RUNNING = "running"
+
+class IntegrationType(Enum):
+    FULL_LOAD = "full_load"

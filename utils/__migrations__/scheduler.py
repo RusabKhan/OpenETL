@@ -1,11 +1,14 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, DateTime, UUID, Boolean, Text, ForeignKey, LargeBinary, Enum
+from sqlalchemy import Column, Integer, String, DateTime, UUID, Boolean, Text, ForeignKey, LargeBinary, Enum, JSON, \
+    ARRAY
+from sqlalchemy.dialects.postgresql import JSONB
+
 from .app import OpenETLDocument
 from sqlalchemy.ext.declarative import declarative_base
 
-from ..enums import RunStatus
+from utils.enums import RunStatus, IntegrationType
 
 Base = declarative_base()
 
@@ -16,12 +19,16 @@ class OpenETLIntegrations(Base):
 
     id = Column(UUID, primary_key=True, default=uuid.uuid4)  # Unique identifier
     integration_name = Column(String, nullable=False, unique=True)  # Name of the integration
-    integration_type = Column(String, nullable=False)  # Type of integration (e.g., API, DB)
-    cron_expression = Column(String, nullable=False)  # Cron schedule for periodic tasks
+    integration_type = Column(Enum(IntegrationType), nullable=False)  # Type of integration (e.g., API, DB)
+    cron_expression = Column(ARRAY(String), nullable=False)  # Cron schedule for periodic tasks
     source_connection = Column(ForeignKey(OpenETLDocument.id), nullable=False)  # Source table name
     target_connection = Column(ForeignKey(OpenETLDocument.id), nullable=False)  # Target table name
+    spark_config = Column(JSON, nullable=True)
+    hadoop_config = Column(JSON, nullable=True)
     source_table = Column(String, nullable=False)  # Source table name
     target_table = Column(String, nullable=False)  # Target table name
+    source_schema = Column(String, nullable=False)  # Source schema name
+    target_schema = Column(String, nullable=False)  # Target schema name
     is_enabled = Column(Boolean, default=True)  # Indicates whether the scheduler is enabled
     is_running = Column(Boolean, default=False)  # Indicates whether the scheduler is currently running
     created_at = Column(DateTime, default=datetime.utcnow)  # Record creation time

@@ -9,7 +9,7 @@ from utils.database_utils import DatabaseUtils
 from utils.enums import *
 
 
-connectors_directory = f"{home}/connectors"
+connectors_directory = f"{os.getcwd()}/{home}/connectors"
 
 def get_installed_connectors(connector_type=ConnectionType.DATABASE):
     """
