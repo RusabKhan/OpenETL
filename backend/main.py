@@ -8,6 +8,7 @@ sys.path.append(os.environ['OPENETL_HOME'])
 from app.database import router as db_router
 from app.connector import router as connector_router
 from app.scheduler import router as celery_router
+from app.pipeline import router as pipeline_router
 from fastapi.responses import ORJSONResponse
 from utils.__migrations__.app import OpenETLDocument
 from utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
@@ -25,15 +26,11 @@ def __init__():
     db_class.create_table_from_base(base=OpenETLIntegrationsRuntimes)
 
 
-
-
-
-
 app = FastAPI(default_response_class=ORJSONResponse, on_startup=[__init__])
 
 app.include_router(db_router)
 app.include_router(connector_router)
 app.include_router(celery_router)
-
+app.include_router(pipeline_router)
 
 

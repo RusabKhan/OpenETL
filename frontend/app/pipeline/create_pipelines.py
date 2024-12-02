@@ -57,6 +57,8 @@ schedule_dates = []
 
 slide_col1, slide_col2 = st.columns([4, 1])
 
+
+
 def render_section(section):
     con_type_temp = con_type[:]
     if section.lower() == 'target':
@@ -101,6 +103,7 @@ def render_section(section):
             no_source = False if source_schema else True
 
             with table_col:
+                final_values[section]["connector_type"] = connection_type
                 final_values[section]["schema"] = st.selectbox(
                     f"{section} Schema", source_schema, disabled=no_source)
 
@@ -132,7 +135,6 @@ with spark:
                 'spark.executor.memory',
                 'spark.executor.cores',
                 'spark.executor.instances',
-                "spark.master",
                 "spark.app.name",
             ],
             'Average Setting': [
@@ -140,7 +142,6 @@ with spark:
                 '1g',
                 '1',
                 '1',
-                "local[*]",
                 f"{final_values['Source']['source']}_to_{final_values['Target']['source']}",
             ]
         }
@@ -173,6 +174,7 @@ with finish:
             disable_frequency = True
 
         frequencey = st.selectbox("Select frequency", ["Weekly", "Monthly", "Daily", "Weekends", "Weekday"], disabled=disable_frequency)
+        integration_type = st.radio("Select integration type", IntegrationType.__members__.values())
 
     with col2:
         schedule_date = st.date_input("Schedule dates", disabled=disable_dates)
@@ -188,34 +190,32 @@ with finish:
         submit = st.button("Create Integration")
         if submit:
             formatted_dates = [date.strftime('%Y-%m-%d') for date in selected_dates]
-            pipeline_dict = {
-                'spark_config': spark_config,
-                'hadoop_config': hadoop_config,
-                'integration_name': integration_name,
-                'is_frequency': disable_frequency,
-                'selected_dates': formatted_dates,
-                'schedule_time': schedule_time.strftime('%H:%M:%S'),
-                'frequency': frequencey,
-                'schedule_dates': schedule_date.strftime('%Y-%m-%d'),
-                "run_details": {f"{date.today()}": {"rows_read": 0, "rows_write": 0, "start_time": "00:00:00", "end_time": "00:00:00", "status": "Not Started"}},
-                "target_table": final_values["Target"]["table"],
-                "source_table": final_values["Source"]["table"],
-                "target_schema": final_values["Target"]["schema"],
-                "source_schema": final_values["Source"]["schema"],
-                "target_connection_name": final_values["Target"]["source"],
-                "source_connection_name": final_values["Source"]["source"],
-                "target_type": final_values["Target"]["connection_type"],
-                "source_type": final_values["Source"]["connection_type"]
-            }
+            for config in database_configs:
+                if config["connection_name"] == final_values["Source"]["source"]:
+                    source_connection_id = config["id"]
+                if config["connection_name"] == final_values["Target"]["source"]:
+                    target_connection_id = config["id"]
 
-            # miss = check_missing_values(**pipeline_dict)
-            #
-            # if miss[0]:
-            #     st.error("Missing value for: " + miss[1])
-            #     st.stop()
-            #
-            # stored = create_airflow_dag(pipeline_dict)
-            # if not stored:
-            #     st.error("Unable to create integration. Please try again.")
-            # else:
-            st.success("Integration Created Successfully")
+            for config in api_configs:
+                if config["connection_name"] == final_values["Source"]["source"]:
+                    source_connection_id = config["id"]
+                if config["connection_name"] == final_values["Target"]["source"]:
+                    target_connection_id = config["id"]
+
+            pipeline_dict = {'spark_config': spark_config, 'hadoop_config': hadoop_config,
+                             'integration_name': integration_name,
+                             'integration_type': integration_type.value,
+                             "target_table": final_values["Target"]["table"],
+                             "source_table": final_values["Source"]["table"],
+                             "target_schema": final_values["Target"]["schema"],
+                             "source_schema": final_values["Source"]["schema"],
+                             "target_connection": target_connection_id,
+                             "source_connection": source_connection_id,
+                             "schedule_date": formatted_dates,
+                             "schedule_time": schedule_time.strftime('%H:%M:%S'),
+                             "frequency": frequencey,
+                             }
+            if send_request('pipeline/create_integration', method=APIMethod.POST, timeout=10, json=pipeline_dict):
+                st.success("Integration Created Successfully")
+            else:
+                st.error("Failed to create integration")

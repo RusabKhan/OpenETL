@@ -706,7 +706,8 @@ class DatabaseUtils():
             OpenETLDocument.connection_type,
             OpenETLDocument.auth_type,
             OpenETLDocument.connector_name,
-            OpenETLDocument.connection_credentials
+            OpenETLDocument.connection_credentials,
+            OpenETLDocument.id
         ]
         conditions = []
 
@@ -918,23 +919,20 @@ class DatabaseUtils():
             "data": results
         }
 
-    def create_integration(self, integration_name, integration_type, cron_expression, integration_status, last_run_status, start_date, end_date, next_run_time, last_run_time, error_message, is_enabled, source_connection, target_connection, source_table, target_table):
+    def create_integration(self, integration_name, integration_type, target_schema, source_schema, spark_config,
+                           hadoop_config, cron_expression, source_connection,target_connection, source_table, target_table):
         scheduler = OpenETLIntegrations(
             integration_name=integration_name,
             integration_type=integration_type,
             cron_expression=cron_expression,
-            integration_status=integration_status,
-            last_run_status=last_run_status,
-            start_date=start_date,
-            end_date=end_date,
-            next_run_time=next_run_time,
-            last_run_time=last_run_time,
-            error_message=error_message,
-            is_enabled=is_enabled,
             source_connection=source_connection,
             target_connection=target_connection,
             source_table=source_table,
-            target_table=target_table
+            target_table=target_table,
+            spark_config=spark_config,
+            hadoop_config=hadoop_config,
+            source_schema=source_schema,
+            target_schema=target_schema,
         )
 
         self.session.add(scheduler)
@@ -990,3 +988,34 @@ def get_open_etl_document_connection_details(url=False):
         "port": os.getenv("OPENETL_DOCUMENT_PORT","5432"),
         "database": os.getenv("OPENETL_DOCUMENT_DB","airflow")
     }
+
+
+def generate_cron_expression(schedule_time, schedule_dates=None, frequency=None):
+    """
+    Generates a cron expression based on provided scheduling details.
+
+    :param schedule_time: Time string in 'HH:MM:SS' format.
+    :param schedule_dates: List of date strings in 'YYYY-MM-DD' format or None.
+    :param frequency: A string defining the frequency ('daily', 'weekly', 'hourly') or None.
+    :return: List of cron expression strings.
+    """
+    time_parts = schedule_time.split(':')
+    minute = time_parts[1]
+    hour = time_parts[0]
+
+    if frequency == 'hourly':
+        return [f"0 * * * *"]
+    elif frequency == 'daily':
+        return [f"{minute} {hour} * * *"]
+    elif frequency == 'weekly':
+        return [f"{minute} {hour} * * 0"]
+    elif schedule_dates:
+        cron_expressions = []
+        for date_str in schedule_dates:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            day = date_obj.day
+            month = date_obj.month
+            cron_expressions.append(f"{minute} {hour} {day} {month} *")
+        return cron_expressions
+    else:
+        raise ValueError("Unsupported scheduling details provided.")

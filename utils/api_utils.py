@@ -370,7 +370,7 @@ def send_request(endpoint, method=APIMethod.GET, headers=None, params=None, data
     """
     with st.spinner(text="Please wait..."):
         try:
-            backend_host = os.environ.get("BACKEND_HOST", "http://127.0.0.1:5009")
+            backend_host = os.environ.get("BACKEND_HOST", os.environ.get("BACKEND_HOST", "http://localhost:5009"))
             url = f"{backend_host}/{endpoint}"
             #data = json.dumps(data)
          #Make the request based on the method type
@@ -395,22 +395,22 @@ def send_request(endpoint, method=APIMethod.GET, headers=None, params=None, data
                 return response.text
 
         except Timeout:
-            return {"error": "The request timed out."}
+            raise Exception("error message: The request timed out.")
 
         except ConnectionError:
-            return {"error": "Network problem occurred, check your internet connection."}
+            raise Exception("error : Network problem occurred, check your internet connection.")
 
         except TooManyRedirects:
-            return {"error": "Too many redirects, the URL might be incorrect."}
+            raise  Exception("error : Too many redirects, the URL might be incorrect.")
 
         except HTTPError as http_err:
-            return {"error": f"HTTP error occurred: {http_err}"}
+            raise Exception(f"error : HTTP error occurred: {http_err}")
 
         except RequestException as req_err:
-            return {"error": f"A general error occurred: {req_err}"}
+            return Exception(f"error : A general error occurred: {req_err}")
 
         except ValueError as val_err:
-            return {"error": f"Invalid method or data: {val_err}"}
+            return Exception(f"error : Invalid method or data: {val_err}")
 
         except Exception as err:
-            return {"error": f"An unexpected error occurred: {err}"}
+            raise Exception(f"error : An unexpected error occurred: {err}")
