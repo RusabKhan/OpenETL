@@ -98,26 +98,24 @@ services:
       - "6379:6379"
     restart: always
 
-  celery_beat:
-    container_name: openetl-celery-beat
+  scheduler:
+    container_name: openetl-scheduler
     image: openetl-backend  # Use the backend image
-    command: celery -A utils.celery_config beat --loglevel=info
+    command: python3 utils/scheduler_utils.py
+    env_file:
+      - .env
     networks:
       - openetl-network
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-    depends_on:
-      - redis
     restart: always
 
   celery_worker:
     container_name: openetl-celery-worker
     image: openetl-backend  # Use the backend image
-    command: celery -A utils.celery_config worker --loglevel=info
+    command: celery -A utils.celery_utils worker --loglevel=info
     networks:
       - openetl-network
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
+    env_file:
+      - .env
     depends_on:
       - redis
     restart: always

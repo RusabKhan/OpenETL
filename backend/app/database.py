@@ -31,11 +31,3 @@ async def get_pipeline_data_api(request: Request):
                 database=os.getenv('OPENETL_DOCUMENT_DB')).get_all_integration()
 
 
-@router.post("/create_integration")
-async def create_pipeline_api(request: Request, pipeline_config: dict = Body(...)):
-    return DatabaseUtils(engine=os.getenv('OPENETL_DOCUMENT_ENGINE'),
-                hostname=os.getenv('OPENETL_DOCUMENT_HOST'),
-                port=os.getenv('OPENETL_DOCUMENT_PORT'),
-                username=os.getenv('OPENETL_DOCUMENT_USER'),
-                password=os.getenv('OPENETL_DOCUMENT_PASS'),
-                database=os.getenv('OPENETL_DOCUMENT_DB')).create_integration(**pipeline_config)

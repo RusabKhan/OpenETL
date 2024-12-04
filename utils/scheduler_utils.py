@@ -1,10 +1,14 @@
-from os import error
+import os
+import sys
+
+sys.path.append(os.environ['OPENETL_HOME'])
 
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 from datetime import datetime
-from celery_utils import app, run_pipeline, retry
-from database_utils import DatabaseUtils, get_open_etl_document_connection_details
+
+from utils.celery_utils import app, run_pipeline, retry
+from utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from utils.enums import RunStatus
