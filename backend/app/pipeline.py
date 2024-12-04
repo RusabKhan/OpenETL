@@ -5,7 +5,7 @@ from urllib.error import HTTPError
 
 from fastapi import APIRouter, Body, Request
 
-from backend.app.models.airflow_model import CreatePipelineModel
+from app.models.airflow_model import CreatePipelineModel
 from utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details, generate_cron_expression
 from utils.enums import IntegrationType
 

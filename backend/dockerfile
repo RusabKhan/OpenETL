@@ -26,8 +26,8 @@ ENV PATH=$SPARK_HOME/bin:$PATH
 
 # Copy backend application
 COPY ./backend /app
-COPY ./connectors /app/connectors
 COPY ./utils /app/utils
+COPY ./backend/requirements_backend.txt /app
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
