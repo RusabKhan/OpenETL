@@ -18,7 +18,7 @@ db = DatabaseUtils(**get_open_etl_document_connection_details())
 engine = db.engine.url  # Using engine URL for jobstore
 
 # Wrapper function for task execution
-def send_task_to_celery(job_id, job_name, source_connection, target_connection, source_table, target_table, source_schema,
+def send_task_to_celery(job_id, job_name, job_type, source_connection, target_connection, source_table, target_table, source_schema,
                           target_schema, spark_config, hadoop_config, **kwargs):
     """
     Wrapper function to send tasks to Celery dynamically using apply_async.
@@ -27,7 +27,10 @@ def send_task_to_celery(job_id, job_name, source_connection, target_connection, 
     :param kwargs: Additional arguments for the Celery task.
     """
     # Apply the task asynchronously using apply_async
-    celery_app_details = app.send_task("utils.celery_utils.run_pipeline", args=[job_id, job_name, source_connection, target_connection, source_table, target_table, source_schema,
+    target_connection['auth_type'] = target_connection['auth_type'].value
+    source_connection['auth_type'] = source_connection['auth_type'].value
+
+    celery_app_details = app.send_task("utils.celery_utils.run_pipeline", args=[job_id, job_name,job_type, source_connection, target_connection, source_table, target_table, source_schema,
                           target_schema, spark_config, hadoop_config], kwargs=kwargs)
 
     @retry(tries=3, delay=2)
@@ -64,6 +67,8 @@ def check_and_schedule_tasks():
         spark_config = integration.spark_config
         hadoop_config = integration.hadoop_config
 
+        source_detials = db.get_created_connections(id=source_connection)
+        target_detials = db.get_created_connections(id=target_connection)
 
         try:
             for cron in cron_time:
@@ -71,14 +76,14 @@ def check_and_schedule_tasks():
                 scheduler.add_job(
                     func=send_task_to_celery,  # Reference the send_task_to_celery function dynamically
                     trigger=CronTrigger.from_crontab(cron),
-                    args=[job_id, job_name, source_connection, target_connection, source_table, target_table, source_schema,
-                          target_schema, spark_config, hadoop_config],
+                    args=[job_id, job_name, job_type, source_detials, target_detials, source_table, target_table, source_schema, target_schema ,spark_config, hadoop_config],
                     kwargs={},
                     id=job_id,
                     replace_existing=True,
                 )
                 print(f"Integration {job_id} scheduled successfully with cron: {cron_time}")
         except Exception as e:
+            print(f"Error scheduling integration {job_id}: {e}")
             pass
 
 
