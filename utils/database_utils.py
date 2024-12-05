@@ -691,7 +691,7 @@ class DatabaseUtils():
             logging.error(e)
             return False, e
 
-    def get_created_connections(self, connector_type=None, connection_name=None) -> pd.DataFrame:
+    def get_created_connections(self, connector_type=None, connection_name=None, id=None) -> pd.DataFrame:
         """
         Returns a list of created connections for the specified connector type.
 
@@ -715,6 +715,8 @@ class DatabaseUtils():
             conditions.append(OpenETLDocument.connection_type == connector_type)
         if connection_name is not None:
             conditions.append(OpenETLDocument.connection_name == connection_name)
+        if id is not None:
+            conditions.append(OpenETLDocument.id == id)
 
         # Construct the query
         if conditions:
@@ -723,10 +725,9 @@ class DatabaseUtils():
             select_query = select(*columns_to_fetch)
 
         # Execute the query and fetch data into a DataFrame
-        with self.session.begin():  # Ensure the session is properly managed
-            data = pd.read_sql(select_query, self.session.bind)
+        data = pd.read_sql(select_query, self.session.bind)
 
-        return data
+        return data.to_dict(orient='records')[0]
 
     def insert_openetl_batch(self, start_date, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None):
         """

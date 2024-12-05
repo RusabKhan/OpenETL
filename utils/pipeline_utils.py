@@ -102,8 +102,9 @@ def extract_xcom_value(task_id, **context):
     return xcom_value
 
 
-def run_pipeline(source_connection_type, source_table, source_schema, source_connection_name, target_connection_type,
-                 target_connection_config, spark_config=None, hadoop_config=None,  mapping=None, integration_name=None):
+def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=None, job_type=None,
+                 source_table=None, source_schema=None, target_table=None, target_schema=None,
+                 source_connection_details=None, target_connection_details=None):
     """
     A function that runs a pipeline with the specified configurations, particularly used in the airflow DAG to run a pipeline.
 

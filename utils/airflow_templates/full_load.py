@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO)
 base_dir = os.getenv('OPENETL_HOME')
 sys.path.append(base_dir)
 
-from utils.airflow_utils import run_pipeline
+from utils.pipeline_utils import run_pipeline
 from utils.enums import *
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
