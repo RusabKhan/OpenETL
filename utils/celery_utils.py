@@ -19,11 +19,21 @@ app.conf.update(
 )
 
 @app.task()
-def run_pipeline(data, **kwargs):
+def run_pipeline(job_id, job_name, source_connection, target_connection, source_table, target_table, source_schema,
+                          target_schema, spark_config, hadoop_config, **kwargs):
     try:
         print("Running pipeline...")
-        return True
-        pipeline.run_pipeline()
+        print("job_id", job_id)
+        print("job_name", job_name)
+        print("source_connection", source_connection)
+        print("target_connection", target_connection)
+        print("source_table", source_table)
+        print("target_table", target_table)
+        print("source_schema", source_schema)
+        print("target_schema", target_schema)
+        print("spark_config", spark_config)
+        print("hadoop_config", hadoop_config)
+        #pipeline.run_pipeline()
     except Exception as e:
         print(f"Error occurred: {e}")
         return e
