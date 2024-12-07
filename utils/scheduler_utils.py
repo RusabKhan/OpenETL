@@ -27,8 +27,6 @@ def send_task_to_celery(job_id, job_name, job_type, source_connection, target_co
     :param kwargs: Additional arguments for the Celery task.
     """
     # Apply the task asynchronously using apply_async
-    target_connection['auth_type'] = target_connection['auth_type'].value
-    source_connection['auth_type'] = source_connection['auth_type'].value
 
     celery_app_details = app.send_task("utils.celery_utils.run_pipeline", args=[job_id, job_name,job_type, source_connection, target_connection, source_table, target_table, source_schema,
                           target_schema, spark_config, hadoop_config], kwargs=kwargs)
@@ -67,8 +65,10 @@ def check_and_schedule_tasks():
         spark_config = integration.spark_config
         hadoop_config = integration.hadoop_config
 
-        source_detials = db.get_created_connections(id=source_connection)
-        target_detials = db.get_created_connections(id=target_connection)
+        source_detials = db.get_created_connections(id=source_connection)[0]
+        target_detials = db.get_created_connections(id=target_connection)[0]
+        source_detials['auth_type'] = source_detials['auth_type'].value
+        target_detials['auth_type'] = target_detials['auth_type'].value
 
         try:
             for cron in cron_time:

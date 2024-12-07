@@ -36,8 +36,13 @@ api_configs = send_request('connector/get_created_connections',
                                 timeout=10,
                                 json={"connector_type": ConnectionType.API.value, "connector_name": None})
 
-database_configs_names = [config["connection_name"] for config in database_configs]
-api_configs_names = [config["connection_name"] for config in api_configs]
+database_configs_names = []
+api_configs_names = []
+
+for config in database_configs:
+    database_configs_names.append(config["connection_name"])
+for config in api_configs:
+    api_configs_names.append(config["connection_name"])
 
 source_target, spark, finish = st.tabs(["Select Source & Target", "Spark Config", "Finish"])
 
