@@ -21,7 +21,7 @@ class SparkConnection():
     A class representing a connection to a Spark cluster.
 
     Attributes:
-        connection_string (str): The connection string for the Spark cluster.
+         (str): The connection string for the Spark cluster.
         spark_configuration (dict): Dictionary containing Spark configuration details.
         hadoop_configuration (dict, optional): Dictionary containing Hadoop configuration details.
         jar (None): Placeholder for the JAR file.
@@ -106,7 +106,7 @@ class SparkConnection():
         except Exception as e:
             raise Exception(str(e))
 
-    def read_via_spark(self):
+    def read_via_spark(self, spark_connection_details, source_format="jdbc"):
         """
         This method is used to read data using Spark based on the specified connection format and credentials.
         It utilizes the SparkSession and connection details to load data into a DataFrame. 
@@ -118,14 +118,10 @@ class SparkConnection():
             Exception: If an error occurs during the data reading process.
         """
 
-        connection_format = self.connection_string.get(
-            'connection_format').lower()
-        credentials = self.spark_connection_details.get(
-            'spark_formatted_creds')
 
         try:
-            sparkDataframe = self.spark_session.read.format(connection_format
-                                                              ).options(**credentials
+            sparkDataframe = self.spark_session.read.format(source_format
+                                                              ).options(**spark_connection_details
                                                                         ).load()
 
             self.sparkDataframe = sparkDataframe

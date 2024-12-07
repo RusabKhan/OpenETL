@@ -59,14 +59,14 @@ class API:
         url = self.base_url
         session = requests.Session()
 
-        if auth_type == AuthType.OAUTH2:
+        if auth_type == AuthType.OAUTH2.value:
             pass  # Placeholder for OAuth implementation
 
-        elif auth_type == AuthType.BEARER:
+        elif auth_type == AuthType.BEARER.value:
             token = auth_params.get('token')
             session.headers['Authorization'] = f'Bearer {token}'
 
-        elif auth_type == AuthType.BASIC:
+        elif auth_type == AuthType.BASIC.value:
             username = auth_params.get('username')
             password = auth_params.get('password')
             session.auth = (username, password)
