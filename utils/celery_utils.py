@@ -1,12 +1,12 @@
 import time
-
+import os
 from celery import Celery
 from utils.database_utils import get_open_etl_document_connection_details
 import utils.pipeline_utils as pipeline
 
 # Initialize Celery app with the broker
 url = get_open_etl_document_connection_details(url=True)
-app = Celery('openetl', broker='redis://localhost:6379/0')
+app = Celery('openetl', broker=os.getenv("CELERY_BROKER_URL", f"redis://localhost:6379/0"))
 
 # Route tasks to the default queue
 app.conf.task_routes = {'*.tasks.*': {'queue': 'default'}}
