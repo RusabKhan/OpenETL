@@ -25,9 +25,10 @@ ENV SPARK_HOME=/opt/spark-3.5.3-bin-hadoop3
 ENV PATH=$SPARK_HOME/bin:$PATH
 
 # Copy backend application
+COPY ./backend/requirements_backend.txt /app/requirements_backend.txt
 COPY ./backend /app
 COPY ./utils /app/utils
-COPY ./backend/requirements_backend.txt /app
+COPY ./connectors /app/connectors
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
