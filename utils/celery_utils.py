@@ -1,12 +1,12 @@
 import time
-
+import os
 from celery import Celery
 from utils.database_utils import get_open_etl_document_connection_details
-import utils.airflow_utils as pipeline
+import utils.pipeline_utils as pipeline
 
 # Initialize Celery app with the broker
 url = get_open_etl_document_connection_details(url=True)
-app = Celery('openetl', broker='redis://localhost:6379/0')
+app = Celery('openetl', broker=os.getenv("CELERY_BROKER_URL", f"redis://localhost:6379/0"))
 
 # Route tasks to the default queue
 app.conf.task_routes = {'*.tasks.*': {'queue': 'default'}}
@@ -19,11 +19,23 @@ app.conf.update(
 )
 
 @app.task()
-def run_pipeline(data, **kwargs):
+def run_pipeline(job_id, job_name,job_type, source_connection, target_connection, source_table, target_table, source_schema,
+                          target_schema, spark_config, hadoop_config, **kwargs):
     try:
-        print("Running pipeline...")
-        return True
-        pipeline.run_pipeline()
+        pipeline.run_pipeline(
+            job_type=job_type,
+            job_id=job_id,
+            job_name=job_name,
+            source_connection_details=source_connection,
+            target_connection_details=target_connection,
+            source_schema=source_schema,
+            target_schema=target_schema,
+            source_table=source_table,
+            target_table=target_table,
+            spark_config=spark_config,
+            hadoop_config=hadoop_config
+        )
+
     except Exception as e:
         print(f"Error occurred: {e}")
         return e

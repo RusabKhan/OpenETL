@@ -691,7 +691,7 @@ class DatabaseUtils():
             logging.error(e)
             return False, e
 
-    def get_created_connections(self, connector_type=None, connection_name=None) -> pd.DataFrame:
+    def get_created_connections(self, connector_type=None, connection_name=None, id=None) -> pd.DataFrame:
         """
         Returns a list of created connections for the specified connector type.
 
@@ -715,6 +715,8 @@ class DatabaseUtils():
             conditions.append(OpenETLDocument.connection_type == connector_type)
         if connection_name is not None:
             conditions.append(OpenETLDocument.connection_name == connection_name)
+        if id is not None:
+            conditions.append(OpenETLDocument.id == id)
 
         # Construct the query
         if conditions:
@@ -723,10 +725,10 @@ class DatabaseUtils():
             select_query = select(*columns_to_fetch)
 
         # Execute the query and fetch data into a DataFrame
-        with self.session.begin():  # Ensure the session is properly managed
-            data = pd.read_sql(select_query, self.session.bind)
+        data = pd.read_sql(select_query, self.session.bind)
+        result = data.to_dict(orient='records')
 
-        return data
+        return result
 
     def insert_openetl_batch(self, start_date, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None):
         """
@@ -746,13 +748,9 @@ class DatabaseUtils():
         """
         # Get the current highest batch_id
         session = self.session
-        max_id = session.query(OpenETLBatch).order_by(
-            OpenETLBatch.uid.desc()).first()
-        new_id = 1 if max_id is None else max_id.uid + 1
 
         # Create new OpenETLBatch instance
         new_batch = OpenETLBatch(
-            uid=new_id,
             batch_id=batch_id,
             start_date=start_date,
             end_date=end_date,
