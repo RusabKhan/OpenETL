@@ -17,7 +17,7 @@ from typing import List
 
 import sqlalchemy as sq
 import pandas as pd
-from utils.__migrations__.app import OpenETLDocument, OpenETLBatch
+from utils.__migrations__.app import OpenETLDocument, OpenETLBatch, OpenETLOAuthToken
 from utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
 from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect
 from sqlalchemy.orm import sessionmaker
@@ -729,6 +729,35 @@ class DatabaseUtils():
         result = data.to_dict(orient='records')
 
         return result
+
+    def save_oauth_token(self, access_token, refresh_token, expires_in, scope, connection_id):
+        """
+        Args:
+            access_token:
+            refresh_token:
+            expires_in:
+            scope:
+            connection_id:
+        """
+        oauth_ = OpenETLOAuthToken(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_in=expires_in,
+            scope=scope,
+            connection=connection_id
+        )
+        self.session.add(oauth_)
+        self.session.commit()
+        return True
+
+    def get_oauth_token(self, connection_id):
+        return self.session.query(OpenETLOAuthToken).filter(OpenETLOAuthToken.connection == connection_id).one_or_none()
+
+    def delete_oauth_token(self, connection_id):
+        self.session.query(OpenETLOAuthToken).filter(OpenETLOAuthToken.connection == connection_id).delete(synchronize_session=False)
+        self.session.commit()
+        return True
+
 
     def insert_openetl_batch(self, start_date, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None):
         """
