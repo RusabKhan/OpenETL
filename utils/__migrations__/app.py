@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, JSON, String, Enum, DateTime, UUID
+from sqlalchemy import Column, Integer, JSON, String, Enum, DateTime, UUID, Text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from utils.enums import AuthType
 
@@ -37,3 +37,15 @@ class OpenETLBatch(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow,
                         onupdate=datetime.utcnow)
+
+class OpenETLOAuthToken(Base):
+    __tablename__ = "oauth_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    connection = Column(ForeignKey(OpenETLDocument.id), nullable=False)
+    access_token = Column(Text, nullable=False)
+    refresh_token = Column(Text, nullable=False)
+    expiry_time = Column(DateTime, nullable=False)
+    scope = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
