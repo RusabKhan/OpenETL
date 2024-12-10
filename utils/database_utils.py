@@ -13,7 +13,7 @@ Methods:
 """
 import os
 import sys
-from typing import List
+from typing import List, Type
 
 import sqlalchemy as sq
 import pandas as pd
@@ -981,12 +981,23 @@ class DatabaseUtils():
         self.session.commit()
         return batch
 
+    def update_integration_runtime(self, job_id, **kwargs):
+        batch = self.session.query(OpenETLIntegrationsRuntimes).filter(
+            OpenETLIntegrationsRuntimes.integration == job_id,
+            OpenETLIntegrationsRuntimes.celery_task_id == job_id
+        ).order_by(OpenETLIntegrationsRuntimes.created_at.desc()).first()
 
-    def get_integrations_to_schedule(self) -> List[OpenETLIntegrations]:
-        return self.session.query(OpenETLIntegrations).filter(
-        OpenETLIntegrations.is_running == False
-        and
-        OpenETLIntegrations.is_enabled == True).all()
+        if not batch:
+            return ValueError(f"Record with id {job_id} not found.")
+        for key, value in kwargs.items():
+            if hasattr(batch, key):
+                setattr(batch, key, value)
+        self.session.commit()
+        return batch
+
+
+    def get_integrations_to_schedule(self) -> list[Type[OpenETLIntegrations]]:
+        return self.session.query(OpenETLIntegrations).all()
 
 
     def create_integration_history(self, **kwargs):

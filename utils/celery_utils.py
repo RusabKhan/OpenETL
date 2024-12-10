@@ -1,7 +1,7 @@
 import time
 import os
 from celery import Celery
-from utils.database_utils import get_open_etl_document_connection_details
+from utils.database_utils import get_open_etl_document_connection_details, DatabaseUtils
 import utils.pipeline_utils as pipeline
 
 # Initialize Celery app with the broker
@@ -21,7 +21,6 @@ app.conf.update(
 @app.task()
 def run_pipeline(job_id, job_name,job_type, source_connection, target_connection, source_table, target_table, source_schema,
                           target_schema, spark_config, hadoop_config, **kwargs):
-    try:
         pipeline.run_pipeline(
             job_type=job_type,
             job_id=job_id,
@@ -36,9 +35,8 @@ def run_pipeline(job_id, job_name,job_type, source_connection, target_connection
             hadoop_config=hadoop_config
         )
 
-    except Exception as e:
-        print(f"Error occurred: {e}")
-        return e
+
+
 
 def get_task_details(task_id):
     return app.AsyncResult(task_id)

@@ -12,10 +12,12 @@ from utils.database_utils import DatabaseUtils, get_open_etl_document_connection
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from utils.enums import RunStatus
+import uuid
 
 # Global database and engine initialization
 db = DatabaseUtils(**get_open_etl_document_connection_details())
 engine = db.engine.url  # Using engine URL for jobstore
+scheduler_job_id = f"check_and_schedule_openetl_"
 
 # Wrapper function for task execution
 def send_task_to_celery(job_id, job_name, job_type, source_connection, target_connection, source_table, target_table, source_schema,
@@ -28,14 +30,15 @@ def send_task_to_celery(job_id, job_name, job_type, source_connection, target_co
     """
     # Apply the task asynchronously using apply_async
 
-    celery_app_details = app.send_task("utils.celery_utils.run_pipeline", args=[job_id, job_name,job_type, source_connection, target_connection, source_table, target_table, source_schema,
+    app.send_task(name="utils.celery_utils.run_pipeline",
+                                       task_id=job_id,
+                                       args=[job_id, job_name,job_type, source_connection, target_connection, source_table, target_table, source_schema,
                           target_schema, spark_config, hadoop_config], kwargs=kwargs)
-
     @retry(tries=3, delay=2)
     def update_db():
         db.update_integration(record_id=job_id, last_run=datetime.utcnow(), is_running=True)
         db.create_integration_history(
-            celery_task_id=celery_app_details.id,
+            celery_task_id=job_id,
             integration=job_id,
             error_message="",
             run_status=RunStatus.RUNNING,
@@ -44,12 +47,31 @@ def send_task_to_celery(job_id, job_name, job_type, source_connection, target_co
     update_db()
 
 
+
+
 def check_and_schedule_tasks():
     """
     Check database for integrations and schedule tasks if needed.
     """
-    now = datetime.utcnow()
     integrations = db.get_integrations_to_schedule()
+    current_jobs = scheduler.get_jobs()
+    current_job_ids = {job.id for job in current_jobs}
+    current_job_ids.remove(scheduler_job_id)
+    integration_ids = {integration.id.__str__() for integration in integrations}
+    disabled_integrations = {integration.id.__str__() for integration in integrations if not integration.is_enabled}
+
+    for job_id in current_job_ids - integration_ids:
+        scheduler.remove_job(job_id)
+        app.control.revoke(job_id, terminate=True)
+        print(f"Removed job: {job_id}. Not found in DB")
+        integrations = [integration for integration in integrations if integration.id.__str__() != job_id]
+
+    for job_id in disabled_integrations:
+        integrations = [integration for integration in integrations if integration.id.__str__() != job_id]
+        if job_id in current_job_ids:
+            scheduler.remove_job(job_id)
+            app.control.revoke(job_id, terminate=True)
+            print(f"Removed job: {job_id}. Disabled")
 
     for integration in integrations:
         job_id = integration.id.__str__()
@@ -72,9 +94,8 @@ def check_and_schedule_tasks():
 
         try:
             for cron in cron_time:
-                # Add or update a job with CronTrigger to send the task to Celery dynamically
                 scheduler.add_job(
-                    func=send_task_to_celery,  # Reference the send_task_to_celery function dynamically
+                    func=send_task_to_celery,
                     trigger=CronTrigger.from_crontab(cron),
                     args=[job_id, job_name, job_type, source_detials, target_detials, source_table, target_table, source_schema, target_schema ,spark_config, hadoop_config],
                     kwargs={},
@@ -82,6 +103,7 @@ def check_and_schedule_tasks():
                     replace_existing=True,
                 )
                 print(f"Integration {job_id} scheduled successfully with cron: {cron_time}")
+
         except Exception as e:
             print(f"Error scheduling integration {job_id}: {e}")
             pass
@@ -98,8 +120,8 @@ def start_scheduler():
     # Add a periodic job to check and schedule tasks every 30 seconds
     scheduler.add_job(
         func=check_and_schedule_tasks,
-        trigger=IntervalTrigger(seconds=10),
-        id='check_and_schedule',
+        trigger=IntervalTrigger(seconds=30),
+        id=scheduler_job_id,
         replace_existing=True,
     )
     scheduler.start()
