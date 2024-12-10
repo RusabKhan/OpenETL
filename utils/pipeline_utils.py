@@ -121,71 +121,82 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
         Exception: If no data is found in the source table.
         NotImplementedError: If the target connection type is API.
     """
+    db = None
+    try:
+        print("RUNNING PIPELINE")
 
-    print("RUNNING PIPELINE")
+        batch_id = str(uuid.uuid4())
+        logging.info(f"Batch ID: {batch_id}")
+        target_credentials = target_connection_details['connection_credentials']
+        source_credentials = source_connection_details['connection_credentials']
 
-    batch_id = str(uuid.uuid4())
-    logging.info(f"Batch ID: {batch_id}")
-    target_credentials = target_connection_details['connection_credentials']
-    source_credentials = source_connection_details['connection_credentials']
+        if target_connection_details['connection_type'].lower() == ConnectionType.DATABASE.value:
+            engine = con_utils.get_connector_engine(connector_name=target_connection_details['connector_name'])
 
-    if target_connection_details['connection_type'].lower() == ConnectionType.DATABASE.value:
-        engine = con_utils.get_connector_engine(connector_name=target_connection_details['connector_name'])
+            jar = jdbc_database_jars[engine]
+            driver = jdbc_engine_drivers[engine]
+            connection_details = {key.upper(): value for key,
+                                  value in target_credentials.items()}
+            con_string = jdbc_connection_strings[engine].format(
+                **connection_details)
 
-        jar = jdbc_database_jars[engine]
-        driver = jdbc_engine_drivers[engine]
-        connection_details = {key.upper(): value for key,
-                              value in target_credentials.items()}
-        con_string = jdbc_connection_strings[engine].format(
-            **connection_details)
+            db = database_utils.DatabaseUtils(
+                engine=engine, **target_credentials)
+            db.create_table_from_base(target_schema=target_schema, base=OpenETLBatch)
 
-        db = database_utils.DatabaseUtils(
-            engine=engine, **target_credentials)
-        db.create_table_from_base(target_schema=target_schema, base=OpenETLBatch)
+            db.insert_openetl_batch(batch_id=batch_id, start_date=datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S"), batch_type="full", batch_status="in progress", integration_name=job_name)
 
-        db.insert_openetl_batch(batch_id=batch_id, start_date=datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"), batch_type="full", batch_status="in progress", integration_name=job_name)
+            # df = schema_ops.cast_columns(df)
+            # df = schema_ops.fill_na_based_on_dtype(df)
 
-        # df = schema_ops.cast_columns(df)
-        # df = schema_ops.fill_na_based_on_dtype(df)
+            # created, message = schema_ops.create_table(
+            #     target_connection_config['table'], df)
+            # if not created:
+            #     raise Exception(message)
+            logging.info("PRINTING OUT JARS")
+            logging.info(jar)
+            spark_class = sp_ut.SparkConnection(spark_configuration=spark_config,
+                                                hadoop_configuration=hadoop_config, jar=jar, connection_string=con_string)
+            spark_session = spark_class.initializeSpark()
+            spark_config["spark.app.name"] = spark_config["spark.app.name"]+f"_{batch_id}_read_source_table{source_table}"
+            if source_connection_details["connection_type"].lower() == ConnectionType.DATABASE.value:
 
-        # created, message = schema_ops.create_table(
-        #     target_connection_config['table'], df)
-        # if not created:
-        #     raise Exception(message)
-        logging.info("PRINTING OUT JARS")
-        logging.info(jar)
-        spark_class = sp_ut.SparkConnection(spark_configuration=spark_config,
-                                            hadoop_configuration=hadoop_config, jar=jar, connection_string=con_string)
-        spark_session = spark_class.initializeSpark()
-        spark_config["spark.app.name"] = spark_config["spark.app.name"]+f"_{batch_id}_read_source_table{source_table}"
-        if source_connection_details["connection_type"].lower() == ConnectionType.DATABASE.value:
-
-            connection_details_upper = {key.upper(): value for key, value in connection_details.items()}
-            spark_conn_url = {"url":jdbc_connection_strings[engine].format(**connection_details_upper),
-                              "dbtable": source_table,
-                              "driver": jdbc_engine_drivers[engine]}
-            df = spark_class.read_via_spark(spark_conn_url)
-            run_pipeline_target(df=df, spark_class=spark_class, con_string=con_string,
-                                target_table=target_table, batch_id=batch_id, driver=driver, spark_session=spark_session, db_class=db)
-        else:
-            for df in read_data(connector_name=source_connection_details['connector_name'],
-                                auth_values=source_credentials,
-                                auth_type=source_connection_details['auth_type'],
-                                table=source_table,
-                                connection_type=source_connection_details['connection_type'],
-                                schema=source_schema):
-                df = spark_session.createDataFrame(df)
+                connection_details_upper = {key.upper(): value for key, value in connection_details.items()}
+                spark_conn_url = {"url":jdbc_connection_strings[engine].format(**connection_details_upper),
+                                  "dbtable": source_table,
+                                  "driver": jdbc_engine_drivers[engine]}
+                df = spark_class.read_via_spark(spark_conn_url)
                 run_pipeline_target(df=df, spark_class=spark_class, con_string=con_string,
                                     target_table=target_table, batch_id=batch_id, driver=driver, spark_session=spark_session, db_class=db)
+            else:
+                for df in read_data(connector_name=source_connection_details['connector_name'],
+                                    auth_values=source_credentials,
+                                    auth_type=source_connection_details['auth_type'],
+                                    table=source_table,
+                                    connection_type=source_connection_details['connection_type'],
+                                    schema=source_schema):
+                    df = spark_session.createDataFrame(df)
+                    run_pipeline_target(df=df, spark_class=spark_class, con_string=con_string,
+                                        target_table=target_table, batch_id=batch_id, driver=driver, spark_session=spark_session, db_class=db)
+                    update_db(job_id, job_id, None, RunStatus.SUCCESS, datetime.utcnow())
 
-        logging.info("FINISHED PIPELINE")
-        logging.info("DISPOSING ENGINES")
-        spark_class.__dispose__()
-        db.__dispose__()
+            logging.info("FINISHED PIPELINE")
+            logging.info("DISPOSING ENGINES")
+            spark_class.__dispose__()
+            db.__dispose__()
 
-    elif target_connection_details['connection_type'].lower() == ConnectionType.API.value:
-        raise NotImplementedError("API target connection not implemented")
+        elif target_connection_details['connection_type'].lower() == ConnectionType.API.value:
+            raise NotImplementedError("API target connection not implemented")
+    except Exception as e:
+        logging.error(e)
+        update_db(job_id, job_id, str(e), RunStatus.FAILED, datetime.utcnow())
+
+
+def update_db(celery_task_id, integration, error_message, run_status, start_date):
+    db = database_utils.DatabaseUtils(**database_utils.get_open_etl_document_connection_details())
+    db.update_integration(record_id=integration, is_running=False)
+    db.update_integration_runtime(job_id=celery_task_id, error_message=error_message, run_status=run_status, end_date=start_date)
 
 
 def run_pipeline_target(df, spark_class, con_string, target_table, batch_id, driver, spark_session, db_class):
