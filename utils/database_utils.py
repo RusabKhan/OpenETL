@@ -11,65 +11,26 @@ Methods:
 - execute_query: Executes a SQL query against the connection.
 - get_metadata_df: Retrieves schema metadata in a dataframe format.
 """
-import sys
 import os
+import sys
+from typing import List, Type
+
 import sqlalchemy as sq
 import pandas as pd
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Enum, Date, DateTime, Float, \
-    and_, or_, select, PrimaryKeyConstraint, func, JSON, text
+from utils.__migrations__.app import OpenETLDocument, OpenETLBatch, OpenETLOAuthToken
+from utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
+from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect
 from sqlalchemy.orm import sessionmaker
 from utils.cache import sqlalchemy_database_engines
-from utils.enums import ColumnActions, AuthType, ConnectionType
+from utils.enums import ConnectionType
 from sqlalchemy.exc import OperationalError
 from utils.enums import ColumnActions
 import numpy as np
 from sqlalchemy.ext.declarative import declarative_base
-from pyspark.sql.types import StringType, IntegerType, FloatType, DoubleType, BooleanType, TimestampType, DateType, \
-    ArrayType, MapType
-import re
-from console.console import get_logger
-import base64
-import json
+from pyspark.sql.types import StringType, IntegerType, FloatType, BooleanType, TimestampType, ArrayType, MapType
 from datetime import datetime
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.schema import CreateSchema
-
-logging = get_logger()
-
-
-Base = declarative_base()
-
-
-class OpenETLDocument(Base):
-    __tablename__ = 'openetl_documents'
-    __table_args__ = {'schema': 'open_etl'}
-
-    document_id = Column(Integer, primary_key=True)
-    connection_credentials = Column(JSON)
-    connection_name = Column(String, unique=True)
-    connection_type = Column(String)
-    auth_type = Column(Enum(AuthType))
-    connector_name = Column(String)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
-
-
-class OpenETLBatch(Base):
-    __tablename__ = 'openetl_batches'
-    __table_args__ = {'schema': 'open_etl'}
-
-    uid = Column(Integer, primary_key=True)
-    batch_id = Column(UUID(as_uuid=True))
-    start_date = Column(DateTime, nullable=True)
-    end_date = Column(DateTime, nullable=True)
-    batch_type = Column(String)
-    batch_status = Column(String)
-    integration_name = Column(String)
-    rows_count = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
+import logging
 
 
 class DatabaseUtils():
@@ -323,12 +284,10 @@ class DatabaseUtils():
         Alters a SQLAlchemy table by either adding or dropping a column.
 
         Args:
+            action:
             table_name (str): The name of the table to be altered.
-            metadata (MetaData): The metadata object associated with the database.
-            engine (Engine): The SQLAlchemy engine object connected to the database.
             column_name (str): The name of the column to be added or dropped. Required if drop_column is False.
             column_details (str): The details of the column to be added. Required if drop_column is False.
-            drop_column (bool): Indicates whether to drop the column. If True, column_name is required.
 
         Returns:
             tuple: A tuple containing a boolean indicating success or failure and a message.
@@ -337,14 +296,14 @@ class DatabaseUtils():
         try:
             # Reflect the existing table from the database
             table = Table(table_name, self.metadata,
-                          autoload=True, autoload_with=self.engine)
+                          autoload_with=self.engine)
 
             if action == ColumnActions.DROP:
                 table._columns.remove(table.c[column_name])
                 action = f"Dropped column '{column_name}' from table '{table_name}'."
 
             elif action == ColumnActions.ADD:
-                new_column = Column(column_name, eval(column_details))
+                new_column = Column(column_name, column_details)
                 table.append_column(new_column)
                 action = f"Added column '{column_name}' to table '{table_name}'."
 
@@ -357,6 +316,8 @@ class DatabaseUtils():
 
             return True, action
         except OperationalError as e:
+            return False, str(e)
+        except Exception as e:
             return False, str(e)
 
     def drop_table(self, table_name: str):
@@ -410,7 +371,7 @@ class DatabaseUtils():
         - df: The DataFrame containing the columns to be cast
 
         Returns:
-        - df: The DataFrame with columns casted to specific data types
+        - df: The DataFrame with columns cast to specific data types
         """
         for col in df.columns:
             types_counts = {
@@ -456,7 +417,7 @@ class DatabaseUtils():
             'Interval': StringType(),
             'Enum': StringType(),  # Defaulting to StringType for Pandas categories
             'LargeBinary': StringType(),  # Defaulting to StringType for bytes
-            'UnicodeText': StringType(),  # Defaulting to StringType for unicode
+            'UnicodeText': StringType(),  # Defaulting to StringType for Unicode
             'Interval': StringType(),  # Defaulting to StringType for period
             # Mapping to ArrayType with StringType elements
             'Array': ArrayType(StringType()),
@@ -472,8 +433,8 @@ class DatabaseUtils():
         Match the data types of columns in a Spark DataFrame to a specified schema.
 
         Parameters:
+            schema_details:
             spark_df (DataFrame): Spark DataFrame.
-            schema_dict (dict): Dictionary where keys are column names and values are desired data types.
 
         Returns:
             DataFrame: Spark DataFrame with matched data types.
@@ -592,46 +553,51 @@ class DatabaseUtils():
         except Exception as e:
             return False
 
-    def create_document_table(self):
-        """
-        Creates a document table in the database.
 
-        This function creates a table named 'openetl_documents' in the 'open_etl' schema of the database. The table has the following columns:
-        - document_id: an integer column representing the ID of the document.
-        - document: a string column representing the document itself.
-        - document_type: a string column representing the type of the document.
-        - connection_name: a string column representing the name of the connection.
-        - pipeline_name: a string column representing the name of the pipeline.
-        - connection_type: a string column representing the type of the connection.
 
-        The function uses the pandas DataFrame constructor to create an empty DataFrame with the specified column names and data types. The DataFrame is then passed to the `create_table` method of the `DatabaseUtils` class to create the table in the database.
-
-        After creating the table, the function calls the `alter_table_column_add_primary_key` method to add a primary key constraint on the 'document_id' column of the table.
-
-        Parameters:
-        - self: The instance of the `DatabaseUtils` class.
-
-        Returns:
-        - None
-        """
+    def create_table_from_base(self, target_schema="public",base=None):
         try:
-            if not self.engine.dialect.has_schema(self.engine, "open_etl"):
-                self.engine.execute(CreateSchema('open_etl'))
+            if not self.engine.dialect.has_schema(self.engine, "public"):
+                self.engine.execute(CreateSchema(target_schema))
         except Exception as e:
             # If schema already exists, it will raise a ProgrammingError which we can ignore
             pass
-        OpenETLDocument.metadata.create_all(self.engine)
+        metadata = MetaData(schema=target_schema)
 
-    def create_batch_table(self):
-        """
-        Creates a batch table in the database using the OpenETLBatch metadata and the engine.
-        """
-        try:
-            self.engine.execute(CreateSchema('open_etl'))
-        except Exception as e:
-            # If schema already exists, it will raise a ProgrammingError which we can ignore
-            pass
-        OpenETLBatch.metadata.create_all(self.engine)
+        # Inspect the existing table structure to check for differences
+        inspector = inspect(self.engine)
+        table_exists = inspector.has_table(base.__tablename__, schema=target_schema)
+
+        if table_exists:
+            model_columns = {}
+            for column_name, column in base.__table__.columns.items():
+                model_columns[column_name] = column.type # Convert type to string
+
+            # Get columns from the table in the database
+            inspector = inspect(self.engine)
+            existing_columns = [col['name'] for col in inspector.get_columns(base.__tablename__)]
+
+            # Identify missing columns
+            missing_columns = {col: col_type for col, col_type in model_columns.items() if col not in existing_columns}
+
+            extra_columns = [col for col in existing_columns if col not in model_columns]
+
+            # Drop extra columns from the table
+            for column_name in extra_columns:
+                self.alter_table_column_add_or_drop(table_name=base.__tablename__,
+                                                    column_name=column_name,
+                                                    column_details=None, action=ColumnActions.DROP)
+
+            # Add missing columns to the table
+            for column_name, column_type_sql in missing_columns.items():
+                self.alter_table_column_add_or_drop(table_name=base.__tablename__,
+                                                        column_name=column_name,
+                                                    column_details=column_type_sql, action=ColumnActions.ADD)
+        else:
+            # Create the table if it doesn't exist
+            base.metadata.create_all(self.engine)
+
+
 
     def fetch_rows(self, table_name='openetl_documents', schema_name='open_etl', conditions: dict = {}):
         """
@@ -725,7 +691,7 @@ class DatabaseUtils():
             logging.error(e)
             return False, e
 
-    def get_created_connections(self, connector_type=None, connection_name=None) -> pd.DataFrame:
+    def get_created_connections(self, connector_type=None, connection_name=None, id=None) -> pd.DataFrame:
         """
         Returns a list of created connections for the specified connector type.
 
@@ -740,24 +706,58 @@ class DatabaseUtils():
             OpenETLDocument.connection_type,
             OpenETLDocument.auth_type,
             OpenETLDocument.connector_name,
-            OpenETLDocument.connection_credentials
+            OpenETLDocument.connection_credentials,
+            OpenETLDocument.id
         ]
         conditions = []
 
         if connector_type is not None:
-            conditions.append(
-                OpenETLDocument.connection_type == connector_type)
+            conditions.append(OpenETLDocument.connection_type == connector_type)
         if connection_name is not None:
-            conditions.append(
-                OpenETLDocument.connection_name == connection_name)
+            conditions.append(OpenETLDocument.connection_name == connection_name)
+        if id is not None:
+            conditions.append(OpenETLDocument.id == id)
 
+        # Construct the query
         if conditions:
-            select_query = select(columns_to_fetch).where(and_(*conditions))
+            select_query = select(*columns_to_fetch).where(and_(*conditions))
         else:
-            select_query = select(columns_to_fetch)
-        data = pd.read_sql(select_query, self.session.bind)
+            select_query = select(*columns_to_fetch)
 
-        return data
+        # Execute the query and fetch data into a DataFrame
+        data = pd.read_sql(select_query, self.session.bind)
+        result = data.to_dict(orient='records')
+
+        return result
+
+    def save_oauth_token(self, access_token, refresh_token, expires_in, scope, connection_id):
+        """
+        Args:
+            access_token:
+            refresh_token:
+            expires_in:
+            scope:
+            connection_id:
+        """
+        oauth_ = OpenETLOAuthToken(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_in=expires_in,
+            scope=scope,
+            connection=connection_id
+        )
+        self.session.add(oauth_)
+        self.session.commit()
+        return True
+
+    def get_oauth_token(self, connection_id):
+        return self.session.query(OpenETLOAuthToken).filter(OpenETLOAuthToken.connection == connection_id).one_or_none()
+
+    def delete_oauth_token(self, connection_id):
+        self.session.query(OpenETLOAuthToken).filter(OpenETLOAuthToken.connection == connection_id).delete(synchronize_session=False)
+        self.session.commit()
+        return True
+
 
     def insert_openetl_batch(self, start_date, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None):
         """
@@ -777,13 +777,9 @@ class DatabaseUtils():
         """
         # Get the current highest batch_id
         session = self.session
-        max_id = session.query(OpenETLBatch).order_by(
-            OpenETLBatch.uid.desc()).first()
-        new_id = 1 if max_id is None else max_id.uid + 1
 
         # Create new OpenETLBatch instance
         new_batch = OpenETLBatch(
-            uid=new_id,
             batch_id=batch_id,
             start_date=start_date,
             end_date=end_date,
@@ -889,13 +885,175 @@ class DatabaseUtils():
                 "batch_count": batch_count_dict.get(integration.integration_name, 0)
             }
             for integration in integrations
-        ]
+        ] if integrations else []
+
 
         # Return the dashboard data
         return {
-            'total_api_connections': total_api_connections,
-            'total_db_connections': total_db_connections,
-            'total_pipelines': total_pipelines,
-            'total_rows_migrated': total_rows_migrated,
+            'total_api_connections': total_api_connections or 0,
+            'total_db_connections': total_db_connections or 0,
+            'total_pipelines': total_pipelines or 0,
+            'total_rows_migrated': total_rows_migrated or 0,
             'integrations': integrations_dict
         }
+
+    def get_all_integration(self, page: int = 1, per_page: int = 30):
+        """
+        Get all integrations paginated.
+
+        Args:
+            page (int, optional): The page number. Defaults to 1.
+            per_page (int, optional): The number of items per page. Defaults to 30.
+
+        Returns:
+            dict: A dictionary containing the paginated results.
+        """
+        offset = (page - 1) * per_page
+
+        total_items = self.session.query(OpenETLIntegrations).count()
+
+        schedulers = self.session.query(OpenETLIntegrations) \
+            .offset(offset) \
+            .limit(per_page) \
+            .all()
+
+        results = [
+            {
+                "uid": scheduler.uid,
+                "integration_name": scheduler.integration_name,
+                "integration_type": scheduler.integration_type,
+                "cron_expression": scheduler.cron_expression,
+                "integration_status": scheduler.integration_status,
+                "last_run_status": scheduler.last_run_status,
+                "start_date": scheduler.start_date.isoformat() if scheduler.start_date else None,
+                "end_date": scheduler.end_date.isoformat() if scheduler.end_date else None,
+                "next_run_time": scheduler.next_run_time.isoformat() if scheduler.next_run_time else None,
+                "last_run_time": scheduler.last_run_time.isoformat() if scheduler.last_run_time else None,
+                "error_message": scheduler.error_message,
+                "is_enabled": scheduler.is_enabled,
+                "created_at": scheduler.created_at.isoformat() if scheduler.created_at else None,
+                "updated_at": scheduler.updated_at.isoformat() if scheduler.updated_at else None
+            }
+            for scheduler in schedulers
+        ]
+        total_pages = (total_items + per_page - 1) // per_page
+
+        return {
+            "page": page,
+            "per_page": per_page,
+            "total_items": total_items,
+            "total_pages": total_pages,
+            "data": results
+        }
+
+    def create_integration(self, integration_name, integration_type, target_schema, source_schema, spark_config,
+                           hadoop_config, cron_expression, source_connection,target_connection, source_table, target_table):
+        scheduler = OpenETLIntegrations(
+            integration_name=integration_name,
+            integration_type=integration_type,
+            cron_expression=cron_expression,
+            source_connection=source_connection,
+            target_connection=target_connection,
+            source_table=source_table,
+            target_table=target_table,
+            spark_config=spark_config,
+            hadoop_config=hadoop_config,
+            source_schema=source_schema,
+            target_schema=target_schema,
+        )
+
+        self.session.add(scheduler)
+        self.session.commit()
+        return scheduler
+
+    def delete_integration(self, record_id):
+        self.session.query(OpenETLIntegrations).filter(OpenETLIntegrations.id == record_id).delete(synchronize_session=False)
+        self.session.commit()
+
+    def update_integration(self, record_id, **kwargs):
+        batch = self.session.query(OpenETLIntegrations).filter(OpenETLIntegrations.id == record_id).first()
+
+        if not batch:
+            return ValueError(f"Record with id {record_id} not found.")
+        for key, value in kwargs.items():
+            if hasattr(batch, key):
+                setattr(batch, key, value)
+        self.session.commit()
+        return batch
+
+    def update_integration_runtime(self, job_id, **kwargs):
+        batch = self.session.query(OpenETLIntegrationsRuntimes).filter(
+            OpenETLIntegrationsRuntimes.integration == job_id,
+            OpenETLIntegrationsRuntimes.celery_task_id == job_id
+        ).order_by(OpenETLIntegrationsRuntimes.created_at.desc()).first()
+
+        if not batch:
+            return ValueError(f"Record with id {job_id} not found.")
+        for key, value in kwargs.items():
+            if hasattr(batch, key):
+                setattr(batch, key, value)
+        self.session.commit()
+        return batch
+
+
+    def get_integrations_to_schedule(self) -> list[Type[OpenETLIntegrations]]:
+        return self.session.query(OpenETLIntegrations).all()
+
+
+    def create_integration_history(self, **kwargs):
+        scheduler = OpenETLIntegrationsRuntimes(**kwargs)
+        self.session.add(scheduler)
+        self.session.commit()
+        return scheduler
+
+
+def get_open_etl_document_connection_details(url=False):
+    """Get connection details for OpenETL Document"""
+
+    if url:
+        return "postgresql+psycopg2://{username}:{password}@{hostname}:{port}/{database}".format(
+            username=os.getenv("OPENETL_DOCUMENT_USER","rusab1"),
+            password=os.getenv("OPENETL_DOCUMENT_PASS","1234"),
+            hostname=os.getenv("OPENETL_DOCUMENT_HOST","localhost"),
+            port=os.getenv("OPENETL_DOCUMENT_PORT","5432"),
+            database=os.getenv("OPENETL_DOCUMENT_DB","airflow")
+        )
+    return {
+        "engine": os.getenv("OPENETL_DOCUMENT_ENGINE","PostgreSQL"),
+        "hostname": os.getenv("OPENETL_DOCUMENT_HOST","localhost"),
+        "username": os.getenv("OPENETL_DOCUMENT_USER","rusab1"),
+        "password": os.getenv("OPENETL_DOCUMENT_PASS","1234"),
+        "port": os.getenv("OPENETL_DOCUMENT_PORT","5432"),
+        "database": os.getenv("OPENETL_DOCUMENT_DB","airflow")
+    }
+
+
+def generate_cron_expression(schedule_time, schedule_dates=None, frequency=None):
+    """
+    Generates a cron expression based on provided scheduling details.
+
+    :param schedule_time: Time string in 'HH:MM:SS' format.
+    :param schedule_dates: List of date strings in 'YYYY-MM-DD' format or None.
+    :param frequency: A string defining the frequency ('daily', 'weekly', 'hourly') or None.
+    :return: List of cron expression strings.
+    """
+    time_parts = schedule_time.split(':')
+    minute = time_parts[1]
+    hour = time_parts[0]
+
+    if frequency == 'hourly':
+        return [f"0 * * * *"]
+    elif frequency == 'daily':
+        return [f"{minute} {hour} * * *"]
+    elif frequency == 'weekly':
+        return [f"{minute} {hour} * * 0"]
+    elif schedule_dates:
+        cron_expressions = []
+        for date_str in schedule_dates:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            day = date_obj.day
+            month = date_obj.month
+            cron_expressions.append(f"{minute} {hour} {day} {month} *")
+        return cron_expressions
+    else:
+        raise ValueError("Unsupported scheduling details provided.")

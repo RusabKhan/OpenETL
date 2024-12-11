@@ -1,76 +1,125 @@
-version: '3.8'
-
-x-airflow-common: &airflow-common
-  environment:
-    - AIRFLOW_HOME=/opt/airflow
-    - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgresql/airflow
-    - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-    - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
-    - OPENETL_HOME=/app
-    - OPENETL_DOCUMENT_HOST=postgresql
-    - OPENETL_DOCUMENT_PORT=5432
-    - OPENETL_DOCUMENT_USER=airflow
-    - OPENETL_DOCUMENT_PASS=airflow
-    - OPENETL_DOCUMENT_DB=airflow
-    - OPENETL_DOCUMENT_ENGINE=PostgreSQL
-  volumes:
-    - /Users/rusab1/docker/airflow_openetl/dags:/opt/airflow/dags
-    - /Users/rusab1/docker/airflow_openetl/logs:/opt/airflow/logs
-    - .:/app
+version: '3.9'
 
 services:
-  streamlit-openetl:
-    <<: *airflow-common
+  backend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: backend/Dockerfile
+      args:
+        - DOCKER_BUILDKIT=1
+    container_name: openetl-backend
+    networks:
+      - openetl-network
     ports:
-      - "8500:8500"
-    volumes:
-      - .:/app
-      - /Users/rusab1/docker/airflow_openetl:/opt/airflow
-
-  postgresql:
-    image: postgres:latest
-    environment:
-      - POSTGRES_USER=airflow
-      - POSTGRES_PASSWORD=airflow
-      - POSTGRES_DB=airflow
-    volumes:
-      - /Users/rusab1/docker/pgdata:/var/lib/postgresql/data
-    ports:
-      - "5433:5432"
-
-  airflow-webserver:
-    <<: *airflow-common
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    depends_on:
-      - "postgresql"
-      - "airflow-scheduler"
-      - "airflow-init"
-    command: airflow webserver
-
-  airflow-scheduler:
-    <<: *airflow-common
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      - "airflow-init"
-      - "postgresql"
-    command: airflow scheduler
+      - "5009:5009"
+    env_file:
+      - .env
     restart: always
 
-  airflow-init:
-    <<: *airflow-common
+  frontend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: frontend/Dockerfile
+    container_name: openetl-frontend
+    networks:
+      - openetl-network
+    ports:
+      - "8500:8500"
+    environment:
+      - BACKEND_HOST=http://openetl-backend:5009
+      - OPENETL_HOME=/app
     depends_on:
-      - "postgresql"
-    entrypoint: /bin/bash
-    command: -c "airflow db init && airflow users create -r Admin -u admin -e admin@example.com -f Admin -l User -p admin && exit"
+      - backend
+    restart: always
+
+  spark-master:
+    image: bitnami/spark:3.5.3
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_DRIVER_MEMORY=1g
+      - SPARK_EXECUTOR_MEMORY=1g
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_USER=spark
+    ports:
+      - "8080:8080"  # Spark Web UI
+      - "7077:7077"  # Spark Master
+    networks:
+      - openetl-network
+
+
+    restart: always
+
+  spark-worker-1:
+    image: bitnami/spark:3.5.3
+    container_name: spark-worker-1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1g
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_USER=spark
+    networks:
+      - openetl-network
+    restart: always
+
+
+
+  spark-worker-2:
+    image: bitnami/spark:3.5.3
+    container_name: spark-worker-2
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1g
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_USER=spark
+    networks:
+      - openetl-network
+    restart: always
+
+  redis:
+    image: redis
+    container_name: redis
+    networks:
+      - openetl-network
+    ports:
+      - "6379:6379"
+    restart: always
+
+  scheduler:
+    container_name: openetl-scheduler
+    image: openetl-backend  # Use the backend image
+    command: python3 utils/scheduler_utils.py
+    env_file:
+      - .env
+    networks:
+      - openetl-network
+    restart: always
+
+  celery_worker:
+    container_name: openetl-celery-worker
+    image: openetl-backend  # Use the backend image
+    command: celery -A utils.celery_utils worker --loglevel=info
+    networks:
+      - openetl-network
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    restart: always
+
+networks:
+  openetl-network:
+    driver: bridge

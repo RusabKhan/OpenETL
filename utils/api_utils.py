@@ -1,20 +1,22 @@
 
 import json
+import os
 import xml.etree.ElementTree as ET
 import streamlit as st
 import requests
+from requests import Timeout, ConnectionError, TooManyRedirects, HTTPError, RequestException
 from requests.auth import HTTPBasicAuth
 from streamlit_oauth import OAuth2Component
-from .local_connection_utils import api_directory
+
+from utils.enums import APIMethod
+from utils.local_connection_utils import api_directory
 import pandas as pd
-from . enums import *
+from utils.enums import *
 import re
 from collections import abc
 from utils.local_connection_utils import read_connection_config
-from console.console import get_logger
 
-logging = get_logger()
-
+import logging
 def parse_json(json_content):
     try:
         data = json.loads(json_content)
@@ -348,3 +350,67 @@ def read_connection_table(connection_name, table, schema="public"):
         data = get_data_from_api(
             table, config['api'], config['auth_type'], token)
         return data
+
+
+def send_request(endpoint, method=APIMethod.GET, headers=None, params=None, data=None, json=None, timeout=10):
+    """
+    A robust method to send HTTP requests with error handling for different types of errors.
+
+    Args:
+    - url (str): The API endpoint URL.
+    - method (str): The HTTP method ('GET', 'POST', 'PUT', 'DELETE'). Default is 'GET'.
+    - headers (dict): Optional headers to send with the request.
+    - params (dict): Optional query parameters for GET requests.
+    - data (dict): Optional data for POST/PUT requests.
+    - json (dict): Optional JSON body for POST/PUT requests.
+    - timeout (int): Timeout duration in seconds. Default is 10 seconds.
+
+    Returns:
+    - dict or str: The response content, either as a JSON or string.
+    """
+    with st.spinner(text="Please wait..."):
+        try:
+            backend_host = os.environ.get("BACKEND_HOST", os.environ.get("BACKEND_HOST", "http://localhost:5009"))
+            url = f"{backend_host}/{endpoint}"
+            #data = json.dumps(data)
+         #Make the request based on the method type
+            if method == APIMethod.GET:
+                response = requests.get(url, headers=headers, params=params, timeout=timeout)
+            elif method == APIMethod.POST:
+                response = requests.post(url, headers=headers, data=data, json=json, timeout=timeout)
+            elif method == APIMethod.PUT:
+                response = requests.put(url, headers=headers, data=data, json=json, timeout=timeout)
+            elif method == APIMethod.DELETE:
+                response = requests.delete(url, headers=headers, timeout=timeout)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+
+            # Check for HTTP errors (non-2xx status codes)
+            response.raise_for_status()
+
+            # If response is JSON, return the parsed data, otherwise return the raw text
+            if response.headers.get('Content-Type') == 'application/json':
+                return response.json()
+            else:
+                return response.text
+
+        except Timeout:
+            raise Exception("error message: The request timed out.")
+
+        except ConnectionError:
+            raise Exception("error : Network problem occurred, check your internet connection.")
+
+        except TooManyRedirects:
+            raise  Exception("error : Too many redirects, the URL might be incorrect.")
+
+        except HTTPError as http_err:
+            raise Exception(f"error : HTTP error occurred: {http_err}")
+
+        except RequestException as req_err:
+            return Exception(f"error : A general error occurred: {req_err}")
+
+        except ValueError as val_err:
+            return Exception(f"error : Invalid method or data: {val_err}")
+
+        except Exception as err:
+            raise Exception(f"error : An unexpected error occurred: {err}")

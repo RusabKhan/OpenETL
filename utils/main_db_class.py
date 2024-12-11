@@ -11,29 +11,12 @@ Methods:
 - execute_query: Executes a SQL query against the connection.
 - get_metadata_df: Retrieves schema metadata in a dataframe format.
 """
-import sys
-import os
-import sqlalchemy as sq
 import pandas as pd
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Enum, Date, DateTime, Float, \
-    and_, or_, select, PrimaryKeyConstraint, func, JSON, text
-from sqlalchemy.orm import sessionmaker
-from utils.cache import sqlalchemy_database_engines
-from sqlalchemy.exc import OperationalError
-from utils.enums import ColumnActions
+from sqlalchemy import MetaData, Table
 from utils.database_utils import DatabaseUtils
-import numpy as np
-from sqlalchemy.ext.declarative import declarative_base
-from pyspark.sql.types import StringType, IntegerType, FloatType, DoubleType, BooleanType, TimestampType, DateType, \
-    ArrayType, MapType
-import re
-from console.console import get_logger
-import base64
-import json
-from utils.generic_utils import install_libraries
+from utils.connector_utils import install_libraries
 from utils.enums import ConnectionType, AuthType
-
-logging = get_logger()
+import logging
 
 class DB(DatabaseUtils):
     """A class to connect with any database using SQLAlchemy.

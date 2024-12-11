@@ -35,6 +35,9 @@ class Connector(API):
         self.authentication_details = {AuthType.BEARER: {
             "token": ""}
         }
+        self.auth_url = "https://app.hubspot.com/oauth/authorize"
+        self.token_url = "https://api.hubapi.com/oauth/v1/token"
+
         self.main_response_key = "results"
         self.required_libs = []
 

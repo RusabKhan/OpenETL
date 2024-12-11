@@ -1,13 +1,9 @@
+from urllib.parse import urlencode
 
-import json
 import requests
-from .local_connection_utils import api_directory
 import pandas as pd
 from . enums import *
-import re
-from collections import abc
-from utils.generic_utils import install_libraries
-from utils.database_utils import DatabaseUtils
+from .connector_utils import install_libraries
 
 
 class API:
@@ -48,8 +44,10 @@ class API:
         }
         self.main_response_key = ""
         self.required_libs = [""]
+        self.auth_url = ""
+        self.token_url = ""
 
-    def connect_to_api(self, auth_type=AuthType.BASIC, **auth_params) -> requests.Session:
+    def connect_to_api(self, auth_type=AuthType.BASIC, **auth_params) -> requests.Session | str:
         """
         Connects to a REST API using the specified authentication mechanism.
 
@@ -64,14 +62,14 @@ class API:
         url = self.base_url
         session = requests.Session()
 
-        if auth_type == AuthType.OAUTH2:
-            pass  # Placeholder for OAuth implementation
+        if auth_type == AuthType.OAUTH2.value:
+            raise NotImplementedError
 
-        elif auth_type == AuthType.BEARER:
+        elif auth_type == AuthType.BEARER.value:
             token = auth_params.get('token')
             session.headers['Authorization'] = f'Bearer {token}'
 
-        elif auth_type == AuthType.BASIC:
+        elif auth_type == AuthType.BASIC.value:
             username = auth_params.get('username')
             password = auth_params.get('password')
             session.auth = (username, password)
@@ -212,3 +210,40 @@ class API:
             dict: A dictionary containing the metadata for the API.
         """
         return {"public":self.tables}
+
+
+class OAuth2Client:
+    def __init__(self, client_id, client_secret, auth_url, token_url, redirect_uri, scope):
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.auth_url = auth_url
+        self.token_url = token_url
+        self.redirect_uri = redirect_uri
+        self.scope = scope
+
+    def get_authorization_url(self):
+        """
+        Generate the authorization URL to redirect the user to the provider's OAuth2 login.
+        """
+        params = {
+            "response_type": "code",
+            "client_id": self.client_id,
+            "redirect_uri": self.redirect_uri,
+            "scope": " ".join(self.scope),
+        }
+        return f"{self.auth_url}?{urlencode(params)}"
+
+    def get_access_token(self, authorization_code):
+        """
+        Exchange the authorization code for an access token.
+        """
+        data = {
+            "grant_type": "authorization_code",
+            "code": authorization_code,
+            "redirect_uri": self.redirect_uri,
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+        }
+        response = requests.post(self.token_url, data=data)
+        response.raise_for_status()
+        return response.json()

@@ -1,17 +1,17 @@
 import importlib
 import os
+import subprocess
 import sys
 home = os.environ['OPENETL_HOME']
 sys.path.append(home)
 import json
-from utils.database_utils import DatabaseUtils, OpenETLDocument
+from utils.database_utils import DatabaseUtils
 from utils.enums import *
-import streamlit as st
 
 
+#connectors_directory = f"{os.getcwd()}/{home}/connectors"
 connectors_directory = f"{home}/connectors"
 
-@st.cache_data(ttl=int(os.environ.get("OPENETL_CACHE_TTL")))
 def get_installed_connectors(connector_type=ConnectionType.DATABASE):
     """
     Checks the available connectors based on the specified connector type.
@@ -31,7 +31,6 @@ def get_installed_connectors(connector_type=ConnectionType.DATABASE):
     return [file.replace('.py', '') for file in files if file.endswith('.py')]
 
 
-@st.cache_data(ttl=int(os.environ.get("OPENETL_CACHE_TTL")))
 def get_connector_auth_details(connector_name, connector_type=ConnectionType.DATABASE):
     """
     Returns the authentication details for the specified connector.
@@ -94,6 +93,27 @@ def import_module(module_name, module_path, class_name="Connector", *args, **kwa
             f"Error initializing class '{class_name}' from module '{module_name}': {str(e)}.")
 
 
+def get_connector_engine(connector_name, connector_type=ConnectionType.DATABASE) -> str:
+    """
+    Returns the engine for the specified connector.
+
+    Args:
+        connector_name (str): The name of the connector.
+        connector_type (ConnectionType): The type of connector, defaults to ConnectionType.DATABASE.
+
+    Returns:
+        object: The engine for the specified connector.
+    """
+    path = None
+    if connector_type == ConnectionType.DATABASE:
+        path = f"{connectors_directory}/database/{connector_name}.py"
+    elif connector_type == ConnectionType.API:
+        path = f"{connectors_directory}/api/{connector_name}.py"
+    module = import_module(connector_name, path)
+    engine = module.engine
+    return engine
+
+
 def connector_test_connection(connector_name, connector_type=ConnectionType.DATABASE, auth_type=AuthType.BASIC, **auth_params):
     """
     Tests the connection to the specified connector.
@@ -116,11 +136,11 @@ def connector_test_connection(connector_name, connector_type=ConnectionType.DATA
             path = f"{connectors_directory}/api/{connector_name}.py"
             module = import_module(connector_name, path)
             api_session = module.connect_to_api(auth_type=auth_type, **auth_params)
-            return module.test_connection(api_session)
+            result = module.test_connection(api_session)
+            return result
     except Exception as e:
         print(f"Error: {str(e)}")
         
-@st.cache_data(ttl=int(os.environ.get("OPENETL_CACHE_TTL")))
 def get_connector_metadata(connector_name, connector_type=ConnectionType.DATABASE.value):
     """
     Returns the metadata for the specified connector.
@@ -139,24 +159,25 @@ def get_connector_metadata(connector_name, connector_type=ConnectionType.DATABAS
     module = import_module(connector_name, path)
     return module.get_metadata()
 
-def get_created_connections(connector_type=ConnectionType.DATABASE.value, connection_name = None) -> list:
+def get_created_connections(connector_type: str =ConnectionType.DATABASE.value, connection_name: str = None) -> list:
     """
     Returns a list of created connections for the specified connector type.
 
     Args:
+        connection_name:
         connector_type (ConnectionType): The value of type of connector, defaults to ConnectionType.DATABASE.value
 
     Returns:
         list: A list of created connections.
     """
-    return json.loads(DatabaseUtils(engine=os.getenv("OPENETL_DOCUMENT_ENGINE"),
-                               hostname=os.getenv("OPENETL_DOCUMENT_HOST"),
-                               port=os.getenv("OPENETL_DOCUMENT_PORT"),
-                               username=os.getenv("OPENETL_DOCUMENT_USER"),
-                               password=os.getenv("OPENETL_DOCUMENT_PASS"),
-                               database=os.getenv("OPENETL_DOCUMENT_DB")).get_created_connections(connector_type=connector_type, connection_name = connection_name).to_json(orient='records'))
-    
-@st.cache_data(ttl=int(os.environ.get("OPENETL_CACHE_TTL")))
+    return DatabaseUtils(engine=os.getenv("OPENETL_DOCUMENT_ENGINE"),
+                                    hostname=os.getenv("OPENETL_DOCUMENT_HOST"),
+                                    port=os.getenv("OPENETL_DOCUMENT_PORT"),
+                                    username=os.getenv("OPENETL_DOCUMENT_USER"),
+                                    password=os.getenv("OPENETL_DOCUMENT_PASS"),
+                                    database=os.getenv("OPENETL_DOCUMENT_DB")).get_created_connections(
+        connector_type=connector_type, connection_name=connection_name)
+
 def fetch_metadata(connection, auth_options, connection_type):
     """Fetch metadata from the given connection.
 
@@ -167,20 +188,14 @@ def fetch_metadata(connection, auth_options, connection_type):
         dict: {"tables": [],"schema":[]}
     """
     try:
-        main_data = None
-        for data in auth_options:
-            if data["connection_name"] == connection:
-                main_data = data
-                module = import_module(data["connection_name"], f"{connectors_directory}/{connection_type}/{data['connector_name']}.py")
-                auth_details = main_data["connection_credentials"]
+        module = import_module(auth_options["connection_name"], f"{connectors_directory}/{connection_type}/{auth_options['connector_name']}.py")
+        auth_details = auth_options["connection_credentials"]
         return module.get_metadata(**auth_details)
                     
     except Exception as e:
-        st.error("Data does not exist for selected type of connection")
         return {"tables": [], "schema": []}
     
     
-@st.cache_data
 def get_connector_image(connector_name,connection_type):
     """Fetch metadata from the given connection.
 
@@ -200,7 +215,7 @@ def get_connector_image(connector_name,connection_type):
 
 
 
-def fetch_data_from_connector(connection_name, connection_type, table, schema="public",page_limit = 10000):
+def fetch_data_from_connector( connector_name, auth_values, auth_type, table, connection_type, schema="public",page_limit = 10000):
     """
     Fetches data from a connector based on the provided connection details.
 
@@ -214,19 +229,11 @@ def fetch_data_from_connector(connection_name, connection_type, table, schema="p
     Returns:
         None
     """
-    connector_details = get_created_connections(connection_type, connection_name=connection_name)[0]
-    connector_name = connector_details['connector_name']
-    auth_type = AuthType(connector_details['auth_type']['value'])
-    auth_params = connector_details['connection_credentials']
     module = import_module(connector_name, f"{connectors_directory}/{connection_type}/{connector_name}.py")
     if connection_type == "api":
-        api_session = module.connect_to_api(auth_type=auth_type, **auth_params)
-        arr = []
+        api_session = module.connect_to_api(auth_type=auth_type, **auth_values)
         for page in module.fetch_data(api_session, table):
-            yield module.return_final_df(page) # apply yield here to with page_limit 
-    elif connection_type == "database":
-        module.create_engine(**auth_params)
-        yield module.read_table(table)
+            yield module.return_final_df(page)
     
 
 
@@ -236,3 +243,11 @@ def fetch_data_from_connector(connection_name, connection_type, table, schema="p
     
 
 #     fetch_data_from_connector("my_connection", "api", "get_all_contacts","public")
+def install_libraries(libs):
+    try:
+        for lib in libs:
+            subprocess.call(['pip', 'install', lib])
+        return True
+    except Exception as e:
+        st.error(f"Error: {str(e)}")
+        return False
