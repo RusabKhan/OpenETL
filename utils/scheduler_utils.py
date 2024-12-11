@@ -18,6 +18,9 @@ import uuid
 db = DatabaseUtils(**get_open_etl_document_connection_details())
 engine = db.engine.url  # Using engine URL for jobstore
 scheduler_job_id = f"check_and_schedule_openetl_"
+global scheduler
+scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=db.engine)})
+
 
 # Wrapper function for task execution
 def send_task_to_celery(job_id, job_name, job_type, source_connection, target_connection, source_table, target_table, source_schema,
@@ -113,8 +116,6 @@ def start_scheduler():
     """
     Start the APScheduler with PostgreSQL jobstore and periodic tasks.
     """
-    global scheduler
-    scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=db.engine)})
     scheduler.remove_all_jobs()
 
     # Add a periodic job to check and schedule tasks every 30 seconds
