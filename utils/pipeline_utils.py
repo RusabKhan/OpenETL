@@ -14,6 +14,7 @@ import os
 # sys.path.append(base_dir)
 import uuid
 import utils.connector_utils as con_utils
+from utils.__migrations__.app import OpenETLBatch
 from utils.cache import *
 from datetime import datetime, timedelta
 import utils.spark_utils as sp_ut
@@ -63,7 +64,7 @@ def create_airflow_dag(config):
     return True
 
 
-def read_data(connection_type, table, schema, connection_name):
+def read_data(connector_name, auth_values, auth_type, table, connection_type, schema="public", config = {}):
     """
     Reads data from a specified connection type.
 
@@ -82,12 +83,8 @@ def read_data(connection_type, table, schema, connection_name):
     if connection_type.lower() not in [ConnectionType.DATABASE.value, ConnectionType.API.value]:
         raise ValueError(f"Unsupported connection type: {connection_type}")
 
-    if connection_type.lower() == ConnectionType.DATABASE.value:
-        spark = sp_ut.SparkConnection(config)
-        df = spark.read_via_spark()
-        return df
     elif connection_type.lower() == ConnectionType.API.value:
-        for data in con_utils.fetch_data_from_connector(connection_name, connection_type, table, schema):
+        for data in con_utils.fetch_data_from_connector(connector_name, auth_values, auth_type, table, connection_type, schema="public",):
             logging.info("######data######")
             logging.info(data)
             yield data
@@ -102,8 +99,9 @@ def extract_xcom_value(task_id, **context):
     return xcom_value
 
 
-def run_pipeline(source_connection_type, source_table, source_schema, source_connection_name, target_connection_type,
-                 target_connection_config, spark_config=None, hadoop_config=None,  mapping=None, integration_name=None):
+def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=None, job_type=None,
+                 source_table=None, source_schema=None, target_table=None, target_schema=None,
+                 source_connection_details=None, target_connection_details=None):
     """
     A function that runs a pipeline with the specified configurations, particularly used in the airflow DAG to run a pipeline.
 
@@ -124,30 +122,29 @@ def run_pipeline(source_connection_type, source_table, source_schema, source_con
         NotImplementedError: If the target connection type is API.
     """
 
-    logging.info("RUNNING PIPELINE")
+    print("RUNNING PIPELINE")
+
     batch_id = str(uuid.uuid4())
     logging.info(f"Batch ID: {batch_id}")
+    target_credentials = target_connection_details['connection_credentials']
+    source_credentials = source_connection_details['connection_credentials']
 
-    if target_connection_type.lower() == ConnectionType.DATABASE.value:
-        connector_details = con_utils.get_created_connections("database",
-                                                              connection_name=target_connection_config['connection_name'])[0]
-        engine = con_utils.get_db_connector_engine(
-            connector_details['connector_name'])
-        connection_credentials = connector_details['connection_credentials']
+    if target_connection_details['connection_type'].lower() == ConnectionType.DATABASE.value:
+        engine = con_utils.get_connector_engine(connector_name=target_connection_details['connector_name'])
 
         jar = jdbc_database_jars[engine]
         driver = jdbc_engine_drivers[engine]
         connection_details = {key.upper(): value for key,
-                              value in connection_credentials.items()}
+                              value in target_credentials.items()}
         con_string = jdbc_connection_strings[engine].format(
             **connection_details)
 
-        schema_ops = database_utils.DatabaseUtils(
-            engine=engine, **connection_credentials)
-        schema_ops.create_batch_table()
+        db = database_utils.DatabaseUtils(
+            engine=engine, **target_credentials)
+        db.create_table_from_base(target_schema=target_schema, base=OpenETLBatch)
 
-        schema_ops.insert_openetl_batch(batch_id=batch_id, start_date=datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"), batch_type="full", batch_status="in progress", integration_name=integration_name)
+        db.insert_openetl_batch(batch_id=batch_id, start_date=datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"), batch_type="full", batch_status="in progress", integration_name=job_name)
 
         # df = schema_ops.cast_columns(df)
         # df = schema_ops.fill_na_based_on_dtype(df)
@@ -161,33 +158,56 @@ def run_pipeline(source_connection_type, source_table, source_schema, source_con
         spark_class = sp_ut.SparkConnection(spark_configuration=spark_config,
                                             hadoop_configuration=hadoop_config, jar=jar, connection_string=con_string)
         spark_session = spark_class.initializeSpark()
-        for df in read_data(source_connection_type, source_table,
-                            source_schema, source_connection_name):
+        spark_config["spark.app.name"] = spark_config["spark.app.name"]+f"_{batch_id}_read_source_table{source_table}"
+        if source_connection_details["connection_type"].lower() == ConnectionType.DATABASE.value:
 
-            logging.info("priniting out dataframe details.")
-            logging.info(df.head(2))
-            logging.info(df.dtypes)
-            rows = df.shape[0]
-            if rows == 0:
-                logging.exception(df)
-                raise Exception("No data found in source table")
-
-            df = df.rename(columns=lambda x: x.replace('.', '_'))
-            df = df.astype(str)
-
-            df = spark_session.createDataFrame(df)
-            # df = schema_ops.match_pandas_schema_to_spark(df)
-            if spark_class.write_via_spark(
-                    df, conn_string=con_string, table=target_connection_config['table'], driver=driver):
-                rows = df.count()
-                schema_ops.update_openetl_batch(batch_id=batch_id, batch_status="completed", end_date=datetime.now(
-                ).strftime("%Y-%m-%d %H:%M:%S"), rows_count=rows)
+            connection_details_upper = {key.upper(): value for key, value in connection_details.items()}
+            spark_conn_url = {"url":jdbc_connection_strings[engine].format(**connection_details_upper),
+                              "dbtable": source_table,
+                              "driver": jdbc_engine_drivers[engine]}
+            df = spark_class.read_via_spark(spark_conn_url)
+            run_pipeline_target(df=df, spark_class=spark_class, con_string=con_string,
+                                target_table=target_table, batch_id=batch_id, driver=driver, spark_session=spark_session, db_class=db)
+        else:
+            for df in read_data(connector_name=source_connection_details['connector_name'],
+                                auth_values=source_credentials,
+                                auth_type=source_connection_details['auth_type'],
+                                table=source_table,
+                                connection_type=source_connection_details['connection_type'],
+                                schema=source_schema):
+                df = spark_session.createDataFrame(df)
+                run_pipeline_target(df=df, spark_class=spark_class, con_string=con_string,
+                                    target_table=target_table, batch_id=batch_id, driver=driver, spark_session=spark_session, db_class=db)
 
         logging.info("FINISHED PIPELINE")
         logging.info("DISPOSING ENGINES")
         spark_class.__dispose__()
-        schema_ops.__dispose__()
+        db.__dispose__()
 
-    elif target_connection_type.lower() == ConnectionType.API.value:
+    elif target_connection_details['connection_type'].lower() == ConnectionType.API.value:
         raise NotImplementedError("API target connection not implemented")
 
+
+def run_pipeline_target(df, spark_class, con_string, target_table, batch_id, driver, spark_session, db_class):
+
+    logging.info(df.limit(2))
+
+    # Display column data types
+    logging.info(df.dtypes)
+
+    # Count rows in Spark DataFrame
+    rows = df.count()
+    if rows == 0:
+        logging.exception(df.show())
+        raise Exception("No data found in source table")
+
+    # Rename columns to replace '.' with '_'
+    df = df.selectExpr(*[f"`{col}` as `{col.replace('.', '_')}`" for col in df.columns])
+
+    # Convert all columns to string type
+    df = df.select(*[df[col].cast("string").alias(col) for col in df.columns])
+
+    if spark_class.write_via_spark(
+            df, conn_string=con_string, table=target_table, driver=driver):
+        db_class.update_openetl_batch(batch_id=batch_id, batch_status="completed", end_date=datetime.now(
+        ).strftime("%Y-%m-%d %H:%M:%S"), rows_count=rows)
