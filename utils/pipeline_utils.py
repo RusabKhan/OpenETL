@@ -177,9 +177,10 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                                     connection_type=source_connection_details['connection_type'],
                                     schema=source_schema):
                     df = spark_session.createDataFrame(df)
-                    run_pipeline_target(df=df, spark_class=spark_class, con_string=con_string,
+                    row_count = df.count()
+                    run_pipeline_target(df=df, row_count=row_count, spark_class=spark_class, con_string=con_string,
                                         target_table=target_table, batch_id=batch_id, driver=driver, spark_session=spark_session, db_class=db)
-                    update_db(job_id, job_id, None, RunStatus.SUCCESS, datetime.utcnow())
+                    update_db(job_id, job_id, None, RunStatus.SUCCESS, datetime.utcnow(), row_count=row_count)
 
             logging.info("FINISHED PIPELINE")
             logging.info("DISPOSING ENGINES")
@@ -190,16 +191,17 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
             raise NotImplementedError("API target connection not implemented")
     except Exception as e:
         logging.error(e)
-        update_db(job_id, job_id, str(e), RunStatus.FAILED, datetime.utcnow())
+        update_db(job_id, job_id, str(e), RunStatus.FAILED, datetime.utcnow(), row_count=0)
 
 
-def update_db(celery_task_id, integration, error_message, run_status, start_date):
+def update_db(celery_task_id, integration, error_message, run_status, start_date, row_count=0):
     db = database_utils.DatabaseUtils(**database_utils.get_open_etl_document_connection_details())
     db.update_integration(record_id=integration, is_running=False)
-    db.update_integration_runtime(job_id=celery_task_id, error_message=error_message, run_status=run_status, end_date=start_date)
+    db.update_integration_runtime(job_id=celery_task_id, error_message=error_message, run_status=run_status,
+                                  end_date=start_date, row_count=row_count)
 
 
-def run_pipeline_target(df, spark_class, con_string, target_table, batch_id, driver, spark_session, db_class):
+def run_pipeline_target(df, spark_class,row_count, con_string, target_table, batch_id, driver, spark_session, db_class):
 
     logging.info(df.limit(2))
 
@@ -207,8 +209,7 @@ def run_pipeline_target(df, spark_class, con_string, target_table, batch_id, dri
     logging.info(df.dtypes)
 
     # Count rows in Spark DataFrame
-    rows = df.count()
-    if rows == 0:
+    if row_count == 0:
         logging.exception(df.show())
         raise Exception("No data found in source table")
 
@@ -221,4 +222,4 @@ def run_pipeline_target(df, spark_class, con_string, target_table, batch_id, dri
     if spark_class.write_via_spark(
             df, conn_string=con_string, table=target_table, driver=driver):
         db_class.update_openetl_batch(batch_id=batch_id, batch_status="completed", end_date=datetime.now(
-        ).strftime("%Y-%m-%d %H:%M:%S"), rows_count=rows)
+        ).strftime("%Y-%m-%d %H:%M:%S"), rows_count=row_count)

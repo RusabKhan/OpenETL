@@ -46,5 +46,6 @@ class OpenETLIntegrationsRuntimes(Base):
     start_date = Column(DateTime, nullable=True)  # Scheduled start date
     celery_task_id = Column(String, nullable=True)  # Celery task ID
     end_date = Column(DateTime, nullable=True)  # Scheduled end date
+    row_count = Column(Integer, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
