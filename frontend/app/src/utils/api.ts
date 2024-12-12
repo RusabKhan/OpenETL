@@ -3,32 +3,43 @@ import axios from "axios";
 // Define the base URL globally for reuse
 export const base_url = process.env.NEXT_PUBLIC_API_URL;
 
-export const fetchDashboardData = async () => {
+// Generic API handler
+const apiRequest = async (
+  method: "get" | "post" | "put" | "delete",
+  endpoint: string,
+  data?: object,
+) => {
   try {
-    const response = await axios.get(`${base_url}/database/get_dashboard_data`);
+    const config = {
+      method,
+      url: `${base_url}${endpoint}`,
+      ...(data && { data }),
+    };
+
+    const response = await axios(config);
     return response.data;
   } catch (error: any) {
-    console.error("Error fetching dashboard data:", error.message);
+    console.error(
+      `Error in API request: ${method.toUpperCase()} ${endpoint}`,
+      error.message,
+    );
     throw new Error(
-      error.response?.data?.message || "Error fetching dashboard data",
+      error.response?.data?.message ||
+        `Error occurred during ${method.toUpperCase()} ${endpoint}`,
     );
   }
 };
 
-export const fetchInstalledConnectors = async (type: string) => {
-  try {
-    let response = await axios.post(
-      `${base_url}/connector/get_created_connections`,
-      {
-        connector_type: type,
-      },
-    );
+export const fetchDashboardData = async () => {
+  return apiRequest("get", "/database/get_dashboard_data");
+};
 
-    return response.data;
-  } catch (error: any) {
-    console.error("Error fetching connector details:", error.message);
-    throw new Error(
-      error.response?.data?.message || "Error fetching connector details",
-    );
-  }
+export const fetchCreatedConnections = async (type: string) => {
+  return apiRequest("post", "/connector/get_created_connections", {
+    connector_type: type,
+  });
+};
+
+export const fetchInstalledConnectors = async () => {
+  return apiRequest("get", "/connector/get_installed_connectors")
 };
