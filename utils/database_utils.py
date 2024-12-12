@@ -843,50 +843,51 @@ class DatabaseUtils():
             OpenETLDocument.connection_type == ConnectionType.API.value).count()
         total_db_connections = session.query(OpenETLDocument).filter(
             OpenETLDocument.connection_type == ConnectionType.DATABASE.value).count()
-        total_pipelines = session.query(OpenETLBatch).count()
+        total_pipelines = session.query(OpenETLIntegrations).count()  # Assuming this table holds pipeline data
         total_rows_migrated = session.query(
-            func.sum(OpenETLBatch.rows_count)).scalar()
+            func.sum(OpenETLIntegrationsRuntimes.row_count)).scalar()  # Assuming rows_count is moved here or another table
 
         # Retrieve integration details
-        # Subquery to get the latest start_date for each integration_name
+        # Subquery to get the latest start_date for each integration
         latest_runs_subquery = session.query(
-            OpenETLBatch.integration_name,
-            func.max(OpenETLBatch.start_date).label('latest_start_date')
-        ).group_by(OpenETLBatch.integration_name).subquery()
+            OpenETLIntegrationsRuntimes.integration,
+            func.max(OpenETLIntegrationsRuntimes.start_date).label('latest_start_date')
+        ).group_by(OpenETLIntegrationsRuntimes.integration).subquery()
 
         # Main query to get the integration details by the latest start_date
         integrations = session.query(
-            OpenETLBatch.integration_name,
-            OpenETLBatch.batch_status,
-            OpenETLBatch.start_date,
-            OpenETLBatch.end_date
+            OpenETLIntegrationsRuntimes.integration,
+            OpenETLIntegrationsRuntimes.run_status,
+            OpenETLIntegrationsRuntimes.start_date,
+            OpenETLIntegrationsRuntimes.end_date,
+            OpenETLIntegrationsRuntimes.error_message
         ).join(
             latest_runs_subquery,
-            (OpenETLBatch.integration_name == latest_runs_subquery.c.integration_name) &
-            (OpenETLBatch.start_date == latest_runs_subquery.c.latest_start_date)
+            (OpenETLIntegrationsRuntimes.integration == latest_runs_subquery.c.integration) &
+            (OpenETLIntegrationsRuntimes.start_date == latest_runs_subquery.c.latest_start_date)
         ).all()
 
-        # Retrieve batch counts by integration_name
-        batch_counts = session.query(
-            OpenETLBatch.integration_name,
-            func.count(OpenETLBatch.batch_id).label('batch_count')
-        ).group_by(OpenETLBatch.integration_name).all()
+        # Retrieve run counts by integration
+        run_counts = session.query(
+            OpenETLIntegrationsRuntimes.integration,
+            func.count(OpenETLIntegrationsRuntimes.id).label('run_count')
+        ).group_by(OpenETLIntegrationsRuntimes.integration).all()
 
-        # Create a dictionary to map batch counts by integration_name
-        batch_count_dict = {batch.integration_name: batch.batch_count for batch in batch_counts}
+        # Create a dictionary to map run counts by integration
+        run_count_dict = {run.integration: run.run_count for run in run_counts}
 
-        # Convert the query results to a list of dictionaries and add batch_count
+        # Convert the query results to a list of dictionaries and add run_count
         integrations_dict = [
             {
-                "integration_name": integration.integration_name,
-                "latest_batch_status": integration.batch_status,
+                "integration_name": integration.integration,
+                "latest_run_status": integration.run_status,
                 "start_date": integration.start_date.isoformat() if integration.start_date else None,
                 "end_date": integration.end_date.isoformat() if integration.end_date else None,
-                "batch_count": batch_count_dict.get(integration.integration_name, 0)
+                "error_message": integration.error_message,
+                "run_count": run_count_dict.get(integration.integration, 0)
             }
             for integration in integrations
         ] if integrations else []
-
 
         # Return the dashboard data
         return {
