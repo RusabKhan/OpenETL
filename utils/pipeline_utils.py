@@ -13,6 +13,9 @@ import os
 # base_dir = os.getenv('OPENETL_HOME')
 # sys.path.append(base_dir)
 import uuid
+
+import pandas as pd
+
 import utils.connector_utils as con_utils
 from utils.__migrations__.app import OpenETLBatch
 from utils.cache import *
@@ -64,7 +67,7 @@ def create_airflow_dag(config):
     return True
 
 
-def read_data(connector_name, auth_values, auth_type, table, connection_type, schema="public", config = {}):
+def read_data(connector_name, auth_values, auth_type, table, connection_type, schema="public", config = {}, batch_size = 100000):
     """
     Reads data from a specified connection type.
 
@@ -80,14 +83,27 @@ def read_data(connector_name, auth_values, auth_type, table, connection_type, sc
     Raises:
         ValueError: If the connection type is not "database" or "api".
     """
+    main_df = pd.DataFrame()  # Initialize an empty DataFrame
     if connection_type.lower() not in [ConnectionType.DATABASE.value, ConnectionType.API.value]:
         raise ValueError(f"Unsupported connection type: {connection_type}")
 
     elif connection_type.lower() == ConnectionType.API.value:
-        for data in con_utils.fetch_data_from_connector(connector_name, auth_values, auth_type, table, connection_type, schema="public",):
+        for data in con_utils.fetch_data_from_connector(connector_name, auth_values, auth_type, table, connection_type,
+                                                        schema="public"):
             logging.info("######data######")
             logging.info(data)
-            yield data
+            if not isinstance(data, pd.DataFrame):
+                raise ValueError("Fetched data must be a pandas DataFrame")
+
+            # Append data to main_df
+            main_df = pd.concat([main_df, data], ignore_index=True)
+
+            if len(main_df) >= batch_size:
+                yield main_df
+                main_df = pd.DataFrame()  # Reset
+
+        yield main_df
+
 
 
 def extract_xcom_value(task_id, **context):
@@ -101,7 +117,7 @@ def extract_xcom_value(task_id, **context):
 
 def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=None, job_type=None,
                  source_table=None, source_schema=None, target_table=None, target_schema=None,
-                 source_connection_details=None, target_connection_details=None):
+                 source_connection_details=None, target_connection_details=None, batch_size=100000):
     """
     A function that runs a pipeline with the specified configurations, particularly used in the airflow DAG to run a pipeline.
 
@@ -175,7 +191,8 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                                     auth_type=source_connection_details['auth_type'],
                                     table=source_table,
                                     connection_type=source_connection_details['connection_type'],
-                                    schema=source_schema):
+                                    schema=source_schema,
+                                    batch_size=batch_size):
                     df = spark_session.createDataFrame(df)
                     row_count = df.count()
                     run_pipeline_target(df=df, row_count=row_count, spark_class=spark_class, con_string=con_string,

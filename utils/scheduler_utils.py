@@ -1,6 +1,8 @@
 import os
 import sys
 
+from click.core import batch
+
 sys.path.append(os.environ['OPENETL_HOME'])
 
 from apscheduler.triggers.cron import CronTrigger
@@ -24,7 +26,7 @@ scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=
 
 # Wrapper function for task execution
 def send_task_to_celery(job_id, job_name, job_type, source_connection, target_connection, source_table, target_table, source_schema,
-                          target_schema, spark_config, hadoop_config, **kwargs):
+                          target_schema, spark_config, hadoop_config, batch_size, **kwargs):
     """
     Wrapper function to send tasks to Celery dynamically using apply_async.
     :param integration_uid: ID of the integration.
@@ -36,7 +38,7 @@ def send_task_to_celery(job_id, job_name, job_type, source_connection, target_co
     app.send_task(name="utils.celery_utils.run_pipeline",
                                        task_id=job_id,
                                        args=[job_id, job_name,job_type, source_connection, target_connection, source_table, target_table, source_schema,
-                          target_schema, spark_config, hadoop_config], kwargs=kwargs)
+                          target_schema, spark_config, hadoop_config, batch_size], kwargs=kwargs)
     @retry(tries=3, delay=2)
     def update_db():
         db.update_integration(record_id=job_id, last_run=datetime.utcnow(), is_running=True)
@@ -94,13 +96,15 @@ def check_and_schedule_tasks():
         target_detials = db.get_created_connections(id=target_connection)[0]
         source_detials['auth_type'] = source_detials['auth_type'].value
         target_detials['auth_type'] = target_detials['auth_type'].value
+        batch_size = integration.batch_size
 
         try:
             for cron in cron_time:
                 scheduler.add_job(
                     func=send_task_to_celery,
                     trigger=CronTrigger.from_crontab(cron),
-                    args=[job_id, job_name, job_type, source_detials, target_detials, source_table, target_table, source_schema, target_schema ,spark_config, hadoop_config],
+                    args=[job_id, job_name, job_type, source_detials, target_detials, source_table, target_table, source_schema, target_schema ,spark_config, hadoop_config,
+                          batch_size],
                     kwargs={},
                     id=job_id,
                     replace_existing=True,
