@@ -139,28 +139,61 @@ const SourceTargetTab = () => (
 const SparkConfigTab = () => (
   <div>
     <h2 className="text-lg font-semibold mb-4">Spark Config</h2>
-    <table className="w-full border-collapse border border-gray-300">
-      <thead>
-        <tr>
-          <th className="border border-gray-300 px-4 py-2">Configuration</th>
-          <th className="border border-gray-300 px-4 py-2">Average Setting</th>
-        </tr>
-      </thead>
-      <tbody>
-        {[
-          { config: "spark.driver.memory", value: "1g" },
-          { config: "spark.executor.memory", value: "1g" },
-          { config: "spark.executor.cores", value: "1" },
-          { config: "spark.executor.instances", value: "1" },
-          { config: "spark.app.name", value: "my_connection_to_my_connection" },
-        ].map((row) => (
-          <tr key={row.config}>
-            <td className="border border-gray-300 px-4 py-2">{row.config}</td>
-            <td className="border border-gray-300 px-4 py-2">{row.value}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="grid grid-cols-2 gap-8">
+      {/* Spark Config Table */}
+      <div>
+        <h3 className="text-md font-semibold mb-2">Spark Configuration</h3>
+        <table className="w-full border-collapse border border-gray-300">
+          <thead>
+            <tr>
+              <th className="border border-gray-300 px-4 py-2">Configuration</th>
+              <th className="border border-gray-300 px-4 py-2">Average Setting</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              { config: "spark.driver.memory", value: "1g" },
+              { config: "spark.executor.memory", value: "1g" },
+              { config: "spark.executor.cores", value: "1" },
+              { config: "spark.executor.instances", value: "1" },
+              { config: "spark.app.name", value: "my_connection_to_my_connection" },
+            ].map((row) => (
+              <tr key={row.config}>
+                <td className="border border-gray-300 px-4 py-2">{row.config}</td>
+                <td className="border border-gray-300 px-4 py-2">{row.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Hadoop Config Table */}
+      <div>
+        <h3 className="text-md font-semibold mb-2">Hadoop Configuration</h3>
+        <table className="w-full border-collapse border border-gray-300">
+          <thead>
+            <tr>
+              <th className="border border-gray-300 px-4 py-2">Configuration</th>
+              <th className="border border-gray-300 px-4 py-2">Average Setting</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              { config: "fs.defaultFS", value: "hdfs://localhost:8020" },
+              { config: "dfs.replication", value: "3" },
+              { config: "yarn.nodemanager.memory-mb", value: "2048" },
+              { config: "mapreduce.framework.name", value: "yarn" },
+              { config: "hadoop.tmp.dir", value: "/tmp/hadoop" },
+            ].map((row) => (
+              <tr key={row.config}>
+                <td className="border border-gray-300 px-4 py-2">{row.config}</td>
+                <td className="border border-gray-300 px-4 py-2">{row.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 );
 
