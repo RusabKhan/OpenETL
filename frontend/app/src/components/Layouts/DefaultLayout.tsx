@@ -2,6 +2,7 @@
 import React, { useState, ReactNode } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import Head from "next/head";
 
 export default function DefaultLayout({
   children,
@@ -11,6 +12,10 @@ export default function DefaultLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <>
+      <Head>
+        <title>Dashboard OpenETL</title>
+        <meta name="description" content="Dashboard for OpenETL" />
+      </Head>
       {/* <!-- ===== Page Wrapper Start ===== --> */}
       <div className="flex">
         {/* <!-- ===== Sidebar Start ===== --> */}

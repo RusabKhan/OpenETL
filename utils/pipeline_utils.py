@@ -13,6 +13,9 @@ import os
 # base_dir = os.getenv('OPENETL_HOME')
 # sys.path.append(base_dir)
 import uuid
+
+import pandas as pd
+
 import utils.connector_utils as con_utils
 from utils.__migrations__.app import OpenETLBatch
 from utils.cache import *
@@ -22,6 +25,15 @@ from utils.enums import *
 import utils.database_utils as database_utils
 
 import logging
+
+# Create a logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Create a file handler and set the logging level to INFO
+
+
+
 
 def create_airflow_dag(config):
     """Store pipeline configuration in .local/pipelines directory
@@ -64,7 +76,7 @@ def create_airflow_dag(config):
     return True
 
 
-def read_data(connector_name, auth_values, auth_type, table, connection_type, schema="public", config = {}):
+def read_data(connector_name, auth_values, auth_type, table, connection_type, schema="public", config = {}, batch_size = 100000):
     """
     Reads data from a specified connection type.
 
@@ -80,14 +92,27 @@ def read_data(connector_name, auth_values, auth_type, table, connection_type, sc
     Raises:
         ValueError: If the connection type is not "database" or "api".
     """
+    main_df = pd.DataFrame()  # Initialize an empty DataFrame
     if connection_type.lower() not in [ConnectionType.DATABASE.value, ConnectionType.API.value]:
         raise ValueError(f"Unsupported connection type: {connection_type}")
 
     elif connection_type.lower() == ConnectionType.API.value:
-        for data in con_utils.fetch_data_from_connector(connector_name, auth_values, auth_type, table, connection_type, schema="public",):
+        for data in con_utils.fetch_data_from_connector(connector_name, auth_values, auth_type, table, connection_type,
+                                                        schema="public"):
             logging.info("######data######")
             logging.info(data)
-            yield data
+            if not isinstance(data, pd.DataFrame):
+                raise ValueError("Fetched data must be a pandas DataFrame")
+
+            # Append data to main_df
+            main_df = pd.concat([main_df, data], ignore_index=True)
+
+            if len(main_df) >= batch_size:
+                yield main_df
+                main_df = pd.DataFrame()  # Reset
+
+        yield main_df
+
 
 
 def extract_xcom_value(task_id, **context):
@@ -101,36 +126,52 @@ def extract_xcom_value(task_id, **context):
 
 def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=None, job_type=None,
                  source_table=None, source_schema=None, target_table=None, target_schema=None,
-                 source_connection_details=None, target_connection_details=None):
+                 source_connection_details=None, target_connection_details=None, batch_size=100000):
     """
     A function that runs a pipeline with the specified configurations, particularly used in the airflow DAG to run a pipeline.
 
     Args:
-        source_connection_type (str): The type of the source connection.
+        target_schema:
+        job_type:
+        job_id:
+        job_name:
+        target_table:
+        source_connection_details:
+        target_connection_details:
+        batch_size:
         source_table (str): The name of the source table.
         source_schema (str): The schema of the source table.
-        source_connection_name (str): The name of the source connection.
-        target_connection_type (str): The type of the target connection.
-        target_connection_config (dict): The configuration details of the target connection.
         spark_config (dict, optional): The Spark configuration. Defaults to None.
         hadoop_config (dict, optional): The Hadoop configuration. Defaults to None.
-        mapping (dict, optional): The mapping details. Defaults to None.
-        integration_name (str, optional): The name of the integration. Defaults to None.
 
     Raises:
         Exception: If no data is found in the source table.
         NotImplementedError: If the target connection type is API.
     """
-    db = None
     try:
-        print("RUNNING PIPELINE")
+        log_folder = f'{os.environ["OPENETL_HOME"]}/.logs'
+        if not os.path.exists(log_folder):
+            os.makedirs(log_folder)
+        file_handler = logging.FileHandler(
+            f'{log_folder}/integration_{job_id}_{job_name}_{datetime.now().strftime("%Y%m%d%H%M%S")}.log')
+        file_handler.setLevel(logging.INFO)
+
+        # Create a formatter and set the formatter for the file handler
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+
+        # Add the file handler to the logger
+        logger.addHandler(file_handler)
+
+        logger.info("RUNNING PIPELINE")
 
         batch_id = str(uuid.uuid4())
-        logging.info(f"Batch ID: {batch_id}")
+        logger.info(f"Batch ID: {batch_id}")
         target_credentials = target_connection_details['connection_credentials']
         source_credentials = source_connection_details['connection_credentials']
 
         if target_connection_details['connection_type'].lower() == ConnectionType.DATABASE.value:
+
             engine = con_utils.get_connector_engine(connector_name=target_connection_details['connector_name'])
 
             jar = jdbc_database_jars[engine]
@@ -154,8 +195,8 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
             #     target_connection_config['table'], df)
             # if not created:
             #     raise Exception(message)
-            logging.info("PRINTING OUT JARS")
-            logging.info(jar)
+            logger.info("PRINTING OUT JARS")
+            logger.info(jar)
             spark_class = sp_ut.SparkConnection(spark_configuration=spark_config,
                                                 hadoop_configuration=hadoop_config, jar=jar, connection_string=con_string)
             spark_session = spark_class.initializeSpark()
@@ -175,41 +216,43 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                                     auth_type=source_connection_details['auth_type'],
                                     table=source_table,
                                     connection_type=source_connection_details['connection_type'],
-                                    schema=source_schema):
+                                    schema=source_schema,
+                                    batch_size=batch_size):
                     df = spark_session.createDataFrame(df)
-                    run_pipeline_target(df=df, spark_class=spark_class, con_string=con_string,
+                    row_count = df.count()
+                    run_pipeline_target(df=df, row_count=row_count, spark_class=spark_class, con_string=con_string,
                                         target_table=target_table, batch_id=batch_id, driver=driver, spark_session=spark_session, db_class=db)
-                    update_db(job_id, job_id, None, RunStatus.SUCCESS, datetime.utcnow())
+                    update_db(job_id, job_id, None, RunStatus.SUCCESS, datetime.utcnow(), row_count=row_count)
 
-            logging.info("FINISHED PIPELINE")
-            logging.info("DISPOSING ENGINES")
+            logger.info("FINISHED PIPELINE")
+            logger.info("DISPOSING ENGINES")
             spark_class.__dispose__()
             db.__dispose__()
 
         elif target_connection_details['connection_type'].lower() == ConnectionType.API.value:
             raise NotImplementedError("API target connection not implemented")
     except Exception as e:
-        logging.error(e)
-        update_db(job_id, job_id, str(e), RunStatus.FAILED, datetime.utcnow())
+        logger.error(e)
+        update_db(job_id, job_id, str(e), RunStatus.FAILED, datetime.utcnow(), row_count=0)
 
 
-def update_db(celery_task_id, integration, error_message, run_status, start_date):
+def update_db(celery_task_id, integration, error_message, run_status, start_date, row_count=0):
     db = database_utils.DatabaseUtils(**database_utils.get_open_etl_document_connection_details())
     db.update_integration(record_id=integration, is_running=False)
-    db.update_integration_runtime(job_id=celery_task_id, error_message=error_message, run_status=run_status, end_date=start_date)
+    db.update_integration_runtime(job_id=celery_task_id, error_message=error_message, run_status=run_status,
+                                  end_date=start_date, row_count=row_count)
 
 
-def run_pipeline_target(df, spark_class, con_string, target_table, batch_id, driver, spark_session, db_class):
+def run_pipeline_target(df, spark_class,row_count, con_string, target_table, batch_id, driver, spark_session, db_class):
 
-    logging.info(df.limit(2))
+    logger.info(df.limit(2))
 
     # Display column data types
-    logging.info(df.dtypes)
+    logger.info(df.dtypes)
 
     # Count rows in Spark DataFrame
-    rows = df.count()
-    if rows == 0:
-        logging.exception(df.show())
+    if row_count == 0:
+        logger.exception(df.show())
         raise Exception("No data found in source table")
 
     # Rename columns to replace '.' with '_'
@@ -221,4 +264,4 @@ def run_pipeline_target(df, spark_class, con_string, target_table, batch_id, dri
     if spark_class.write_via_spark(
             df, conn_string=con_string, table=target_table, driver=driver):
         db_class.update_openetl_batch(batch_id=batch_id, batch_status="completed", end_date=datetime.now(
-        ).strftime("%Y-%m-%d %H:%M:%S"), rows_count=rows)
+        ).strftime("%Y-%m-%d %H:%M:%S"), rows_count=row_count)

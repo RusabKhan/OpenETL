@@ -60,7 +60,7 @@ const Connections = () => {
       </Head>
       <DefaultLayout>
         <div className="mx-auto max-w-242.5">
-          <Breadcrumb pageName="Connectors" />
+          <Breadcrumb pageName="Connections" />
 
           <CardConnections
             connections={databases}

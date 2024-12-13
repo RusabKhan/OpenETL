@@ -691,6 +691,40 @@ class DatabaseUtils():
             logging.error(e)
             return False, e
 
+
+    def delete_document(self, table_name='openetl_documents', schema_name='open_etl', conditions: dict = {}):
+        """
+        Deletes a document from the specified table in the database.
+
+        Args:
+            table_name (str, optional): The name of the table to delete the document from. Defaults to 'openetl_documents'.
+            schema_name (str, optional): The schema of the table. Defaults to 'open_etl'.
+            conditions (dict, optional): The conditions to filter the document deletion. Defaults to {}.
+
+        Returns:
+            bool: True if the document is successfully deleted, False otherwise.
+
+        Raises:
+            Exception: If an error occurs while deleting the document. The error message is logged.
+        """
+        try:
+            Session = sessionmaker(bind=self.engine)
+            session = Session()
+            document = session.query(OpenETLDocument).filter_by(**conditions).first()
+            if document:
+                session.delete(document)
+                session.commit()
+                session.close()
+                return True, ""
+            else:
+                session.close()
+                return False, "Document not found."
+        except Exception as e:
+            logging.error(e)
+            return False, e
+
+
+
     def get_created_connections(self, connector_type=None, connection_name=None, id=None) -> pd.DataFrame:
         """
         Returns a list of created connections for the specified connector type.
@@ -794,6 +828,7 @@ class DatabaseUtils():
         session.commit()
         return new_batch
 
+
     def update_openetl_batch(self, batch_id, **kwargs):
         """
         Updates an OpenETLBatch object in the database with the specified batch_id.
@@ -828,6 +863,37 @@ class DatabaseUtils():
         else:
             raise Exception(f"Batch with id {batch_id} not found.")
 
+
+    def update_openetl_document(self, document_id, **kwargs):
+        """
+        Updates an OpenETLBatch object in the database with the specified batch_id.
+
+        Args:
+            document_id (int): The ID of the batch to update.
+            **kwargs: Keyword arguments specifying the fields to update and their new values.
+
+        Returns:
+            OpenETLBatch: The updated OpenETLBatch object.
+
+        Raises:
+            Exception: If no OpenETLBatch object with the specified batch_id is found.
+        """
+
+        session = self.session
+        # Find the batch by batch_id
+        batch = session.query(OpenETLDocument).filter(
+            OpenETLDocument.id == document_id).one_or_none()
+
+        if batch is not None:
+            # Update the specified fields
+            for key, value in kwargs.items():
+                setattr(batch, key, value)
+            session.commit()
+            return batch
+        else:
+            raise Exception(f"Document with id {document_id} not found.")
+
+
     def get_dashboard_data(self):
         """
         Retrieves dashboard data including total counts and integration details.
@@ -843,50 +909,51 @@ class DatabaseUtils():
             OpenETLDocument.connection_type == ConnectionType.API.value).count()
         total_db_connections = session.query(OpenETLDocument).filter(
             OpenETLDocument.connection_type == ConnectionType.DATABASE.value).count()
-        total_pipelines = session.query(OpenETLBatch).count()
+        total_pipelines = session.query(OpenETLIntegrations).count()  # Assuming this table holds pipeline data
         total_rows_migrated = session.query(
-            func.sum(OpenETLBatch.rows_count)).scalar()
+            func.sum(OpenETLIntegrationsRuntimes.row_count)).scalar()  # Assuming rows_count is moved here or another table
 
         # Retrieve integration details
-        # Subquery to get the latest start_date for each integration_name
+        # Subquery to get the latest start_date for each integration
         latest_runs_subquery = session.query(
-            OpenETLBatch.integration_name,
-            func.max(OpenETLBatch.start_date).label('latest_start_date')
-        ).group_by(OpenETLBatch.integration_name).subquery()
+            OpenETLIntegrationsRuntimes.integration,
+            func.max(OpenETLIntegrationsRuntimes.start_date).label('latest_start_date')
+        ).group_by(OpenETLIntegrationsRuntimes.integration).subquery()
 
         # Main query to get the integration details by the latest start_date
         integrations = session.query(
-            OpenETLBatch.integration_name,
-            OpenETLBatch.batch_status,
-            OpenETLBatch.start_date,
-            OpenETLBatch.end_date
+            OpenETLIntegrationsRuntimes.integration,
+            OpenETLIntegrationsRuntimes.run_status,
+            OpenETLIntegrationsRuntimes.start_date,
+            OpenETLIntegrationsRuntimes.end_date,
+            OpenETLIntegrationsRuntimes.error_message
         ).join(
             latest_runs_subquery,
-            (OpenETLBatch.integration_name == latest_runs_subquery.c.integration_name) &
-            (OpenETLBatch.start_date == latest_runs_subquery.c.latest_start_date)
+            (OpenETLIntegrationsRuntimes.integration == latest_runs_subquery.c.integration) &
+            (OpenETLIntegrationsRuntimes.start_date == latest_runs_subquery.c.latest_start_date)
         ).all()
 
-        # Retrieve batch counts by integration_name
-        batch_counts = session.query(
-            OpenETLBatch.integration_name,
-            func.count(OpenETLBatch.batch_id).label('batch_count')
-        ).group_by(OpenETLBatch.integration_name).all()
+        # Retrieve run counts by integration
+        run_counts = session.query(
+            OpenETLIntegrationsRuntimes.integration,
+            func.count(OpenETLIntegrationsRuntimes.id).label('run_count')
+        ).group_by(OpenETLIntegrationsRuntimes.integration).all()
 
-        # Create a dictionary to map batch counts by integration_name
-        batch_count_dict = {batch.integration_name: batch.batch_count for batch in batch_counts}
+        # Create a dictionary to map run counts by integration
+        run_count_dict = {run.integration: run.run_count for run in run_counts}
 
-        # Convert the query results to a list of dictionaries and add batch_count
+        # Convert the query results to a list of dictionaries and add run_count
         integrations_dict = [
             {
-                "integration_name": integration.integration_name,
-                "latest_batch_status": integration.batch_status,
+                "integration_name": integration.integration,
+                "latest_run_status": integration.run_status,
                 "start_date": integration.start_date.isoformat() if integration.start_date else None,
                 "end_date": integration.end_date.isoformat() if integration.end_date else None,
-                "batch_count": batch_count_dict.get(integration.integration_name, 0)
+                "error_message": integration.error_message,
+                "run_count": run_count_dict.get(integration.integration, 0)
             }
             for integration in integrations
         ] if integrations else []
-
 
         # Return the dashboard data
         return {
@@ -947,7 +1014,8 @@ class DatabaseUtils():
         }
 
     def create_integration(self, integration_name, integration_type, target_schema, source_schema, spark_config,
-                           hadoop_config, cron_expression, source_connection,target_connection, source_table, target_table):
+                           hadoop_config, cron_expression, source_connection,target_connection, source_table, target_table,
+                           batch_size):
         scheduler = OpenETLIntegrations(
             integration_name=integration_name,
             integration_type=integration_type,
@@ -960,6 +1028,7 @@ class DatabaseUtils():
             hadoop_config=hadoop_config,
             source_schema=source_schema,
             target_schema=target_schema,
+            batch_size=batch_size
         )
 
         self.session.add(scheduler)
@@ -988,13 +1057,21 @@ class DatabaseUtils():
         ).order_by(OpenETLIntegrationsRuntimes.created_at.desc()).first()
 
         if not batch:
-            return ValueError(f"Record with id {job_id} not found.")
+            raise ValueError(f"Record with id {job_id} not found.")
+
         for key, value in kwargs.items():
             if hasattr(batch, key):
-                setattr(batch, key, value)
+                if key == 'row_count':
+                    # Add the row_count value if it already exists in the database record
+                    current_row_count = getattr(batch, 'row_count', 0)
+                    if current_row_count is None:
+                        current_row_count = 0
+                    setattr(batch, 'row_count', current_row_count + value)
+                else:
+                    setattr(batch, key, value)
+
         self.session.commit()
         return batch
-
 
     def get_integrations_to_schedule(self) -> list[Type[OpenETLIntegrations]]:
         return self.session.query(OpenETLIntegrations).all()

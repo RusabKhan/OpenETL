@@ -25,6 +25,7 @@ class OpenETLIntegrations(Base):
     target_connection = Column(ForeignKey(OpenETLDocument.id), nullable=False)  # Target table name
     spark_config = Column(JSON, nullable=True)
     hadoop_config = Column(JSON, nullable=True)
+    batch_size = Column(Integer, nullable=True, default=100000)
     source_table = Column(String, nullable=False)  # Source table name
     target_table = Column(String, nullable=False)  # Target table name
     source_schema = Column(String, nullable=False)  # Source schema name
@@ -46,5 +47,6 @@ class OpenETLIntegrationsRuntimes(Base):
     start_date = Column(DateTime, nullable=True)  # Scheduled start date
     celery_task_id = Column(String, nullable=True)  # Celery task ID
     end_date = Column(DateTime, nullable=True)  # Scheduled end date
+    row_count = Column(Integer, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

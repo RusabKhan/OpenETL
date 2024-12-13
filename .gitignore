@@ -179,6 +179,5 @@ main.env
 .*
 
 ./app
-
-##frontend stuff
-frontend/app/node_modules/
+/node_modules/*
+/node_modules/.bin/*

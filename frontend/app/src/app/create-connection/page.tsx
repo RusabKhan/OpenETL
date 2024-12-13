@@ -1,84 +1,136 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Head from "next/head";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { CONNECTION_TYPES } from "@/utils/contants";
-import { fetchInstalledConnectors } from "@/utils/api";
+import {
+  fetchInstalledConnectors,
+  getConnectorAuthDetails,
+  store_connection,
+  test_connection,
+} from "@/utils/api";
+import { capitalizeFirstLetter } from "@/utils/func";
+import { Connectors } from "@/types/connectors";
+import {
+  ApiAuthParams,
+  DatabaseAuthParams,
+} from "@/types/auth_params";
+import { StoreConnections } from "@/types/store_connections";
+import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 
 const CreateConnection = () => {
   const [connection, setConnection] = useState({
-    connectionType: "database",
-    authType: "basic",
-    username: "",
-    password: "",
-    hostname: "",
-    port: 0,
-    database: "",
-    connectionName: "",
-    databaseType: "postgresql",
-    apiType: "hubspot",
-    token: "",
+    connection_type: "database",
+    connection_name: "",
+    connector_name: "postgresql",
+    auth_type: "basic",
   });
-  const [databaseConnector, setDatabaseConnectors] = useState([]);
-  const [apiConnector, setApiConnectors] = useState([]);
+  const [connectors, setConnectors] = useState<Connectors>({
+    database: [],
+    api: [],
+  });
+  const [fields, setFields] = useState<DatabaseAuthParams | ApiAuthParams>();
+  const [authType, setAuthType] = useState<string[]>(["basic"]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    setConnection((prev) => ({
-      ...prev,
+    if (name === "connection_type") {
+      setConnection((prev) => ({
+        ...prev,
+        connector_name:
+          value === "database" ? connectors.database[0] : connectors.api[0],
+        connection_type: value,
+      }));
+    } else {
+      setConnection((prevConnection) => ({
+        ...prevConnection,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleFieldsChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+
+    setFields((prevData) => ({
+      ...prevData,
       [name]: value,
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // To be updated
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Connection Data:", connection);
+    console.log("Connection Data:", connection, fields);
+    const test = {
+      auth_type: connection.auth_type,
+      connector_name: connection.connector_name,
+      connector_type: connection.connection_type,
+      auth_params: fields,
+    };
+    test_connection(test)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err: any) => {
+        console.log(err);
+      });
+    // const response = await store_connection(connection);
+
+    // console.log(response);
   };
 
   const getInstalledConnectors = async () => {
     const response = await fetchInstalledConnectors();
-    setDatabaseConnectors(response.database);
-    setApiConnectors(response.api);
+    setConnectors(response);
+  };
+
+  const getConnectorAuth = async (name: string, type: string) => {
+    const response = await getConnectorAuthDetails(name, type);
+    const firstKeys = Object.keys(response);
+    setFields((_prev) => {
+      return Object.values(response)[0];
+    });
+    setAuthType(firstKeys);
   };
 
   useEffect(() => {
     getInstalledConnectors();
   }, []);
 
+  useEffect(() => {
+    getConnectorAuth(connection.connector_name, connection.connection_type);
+  }, [connection.connection_type, connection.connection_name]);
+
   return (
     <>
-      <Head>
-        <title>Create Connection | OpenETL</title>
-        <meta
-          name="description"
-          content="Create Conection page for OpenETL dashboard"
-        />
-      </Head>
       <DefaultLayout>
         <div className="mx-auto max-w-4xl">
-          <h1 className="mb-6 text-2xl font-bold">Create Connection</h1>
+          <Breadcrumb pageName="Create Connection" />
+
           <form
-            className="space-y-4 rounded-lg bg-gray-800 p-6 shadow-md"
+            className="space-y-4 rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark"
             onSubmit={handleSubmit}
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {/* Select Connection Type */}
               <div>
                 <label
-                  htmlFor="connectionType"
+                  htmlFor="connection_type"
                   className="mb-1 block text-sm font-medium"
                 >
                   Select Connection Type
                 </label>
                 <select
-                  name="connectionType"
-                  id="connectionType"
-                  value={connection.connectionType}
+                  name="connection_type"
+                  id="connection_type"
+                  value={connection.connection_type}
                   onChange={handleChange}
-                  className="w-full rounded-md bg-gray-700 p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 >
                   {CONNECTION_TYPES.map((type, i) => (
                     <option value={type.value} key={i}>
@@ -91,220 +143,97 @@ const CreateConnection = () => {
               {/* Connection Name */}
               <div>
                 <label
-                  htmlFor="connectionName"
+                  htmlFor="connection_name"
                   className="mb-1 block text-sm font-medium"
                 >
                   Connection Name
                 </label>
                 <input
                   type="text"
-                  id="connectionName"
-                  name="connectionName"
-                  value={connection.connectionName}
+                  id="connection_name"
+                  name="connection_name"
+                  value={connection.connection_name}
                   onChange={handleChange}
                   placeholder="my_connection"
-                  className="w-full rounded-md bg-gray-700 p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   required
                 />
               </div>
 
               {/* Dynamic Fields for Database Connection */}
-              {connection.connectionType === "database" && (
-                <>
-                  <div>
-                    <label
-                      htmlFor="databaseType"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Select Database
-                    </label>
-                    <select
-                      name="databaseType"
-                      id="databaseType"
-                      value={connection.databaseType}
-                      onChange={handleChange}
-                      className="w-full rounded-md bg-gray-700 p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      {databaseConnector.map((database, i) => (
-                        <option value={database} key={i}>
-                          {database}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+              <>
+                <div>
+                  <label
+                    htmlFor="connector_name"
+                    className="mb-1 block text-sm font-medium"
+                  >
+                    Select {capitalizeFirstLetter(connection.connection_type)}
+                  </label>
+                  <select
+                    name="connector_name"
+                    id="connector_name"
+                    value={connection.connector_name}
+                    onChange={handleChange}
+                    className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="----">----</option>
+                    {connection.connection_type === "database"
+                      ? connectors.database.map((database, i) => (
+                          <option value={database} key={i}>
+                            {capitalizeFirstLetter(database)}
+                          </option>
+                        ))
+                      : connectors.api.map((database, i) => (
+                          <option value={database} key={i}>
+                            {capitalizeFirstLetter(database)}
+                          </option>
+                        ))}
+                  </select>
+                </div>
 
-                  <div>
-                    <label
-                      htmlFor="authType"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Authentication Type
-                    </label>
-                    <select
-                      name="authType"
-                      id="authType"
-                      value={connection.authType}
-                      onChange={handleChange}
-                      className="w-full rounded-md bg-gray-700 p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="basic">Basic</option>
-                    </select>
-                  </div>
+                <div>
+                  <label
+                    htmlFor="auth_type"
+                    className="mb-1 block text-sm font-medium"
+                  >
+                    Authentication Type
+                  </label>
+                  <select
+                    name="auth_type"
+                    id="auth_type"
+                    value={connection.auth_type}
+                    onChange={handleChange}
+                    className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  >
+                    {authType.map((auth, i) => (
+                      <option value={auth} key={i}>
+                        {capitalizeFirstLetter(auth)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                  <div>
-                    <label
-                      htmlFor="username"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Username
-                    </label>
-                    <input
-                      type="text"
-                      id="username"
-                      name="username"
-                      value={connection.username}
-                      onChange={handleChange}
-                      placeholder="Enter username"
-                      className="w-full rounded-md bg-gray-700 p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="password"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Password
-                    </label>
-                    <input
-                      type="password"
-                      id="password"
-                      name="password"
-                      value={connection.password}
-                      onChange={handleChange}
-                      placeholder="Enter password"
-                      className="w-full rounded-md bg-gray-700 p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="hostname"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Hostname
-                    </label>
-                    <input
-                      type="text"
-                      id="hostname"
-                      name="hostname"
-                      value={connection.hostname}
-                      onChange={handleChange}
-                      placeholder="localhost"
-                      className="w-full rounded-md bg-gray-700 p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="port"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Port
-                    </label>
-                    <input
-                      type="number"
-                      id="port"
-                      name="port"
-                      value={connection.port}
-                      onChange={handleChange}
-                      placeholder="5432"
-                      className="w-full rounded-md bg-gray-700 p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <label
-                      htmlFor="database"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Database
-                    </label>
-                    <input
-                      type="text"
-                      id="database"
-                      name="database"
-                      value={connection.database}
-                      onChange={handleChange}
-                      placeholder="openetl"
-                      className="w-full rounded-md bg-gray-700 p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </>
-              )}
-
-              {/* Dynamic Fields for API Connection */}
-              {connection.connectionType === "api" && (
-                <>
-                  <div>
-                    <label
-                      htmlFor="apiType"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Select API
-                    </label>
-                    <select
-                      name="apiType"
-                      id="apiType"
-                      value={connection.apiType}
-                      onChange={handleChange}
-                      className="w-full rounded-md bg-gray-700 p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      {apiConnector.map((api, i) => (
-                        <option value={api} key={i}>
-                          {api}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="authType"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Authentication Type
-                    </label>
-                    <select
-                      name="authType"
-                      id="authType"
-                      value={connection.authType}
-                      onChange={handleChange}
-                      className="w-full rounded-md bg-gray-700 p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="bearer">Bearer</option>
-                    </select>
-                  </div>
-
-                  <div className="col-span-2">
-                    <label
-                      htmlFor="token"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Token
-                    </label>
-                    <input
-                      type="text"
-                      id="token"
-                      name="token"
-                      value={connection.token}
-                      onChange={handleChange}
-                      placeholder="Enter API token"
-                      className="w-full rounded-md bg-gray-700 p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </>
-              )}
+                {fields && (
+                  <>
+                    {Object.entries(fields).map(([key, value]) => (
+                      <div key={key}>
+                        <label
+                          style={{ display: "block", marginBottom: "5px" }}
+                        >
+                          {key.charAt(0).toUpperCase() + key.slice(1)}:
+                        </label>
+                        <input
+                          type={typeof value === "number" ? "number" : "text"}
+                          name={key}
+                          value={value}
+                          onChange={handleFieldsChange}
+                          className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                        />
+                      </div>
+                    ))}
+                  </>
+                )}
+              </>
             </div>
 
             {/* Submit Button */}

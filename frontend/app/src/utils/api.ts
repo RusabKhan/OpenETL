@@ -1,3 +1,5 @@
+import { StoreConnections } from "@/types/store_connections";
+import { TestConnection } from "@/types/test_connection";
 import axios from "axios";
 
 // Define the base URL globally for reuse
@@ -30,16 +32,33 @@ const apiRequest = async (
   }
 };
 
+// GET
 export const fetchDashboardData = async () => {
   return apiRequest("get", "/database/get_dashboard_data");
 };
+export const fetchInstalledConnectors = async () => {
+  return apiRequest("get", "/connector/get_installed_connectors");
+};
+export const getConnectorAuthDetails = async (name: string, type: string) => {
+  return apiRequest(
+    "get",
+    `/connector/get_connector_auth_details/${name}/${type}`,
+  );
+};
 
+// POST
 export const fetchCreatedConnections = async (type: string) => {
   return apiRequest("post", "/connector/get_created_connections", {
     connector_type: type,
   });
 };
-
-export const fetchInstalledConnectors = async () => {
-  return apiRequest("get", "/connector/get_installed_connectors")
+export const test_connection = async (params: TestConnection) => {
+  return apiRequest("post", "/connector/test_connection", {
+    ...params,
+  });
+};
+export const store_connection = async (params: StoreConnections) => {
+  return apiRequest("post", "/connector/store_connection", {
+    ...params,
+  });
 };
