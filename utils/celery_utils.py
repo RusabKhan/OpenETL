@@ -20,7 +20,7 @@ app.conf.update(
 
 @app.task()
 def run_pipeline(job_id, job_name,job_type, source_connection, target_connection, source_table, target_table, source_schema,
-                          target_schema, spark_config, hadoop_config, **kwargs):
+                          target_schema, spark_config, hadoop_config, batch_size, **kwargs):
         pipeline.run_pipeline(
             job_type=job_type,
             job_id=job_id,
@@ -32,7 +32,8 @@ def run_pipeline(job_id, job_name,job_type, source_connection, target_connection
             source_table=source_table,
             target_table=target_table,
             spark_config=spark_config,
-            hadoop_config=hadoop_config
+            hadoop_config=hadoop_config,
+            batch_size=batch_size
         )
 
 

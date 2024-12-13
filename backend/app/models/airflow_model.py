@@ -15,3 +15,4 @@ class CreatePipelineModel(BaseModel):
     schedule_date: list[str] = Field(...,  examples=["2023-01-01"])
     schedule_time: str = Field(..., min_length=3,  examples=["00:00:00"])
     frequency: str = Field(..., min_length=3,  examples=["daily"])
+    batch_size: int = Field(...,  examples=["100000"])
