@@ -691,6 +691,40 @@ class DatabaseUtils():
             logging.error(e)
             return False, e
 
+
+    def delete_document(self, table_name='openetl_documents', schema_name='open_etl', conditions: dict = {}):
+        """
+        Deletes a document from the specified table in the database.
+
+        Args:
+            table_name (str, optional): The name of the table to delete the document from. Defaults to 'openetl_documents'.
+            schema_name (str, optional): The schema of the table. Defaults to 'open_etl'.
+            conditions (dict, optional): The conditions to filter the document deletion. Defaults to {}.
+
+        Returns:
+            bool: True if the document is successfully deleted, False otherwise.
+
+        Raises:
+            Exception: If an error occurs while deleting the document. The error message is logged.
+        """
+        try:
+            Session = sessionmaker(bind=self.engine)
+            session = Session()
+            document = session.query(OpenETLDocument).filter_by(**conditions).first()
+            if document:
+                session.delete(document)
+                session.commit()
+                session.close()
+                return True, ""
+            else:
+                session.close()
+                return False, "Document not found."
+        except Exception as e:
+            logging.error(e)
+            return False, e
+
+
+
     def get_created_connections(self, connector_type=None, connection_name=None, id=None) -> pd.DataFrame:
         """
         Returns a list of created connections for the specified connector type.
@@ -794,6 +828,7 @@ class DatabaseUtils():
         session.commit()
         return new_batch
 
+
     def update_openetl_batch(self, batch_id, **kwargs):
         """
         Updates an OpenETLBatch object in the database with the specified batch_id.
@@ -827,6 +862,37 @@ class DatabaseUtils():
             return batch
         else:
             raise Exception(f"Batch with id {batch_id} not found.")
+
+
+    def update_openetl_document(self, document_id, **kwargs):
+        """
+        Updates an OpenETLBatch object in the database with the specified batch_id.
+
+        Args:
+            document_id (int): The ID of the batch to update.
+            **kwargs: Keyword arguments specifying the fields to update and their new values.
+
+        Returns:
+            OpenETLBatch: The updated OpenETLBatch object.
+
+        Raises:
+            Exception: If no OpenETLBatch object with the specified batch_id is found.
+        """
+
+        session = self.session
+        # Find the batch by batch_id
+        batch = session.query(OpenETLDocument).filter(
+            OpenETLDocument.id == document_id).one_or_none()
+
+        if batch is not None:
+            # Update the specified fields
+            for key, value in kwargs.items():
+                setattr(batch, key, value)
+            session.commit()
+            return batch
+        else:
+            raise Exception(f"Document with id {document_id} not found.")
+
 
     def get_dashboard_data(self):
         """
