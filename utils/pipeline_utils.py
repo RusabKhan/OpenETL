@@ -26,6 +26,15 @@ import utils.database_utils as database_utils
 
 import logging
 
+# Create a logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Create a file handler and set the logging level to INFO
+
+
+
+
 def create_airflow_dag(config):
     """Store pipeline configuration in .local/pipelines directory
 
@@ -122,31 +131,47 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
     A function that runs a pipeline with the specified configurations, particularly used in the airflow DAG to run a pipeline.
 
     Args:
-        source_connection_type (str): The type of the source connection.
+        target_schema:
+        job_type:
+        job_id:
+        job_name:
+        target_table:
+        source_connection_details:
+        target_connection_details:
+        batch_size:
         source_table (str): The name of the source table.
         source_schema (str): The schema of the source table.
-        source_connection_name (str): The name of the source connection.
-        target_connection_type (str): The type of the target connection.
-        target_connection_config (dict): The configuration details of the target connection.
         spark_config (dict, optional): The Spark configuration. Defaults to None.
         hadoop_config (dict, optional): The Hadoop configuration. Defaults to None.
-        mapping (dict, optional): The mapping details. Defaults to None.
-        integration_name (str, optional): The name of the integration. Defaults to None.
 
     Raises:
         Exception: If no data is found in the source table.
         NotImplementedError: If the target connection type is API.
     """
-    db = None
     try:
-        print("RUNNING PIPELINE")
+        log_folder = f'{os.environ["OPENETL_HOME"]}/.logs'
+        if not os.path.exists(log_folder):
+            os.makedirs(log_folder)
+        file_handler = logging.FileHandler(
+            f'{log_folder}/integration_{job_id}_{job_name}_{datetime.now().strftime("%Y%m%d%H%M%S")}.log')
+        file_handler.setLevel(logging.INFO)
+
+        # Create a formatter and set the formatter for the file handler
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+
+        # Add the file handler to the logger
+        logger.addHandler(file_handler)
+
+        logger.info("RUNNING PIPELINE")
 
         batch_id = str(uuid.uuid4())
-        logging.info(f"Batch ID: {batch_id}")
+        logger.info(f"Batch ID: {batch_id}")
         target_credentials = target_connection_details['connection_credentials']
         source_credentials = source_connection_details['connection_credentials']
 
         if target_connection_details['connection_type'].lower() == ConnectionType.DATABASE.value:
+
             engine = con_utils.get_connector_engine(connector_name=target_connection_details['connector_name'])
 
             jar = jdbc_database_jars[engine]
@@ -170,8 +195,8 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
             #     target_connection_config['table'], df)
             # if not created:
             #     raise Exception(message)
-            logging.info("PRINTING OUT JARS")
-            logging.info(jar)
+            logger.info("PRINTING OUT JARS")
+            logger.info(jar)
             spark_class = sp_ut.SparkConnection(spark_configuration=spark_config,
                                                 hadoop_configuration=hadoop_config, jar=jar, connection_string=con_string)
             spark_session = spark_class.initializeSpark()
@@ -199,15 +224,15 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                                         target_table=target_table, batch_id=batch_id, driver=driver, spark_session=spark_session, db_class=db)
                     update_db(job_id, job_id, None, RunStatus.SUCCESS, datetime.utcnow(), row_count=row_count)
 
-            logging.info("FINISHED PIPELINE")
-            logging.info("DISPOSING ENGINES")
+            logger.info("FINISHED PIPELINE")
+            logger.info("DISPOSING ENGINES")
             spark_class.__dispose__()
             db.__dispose__()
 
         elif target_connection_details['connection_type'].lower() == ConnectionType.API.value:
             raise NotImplementedError("API target connection not implemented")
     except Exception as e:
-        logging.error(e)
+        logger.error(e)
         update_db(job_id, job_id, str(e), RunStatus.FAILED, datetime.utcnow(), row_count=0)
 
 
@@ -220,14 +245,14 @@ def update_db(celery_task_id, integration, error_message, run_status, start_date
 
 def run_pipeline_target(df, spark_class,row_count, con_string, target_table, batch_id, driver, spark_session, db_class):
 
-    logging.info(df.limit(2))
+    logger.info(df.limit(2))
 
     # Display column data types
-    logging.info(df.dtypes)
+    logger.info(df.dtypes)
 
     # Count rows in Spark DataFrame
     if row_count == 0:
-        logging.exception(df.show())
+        logger.exception(df.show())
         raise Exception("No data found in source table")
 
     # Rename columns to replace '.' with '_'
