@@ -989,13 +989,21 @@ class DatabaseUtils():
         ).order_by(OpenETLIntegrationsRuntimes.created_at.desc()).first()
 
         if not batch:
-            return ValueError(f"Record with id {job_id} not found.")
+            raise ValueError(f"Record with id {job_id} not found.")
+
         for key, value in kwargs.items():
             if hasattr(batch, key):
-                setattr(batch, key, value)
+                if key == 'row_count':
+                    # Add the row_count value if it already exists in the database record
+                    current_row_count = getattr(batch, 'row_count', 0)
+                    if current_row_count is None:
+                        current_row_count = 0
+                    setattr(batch, 'row_count', current_row_count + value)
+                else:
+                    setattr(batch, key, value)
+
         self.session.commit()
         return batch
-
 
     def get_integrations_to_schedule(self) -> list[Type[OpenETLIntegrations]]:
         return self.session.query(OpenETLIntegrations).all()
