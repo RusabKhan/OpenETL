@@ -9,14 +9,11 @@ import {
   store_connection,
   test_connection,
 } from "@/utils/api";
-import { capitalizeFirstLetter } from "@/utils/func";
+import { capitalizeFirstLetter, isValidAuthParams } from "@/utils/func";
 import { Connectors } from "@/types/connectors";
-import {
-  ApiAuthParams,
-  DatabaseAuthParams,
-} from "@/types/auth_params";
-import { StoreConnections } from "@/types/store_connections";
+import { ApiAuthParams, DatabaseAuthParams } from "@/types/auth_params";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { useRouter } from "next/navigation";
 
 const CreateConnection = () => {
   const [connection, setConnection] = useState({
@@ -31,6 +28,8 @@ const CreateConnection = () => {
   });
   const [fields, setFields] = useState<DatabaseAuthParams | ApiAuthParams>();
   const [authType, setAuthType] = useState<string[]>(["basic"]);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -57,31 +56,46 @@ const CreateConnection = () => {
     const { name, value } = e.target;
 
     setFields((prevData) => ({
-      ...prevData,
-      [name]: value,
+      ...(prevData as DatabaseAuthParams | ApiAuthParams),
+      [name]: name === "port" ? parseInt(value, 10) : value,
     }));
   };
 
   // To be updated
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Connection Data:", connection, fields);
+
     const test = {
       auth_type: connection.auth_type,
       connector_name: connection.connector_name,
       connector_type: connection.connection_type,
-      auth_params: fields,
+      auth_params: fields as DatabaseAuthParams | ApiAuthParams,
     };
     test_connection(test)
-      .then((res) => {
-        console.log(res);
+      .then(async (res) => {
+        if (res === true) {
+          const store = {
+            connection_name: connection.connection_name,
+            connector_name: connection.connector_name,
+            connection_type: connection.connection_type,
+            auth_type: connection.auth_type,
+            connection_credentials: fields as
+              | DatabaseAuthParams
+              | ApiAuthParams,
+          };
+          const response = await store_connection(store);
+          if (response[0] === true) {
+            router.push("/connections");
+          } else {
+            setError("Can't save the connection! ❌");
+          }
+        } else {
+          setError("Test Connection Failed! ❌");
+        }
       })
       .catch((err: any) => {
         console.log(err);
       });
-    // const response = await store_connection(connection);
-
-    // console.log(response);
   };
 
   const getInstalledConnectors = async () => {
@@ -92,8 +106,12 @@ const CreateConnection = () => {
   const getConnectorAuth = async (name: string, type: string) => {
     const response = await getConnectorAuthDetails(name, type);
     const firstKeys = Object.keys(response);
-    setFields((_prev) => {
-      return Object.values(response)[0];
+    const values = Object.values(response)[0];
+    setFields((prevFields) => {
+      if (isValidAuthParams(values)) {
+        return values;
+      }
+      return prevFields;
     });
     setAuthType(firstKeys);
   };
@@ -104,7 +122,7 @@ const CreateConnection = () => {
 
   useEffect(() => {
     getConnectorAuth(connection.connector_name, connection.connection_type);
-  }, [connection.connection_type, connection.connection_name]);
+  }, [connection.connection_type, connection.connector_name]);
 
   return (
     <>
@@ -245,6 +263,15 @@ const CreateConnection = () => {
                 Create Connection
               </button>
             </div>
+            {error && (
+              <div
+                className="relative rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700"
+                role="alert"
+              >
+                <strong className="font-bold">Error!</strong>
+                <span className="block sm:inline">{error}</span>
+              </div>
+            )}
           </form>
         </div>
       </DefaultLayout>
