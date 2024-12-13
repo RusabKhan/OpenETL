@@ -32,7 +32,7 @@ const CreateEtl = () => {
 
         {/* Tab Content */}
         {activeTab === "selectsource&target" && <SourceTargetTab />}
-        {activeTab === "sparkConfig" && <SparkConfigTab />}
+        {activeTab === "sparkconfig" && <SparkConfigTab />}
         {activeTab === "finish" && <FinishTab />}
       </div>
     </DefaultLayout>
@@ -138,16 +138,99 @@ const SourceTargetTab = () => (
 // Spark Config Tab
 const SparkConfigTab = () => (
   <div>
-    <h2 className="text-lg font-semibold">Spark Config</h2>
-    <p>Configure Spark-related settings here.</p>
+    <h2 className="text-lg font-semibold mb-4">Spark Config</h2>
+    <table className="w-full border-collapse border border-gray-300">
+      <thead>
+        <tr>
+          <th className="border border-gray-300 px-4 py-2">Configuration</th>
+          <th className="border border-gray-300 px-4 py-2">Average Setting</th>
+        </tr>
+      </thead>
+      <tbody>
+        {[
+          { config: "spark.driver.memory", value: "1g" },
+          { config: "spark.executor.memory", value: "1g" },
+          { config: "spark.executor.cores", value: "1" },
+          { config: "spark.executor.instances", value: "1" },
+          { config: "spark.app.name", value: "my_connection_to_my_connection" },
+        ].map((row) => (
+          <tr key={row.config}>
+            <td className="border border-gray-300 px-4 py-2">{row.config}</td>
+            <td className="border border-gray-300 px-4 py-2">{row.value}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   </div>
 );
 
 // Finish Tab
 const FinishTab = () => (
   <div>
-    <h2 className="text-lg font-semibold">Finish</h2>
-    <p>Review and finalize your ETL configuration.</p>
+    <h2 className="text-lg font-semibold mb-4">Finish</h2>
+    <div className="grid gap-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">
+          Enter unique integration name
+        </label>
+        <input
+          type="text"
+          className="w-full p-2 border rounded"
+          placeholder="Enter integration name"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Select Schedule Type</label>
+        <div className="flex gap-4">
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="scheduleType"
+              value="frequency"
+              defaultChecked
+              className="mr-2"
+            />
+            Frequency
+          </label>
+          <label className="flex items-center">
+            <input type="radio" name="scheduleType" value="selectedDates" className="mr-2" />
+            Selected Dates
+          </label>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Select Frequency</label>
+        <select className="w-full p-2 border rounded">
+          <option value="weekly">Weekly</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Select Integration Type</label>
+        <div className="flex gap-4">
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="integrationType"
+              value="fullLoad"
+              defaultChecked
+              className="mr-2"
+            />
+            Full Load
+          </label>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Schedule Time</label>
+        <input
+          type="time"
+          className="w-full p-2 border rounded"
+          defaultValue="19:05"
+        />
+      </div>
+      <button className="bg-blue-500 text-white py-2 px-4 rounded">
+        Create Integration
+      </button>
+    </div>
   </div>
 );
 
