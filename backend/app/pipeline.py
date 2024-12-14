@@ -78,23 +78,22 @@ async def update_pipeline_api(request: Request, fields: dict = Body(...), pipeli
         converted to an `IntegrationType` enum value.
     """
     db = DatabaseUtils(**get_open_etl_document_connection_details())
-    pipeline_config = {}
     if "schedule_date" in fields or "schedule_time" in fields or "frequency" in fields:
-        pipeline_config["cron_expression"] = generate_cron_expression(schedule_time=pipeline_config["schedule_time"],
-                                                                      schedule_dates=pipeline_config["schedule_date"],
-                                                                      frequency=pipeline_config["frequency"])
-        del pipeline_config["frequency"]
-        del pipeline_config["schedule_time"]
-        del pipeline_config["schedule_date"]
+        fields["cron_expression"] = generate_cron_expression(schedule_time=fields["schedule_time"],
+                                                                      schedule_dates=fields["schedule_date"],
+                                                                      frequency=fields["frequency"])
+        del fields["frequency"]
+        del fields["schedule_time"]
+        del fields["schedule_date"]
 
     if "integration_type" in fields:
-        pipeline_config["integration_type"] = IntegrationType(pipeline_config["integration_type"])
+        fields["integration_type"] = IntegrationType(fields["integration_type"])
 
-    return db.update_integration(pipeline_id=pipeline_id, **pipeline_config)
+    return db.update_integration(record_id=pipeline_id, **fields)
 
 
 @router.delete("/delete_integration")
-async def delete_pipeline_api(request: Request, pipeline_id: str = Body(...)):
+async def delete_pipeline_api(request: Request, pipeline_id: str):
     """
     Deletes a pipeline from the database.
 

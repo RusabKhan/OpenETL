@@ -17,10 +17,12 @@ from typing import List, Type
 
 import sqlalchemy as sq
 import pandas as pd
+
 from utils.__migrations__.app import OpenETLDocument, OpenETLBatch, OpenETLOAuthToken
 from utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
-from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect
+from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect, or_
 from sqlalchemy.orm import sessionmaker
+
 from utils.cache import sqlalchemy_database_engines
 from utils.enums import ConnectionType
 from sqlalchemy.exc import OperationalError
@@ -692,14 +694,12 @@ class DatabaseUtils():
             return False, e
 
 
-    def delete_document(self, table_name='openetl_documents', schema_name='open_etl', conditions: dict = {}):
+    def delete_document(self,  document_id: int=None):
         """
         Deletes a document from the specified table in the database.
 
         Args:
-            table_name (str, optional): The name of the table to delete the document from. Defaults to 'openetl_documents'.
-            schema_name (str, optional): The schema of the table. Defaults to 'open_etl'.
-            conditions (dict, optional): The conditions to filter the document deletion. Defaults to {}.
+            document_id:
 
         Returns:
             bool: True if the document is successfully deleted, False otherwise.
@@ -710,7 +710,19 @@ class DatabaseUtils():
         try:
             Session = sessionmaker(bind=self.engine)
             session = Session()
-            document = session.query(OpenETLDocument).filter_by(**conditions).first()
+            document = session.query(OpenETLDocument).filter_by(id=document_id).first()
+            integrations = (
+                session.query(OpenETLIntegrations)
+                .filter(or_(
+                    OpenETLIntegrations.source_connection == document_id,
+                    OpenETLIntegrations.target_connection == document_id
+                ))
+                .all()
+            )
+            if integrations:
+                for integration in integrations:
+                    session.delete(integration)
+                    session.commit()
             if document:
                 session.delete(document)
                 session.commit()
@@ -850,14 +862,13 @@ class DatabaseUtils():
             OpenETLBatch.batch_id == batch_id).one_or_none()
 
         if batch is not None:
-            # Update the specified fields
             for key, value in kwargs.items():
-                if key in ['rows_count']:
-                    existing_value = getattr(batch, key)
-                    value = existing_value + value
-                setattr(batch, key, value)
+                if value is not None:
+                    if key in ['rows_count']:
+                        existing_value = getattr(batch, key)
+                        value = existing_value + value
+                    setattr(batch, key, value)
 
-            # Commit the changes to the session
             session.commit()
             return batch
         else:
@@ -887,7 +898,8 @@ class DatabaseUtils():
         if batch is not None:
             # Update the specified fields
             for key, value in kwargs.items():
-                setattr(batch, key, value)
+                if value is not None:
+                    setattr(batch, key, value)
             session.commit()
             return batch
         else:
