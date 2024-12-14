@@ -2,6 +2,8 @@ from fastapi import APIRouter, Body, HTTPException, Request
 import os
 import sys
 
+from backend.app.models.main import ConnectionBody
+
 sys.path.append(os.environ['OPENETL_HOME'])
 
 from app.models.main import IntegrationBody
@@ -77,20 +79,18 @@ async def connector_fetch_metadata_api(request: Request):
 
 
 @router.post("/update_connection")
-async def update_connection_api(request: Request, document_id: int = Body(...), kwargs: dict = Body(...)):
+async def update_connection_api(request: Request, document_id: int = Body(...), fields: ConnectionBody = Body(...)):
     try:
-        body = await request.json()
         db = DatabaseUtils(**get_open_etl_document_connection_details())
-        return db.update_openetl_document(document_id=document_id, **kwargs)
+        return db.update_openetl_document(document_id=document_id, **fields.dict())
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/delete_connection")
-async def delete_connection_api(request: Request, document_details: IntegrationBody = Body(...)):
+async def delete_connection_api(request: Request, document_id: int):
     try:
-        body = await request.json()
         db = DatabaseUtils(**get_open_etl_document_connection_details())
-        return db.delete_document(document_details)
+        return db.delete_document(document_id=document_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
