@@ -3,7 +3,7 @@ from uuid import UUID
 from typing import List, Optional
 import datetime
 
-from utils.enums import IntegrationType
+from utils.enums import IntegrationType, AuthType
 
 
 class CreatePipelineModel(BaseModel):
@@ -24,7 +24,6 @@ class CreatePipelineModel(BaseModel):
 
 
 class IntegrationBody(BaseModel):
-    id: Optional[UUID] = Field(default=None)  # Unique identifier
     integration_name: Optional[constr(min_length=1)] = Field(None, description="Name of the integration")
     integration_type: Optional[IntegrationType] = Field(None, description="Type of integration (e.g., API, DB)")
     cron_expression: Optional[List[str]] = Field(None, description="Cron schedule for periodic tasks")
@@ -39,5 +38,10 @@ class IntegrationBody(BaseModel):
     target_schema: Optional[constr(min_length=1)] = Field(None, description="Target schema name")
     is_enabled: Optional[bool] = Field(None, description="Indicates whether the scheduler is enabled")
     is_running: Optional[bool] = Field(None, description="Indicates whether the scheduler is currently running")
-    created_at: Optional[datetime] = Field(None, description="Record creation time (auto-generated)")
-    updated_at: Optional[datetime] = Field(None, description="Record update time (auto-generated)")
+
+class ConnectionBody(BaseModel):
+    connection_credentials: Optional[dict] = Field(None, description="Connection credentials as JSON")
+    connection_name: Optional[constr(min_length=1)] = Field(None, description="Unique connection name")
+    connection_type: Optional[str] = Field(None, description="Type of the connection")
+    auth_type: Optional[AuthType] = Field(None, description="Authentication type")
+    connector_name: Optional[constr(min_length=1)] = Field(None, description="Name of the connector")
