@@ -9,20 +9,21 @@ const CreateEtl = () => {
 
   const handleNextTab = () => {
     if (activeTab === "selectsource&target") {
-      setActiveTab("sparkconfig");
-    } else if (activeTab === "sparkconfig") {
+      setActiveTab("spark/hadoopconfig");
+    } else if (activeTab === "spark/hadoopconfig") {
       setActiveTab("finish");
     }
   };
 
   const handlePreviousTab = () => {
-    if (activeTab === "sparkconfig") {
+    if (activeTab === "spark/hadoopconfig") {
       setActiveTab("selectsource&target");
     } else if (activeTab === "finish") {
-      setActiveTab("sparkconfig");
+      setActiveTab("spark/hadoopconfig");
     }
   };
 
+  console.log('activeTab', activeTab)
   return (
     <DefaultLayout>
       <div className="mx-auto max-w-7xl p-6">
@@ -179,124 +180,6 @@ const SourceTargetTab = () => (
 );
 
 // Spark/Hadoop Config Tab
-// const SparkConfigTab = () => {
-//   const [sparkConfig, setSparkConfig] = useState([
-//     { config: "spark.driver.memory", value: "1g", isEditing: false },
-//     { config: "spark.executor.memory", value: "1g", isEditing: false },
-//     { config: "spark.executor.cores", value: "1", isEditing: false },
-//     { config: "spark.executor.instances", value: "1", isEditing: false },
-//     { config: "spark.app.name", value: "my_connection_to_my_connection", isEditing: false },
-//   ]);
-
-//   const [hadoopConfig, setHadoopConfig] = useState([
-//     { config: "fs.defaultFS", value: "hdfs://localhost:8020", isEditing: false },
-//     { config: "dfs.replication", value: "3", isEditing: false },
-//     { config: "yarn.nodemanager.memory-mb", value: "2048", isEditing: false },
-//     { config: "mapreduce.framework.name", value: "yarn", isEditing: false },
-//     { config: "hadoop.tmp.dir", value: "/tmp/hadoop", isEditing: false },
-//   ]);
-
-//   const handleEdit = (setConfig: any, index: any) => {
-//     setConfig((prev: any) =>
-//       prev.map((item: any, idx: any) =>
-//         idx === index ? { ...item, isEditing: !item.isEditing } : item
-//       )
-//     );
-//   };
-
-//   const handleChange = (setConfig: any, index: any, newValue: any) => {
-//     setConfig((prev: any) =>
-//       prev.map((item: any, idx: any) =>
-//         idx === index ? { ...item, value: newValue } : item
-//       )
-//     );
-//   };
-
-//   const renderTable = (data: any, setConfig: any) => (
-//     <table className="w-full border-collapse border border-gray-300">
-//       <thead>
-//         <tr>
-//           <th className="border border-gray-300 px-4 py-2">Configuration</th>
-//           <th className="border border-gray-300 px-4 py-2">Value</th>
-//           <th className="border border-gray-300 px-4 py-2">Actions</th>
-//         </tr>
-//       </thead>
-//       <tbody>
-//         {data.map((row: any, index: any) => (
-//           <tr key={row.config}>
-//             <td className="border border-gray-300 px-4 py-2">{row.config}</td>
-//             <td className="border border-gray-300 px-4 py-2">
-//               {row.isEditing ? (
-//                 <input
-//                   type="text"
-//                   value={row.value}
-//                   onChange={(e) => handleChange(setConfig, index, e.target.value)}
-//                   className="w-full border border-gray-300 px-2 py-1"
-//                 />
-//               ) : (
-//                 row.value
-//               )}
-//             </td>
-//             <td className="border border-gray-300 px-4 py-2 text-center">
-//               <button
-//                 onClick={() => handleEdit(setConfig, index)}
-//                 className="text-blue-500 hover:text-blue-700 flex items-center justify-center"
-//               >
-//                 {row.isEditing ? (
-//                   // Check icon (SVG)
-//                   <svg
-//                     className="h-5 w-5"
-//                     xmlns="http://www.w3.org/2000/svg"
-//                     viewBox="0 0 24 24"
-//                     fill="none"
-//                     stroke="currentColor"
-//                   >
-//                     <path
-//                       strokeLinecap="round"
-//                       strokeLinejoin="round"
-//                       strokeWidth="2"
-//                       d="M5 13l4 4L19 7"
-//                     />
-//                   </svg>
-//                 ) : (
-//                   // Pencil icon (SVG)
-//                   <svg
-//                     className="h-5 w-5"
-//                     xmlns="http://www.w3.org/2000/svg"
-//                     viewBox="0 0 20 20"
-//                     fill="currentColor"
-//                   >
-//                     <path
-//                       fillRule="evenodd"
-//                       d="M17.121 2.879a3 3 0 00-4.242 0L5 9.244V12h2.756l8.879-8.879a3 3 0 000-4.242zM3 14v3h3l8.879-8.879a3 3 0 000-4.242l-1.5-1.5a3 3 0 00-4.242 0L3 10.756V14z"
-//                       clipRule="evenodd"
-//                     />
-//                   </svg>
-//                 )}
-//               </button>
-//             </td>
-//           </tr>
-//         ))}
-//       </tbody>
-//     </table>
-//   );
-
-//   return (
-//     <div>
-//       <div className="grid grid-cols-2 gap-8">
-//         <div>
-//           <h3 className="text-md font-semibold mb-2">Spark Configuration</h3>
-//           {renderTable(sparkConfig, setSparkConfig)}
-//         </div>
-//         <div>
-//           <h3 className="text-md font-semibold mb-2">Hadoop Configuration</h3>
-//           {renderTable(hadoopConfig, setHadoopConfig)}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
 const SparkConfigTab = () => {
   const [sparkConfig, setSparkConfig] = useState([
     { config: "spark.driver.memory", value: "1g", isEditing: false },
