@@ -7,7 +7,22 @@ import DefaultLayout from "@/components/Layouts/DefaultLayout";
 const CreateEtl = () => {
   const [activeTab, setActiveTab] = useState("selectsource&target");
 
-  console.log('activeTab', activeTab)
+  const handleNextTab = () => {
+    if (activeTab === "selectsource&target") {
+      setActiveTab("sparkconfig");
+    } else if (activeTab === "sparkconfig") {
+      setActiveTab("finish");
+    }
+  };
+
+  const handlePreviousTab = () => {
+    if (activeTab === "sparkconfig") {
+      setActiveTab("selectsource&target");
+    } else if (activeTab === "finish") {
+      setActiveTab("sparkconfig");
+    }
+  };
+
   return (
     <DefaultLayout>
       <div className="mx-auto max-w-7xl p-6">
@@ -15,7 +30,7 @@ const CreateEtl = () => {
 
         {/* Tabs */}
         <div className="flex gap-4 border-b border-gray-300 mb-6">
-          {["Select Source & Target", "Spark Config", "Finish"].map((tab) => (
+          {["Select Source & Target", "Spark/Hadoop Config", "Finish"].map((tab) => (
             <button
               key={tab}
               className={`py-2 px-4 text-sm font-medium ${
@@ -32,8 +47,36 @@ const CreateEtl = () => {
 
         {/* Tab Content */}
         {activeTab === "selectsource&target" && <SourceTargetTab />}
-        {activeTab === "sparkconfig" && <SparkConfigTab />}
+        {activeTab === "spark/hadoopconfig" && <SparkConfigTab />}
         {activeTab === "finish" && <FinishTab />}
+
+        {/* Navigation buttons */}
+        <div className="flex justify-between mt-6">
+          {activeTab !== "selectsource&target" && (
+            <button
+              onClick={handlePreviousTab}
+              className="bg-gray-300 text-gray-700 py-2 px-4 rounded"
+            >
+              Previous
+            </button>
+          )}
+          {activeTab !== "finish" && (
+            <button
+              onClick={handleNextTab}
+              className="bg-blue-500 text-white py-2 px-4 rounded"
+            >
+              Next
+            </button>
+          )}
+          {activeTab === "finish" && (
+            <button
+              onClick={() => alert("ETL Integration Created!")}
+              className="bg-green-500 text-white py-2 px-4 rounded"
+            >
+              Create Integration
+            </button>
+          )}
+        </div>
       </div>
     </DefaultLayout>
   );
@@ -135,67 +178,124 @@ const SourceTargetTab = () => (
   </div>
 );
 
-// Spark Config Tab
-const SparkConfigTab = () => (
-  <div>
-    <h2 className="text-lg font-semibold mb-4">Spark Config</h2>
-    <div className="grid grid-cols-2 gap-8">
-      {/* Spark Config Table */}
-      <div>
-        <h3 className="text-md font-semibold mb-2">Spark Configuration</h3>
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr>
-              <th className="border border-gray-300 px-4 py-2">Configuration</th>
-              <th className="border border-gray-300 px-4 py-2">Average Setting</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              { config: "spark.driver.memory", value: "1g" },
-              { config: "spark.executor.memory", value: "1g" },
-              { config: "spark.executor.cores", value: "1" },
-              { config: "spark.executor.instances", value: "1" },
-              { config: "spark.app.name", value: "my_connection_to_my_connection" },
-            ].map((row) => (
-              <tr key={row.config}>
-                <td className="border border-gray-300 px-4 py-2">{row.config}</td>
-                <td className="border border-gray-300 px-4 py-2">{row.value}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+// Spark/Hadoop Config Tab
+const SparkConfigTab = () => {
+  const [sparkConfig, setSparkConfig] = useState([
+    { config: "spark.driver.memory", value: "1g", isEditing: false },
+    { config: "spark.executor.memory", value: "1g", isEditing: false },
+    { config: "spark.executor.cores", value: "1", isEditing: false },
+    { config: "spark.executor.instances", value: "1", isEditing: false },
+    { config: "spark.app.name", value: "my_connection_to_my_connection", isEditing: false },
+  ]);
 
-      {/* Hadoop Config Table */}
-      <div>
-        <h3 className="text-md font-semibold mb-2">Hadoop Configuration</h3>
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr>
-              <th className="border border-gray-300 px-4 py-2">Configuration</th>
-              <th className="border border-gray-300 px-4 py-2">Average Setting</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              { config: "fs.defaultFS", value: "hdfs://localhost:8020" },
-              { config: "dfs.replication", value: "3" },
-              { config: "yarn.nodemanager.memory-mb", value: "2048" },
-              { config: "mapreduce.framework.name", value: "yarn" },
-              { config: "hadoop.tmp.dir", value: "/tmp/hadoop" },
-            ].map((row) => (
-              <tr key={row.config}>
-                <td className="border border-gray-300 px-4 py-2">{row.config}</td>
-                <td className="border border-gray-300 px-4 py-2">{row.value}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+  const [hadoopConfig, setHadoopConfig] = useState([
+    { config: "fs.defaultFS", value: "hdfs://localhost:8020", isEditing: false },
+    { config: "dfs.replication", value: "3", isEditing: false },
+    { config: "yarn.nodemanager.memory-mb", value: "2048", isEditing: false },
+    { config: "mapreduce.framework.name", value: "yarn", isEditing: false },
+    { config: "hadoop.tmp.dir", value: "/tmp/hadoop", isEditing: false },
+  ]);
+
+  const handleEdit = (setConfig: any, index: any) => {
+    setConfig((prev: any) =>
+      prev.map((item: any, idx: any) =>
+        idx === index ? { ...item, isEditing: !item.isEditing } : item
+      )
+    );
+  };
+
+  const handleChange = (setConfig: any, index: any, newValue: any) => {
+    setConfig((prev: any) =>
+      prev.map((item: any, idx: any) =>
+        idx === index ? { ...item, value: newValue } : item
+      )
+    );
+  };
+
+  const renderTable = (data: any, setConfig: any) => (
+    <table className="w-full border-collapse border border-gray-300">
+      <thead>
+        <tr>
+          <th className="border border-gray-300 px-4 py-2">Configuration</th>
+          <th className="border border-gray-300 px-4 py-2">Value</th>
+          <th className="border border-gray-300 px-4 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map((row: any, index: any) => (
+          <tr key={row.config}>
+            <td className="border border-gray-300 px-4 py-2">{row.config}</td>
+            <td className="border border-gray-300 px-4 py-2">
+              {row.isEditing ? (
+                <input
+                  type="text"
+                  value={row.value}
+                  onChange={(e) => handleChange(setConfig, index, e.target.value)}
+                  className="w-full border border-gray-300 px-2 py-1"
+                />
+              ) : (
+                row.value
+              )}
+            </td>
+            <td className="border border-gray-300 px-4 py-2 text-center">
+              <button
+                onClick={() => handleEdit(setConfig, index)}
+                className="text-blue-500 hover:text-blue-700 flex items-center justify-center"
+              >
+                {row.isEditing ? (
+                  // Check icon (SVG)
+                  <svg
+                    className="h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                ) : (
+                  // Pencil icon (SVG)
+                  <svg
+                    className="h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M17.121 2.879a3 3 0 00-4.242 0L5 9.244V12h2.756l8.879-8.879a3 3 0 000-4.242zM3 14v3h3l8.879-8.879a3 3 0 000-4.242l-1.5-1.5a3 3 0 00-4.242 0L3 10.756V14z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-8">
+        <div>
+          <h3 className="text-md font-semibold mb-2">Spark Configuration</h3>
+          {renderTable(sparkConfig, setSparkConfig)}
+        </div>
+        <div>
+          <h3 className="text-md font-semibold mb-2">Hadoop Configuration</h3>
+          {renderTable(hadoopConfig, setHadoopConfig)}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Finish Tab
 const FinishTab = () => (
@@ -251,6 +351,13 @@ const FinishTab = () => (
             Full Load
           </label>
         </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Schedule Date</label>
+        <input
+          type="date"
+          className="w-full p-2 border rounded"
+        />
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Schedule Time</label>
