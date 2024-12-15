@@ -324,7 +324,7 @@ const SparkConfigTab = () => {
 
   // Delete a row from the table
   const handleDeleteRow = (setConfig: any, index: any) => {
-    setConfig((prev: any) => prev.filter((_, idx: any) => idx !== index));
+    setConfig((prev: any) => prev.filter((_: any, idx: any) => idx !== index));
   };
 
   const handleEdit = (setConfig: any, index: any) => {
