@@ -1,3 +1,4 @@
+import { ParamMetadata } from "@/types/connectors";
 import { StoreConnections } from "@/types/store_connections";
 import { TestConnection } from "@/types/test_connection";
 import axios from "axios";
@@ -59,6 +60,11 @@ export const test_connection = async (params: TestConnection) => {
 };
 export const store_connection = async (params: StoreConnections) => {
   return apiRequest("post", "/connector/store_connection", {
+    ...params,
+  });
+};
+export const fetch_metadata = async (params: ParamMetadata) => {
+  return apiRequest("post", "/connector/fetch_metadata", {
     ...params,
   });
 };
