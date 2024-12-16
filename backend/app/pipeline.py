@@ -109,3 +109,9 @@ async def delete_pipeline_api(request: Request, pipeline_id: str):
     """
     db = DatabaseUtils(**get_open_etl_document_connection_details())
     return db.delete_integration(record_id=pipeline_id)
+
+
+@router.get("/get_integrations")
+async def get_integrations_api(request: Request, page: int = 1, page_size: int = 10):
+    db = DatabaseUtils(**get_open_etl_document_connection_details())
+    return db.get_all_integration(page=page, per_page=page_size)
