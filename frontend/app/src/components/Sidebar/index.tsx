@@ -170,6 +170,207 @@ const menuGroups = [
       },
     ],
   },
+  {
+    name: "Features",
+    menuItems: [
+      {
+        icon: (
+          <svg
+            className="fill-current"
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="2" />
+            <path d="M4 9L8 13L14 5" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        ),
+        label: "Computing with Spark",
+        route: "/features/computing-with-spark",
+      },
+      {
+        icon: (
+          <svg
+            className="fill-current"
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M9 1L1 9H4V17H14V9H17L9 1Z"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+          </svg>
+        ),
+        label: "Transparency Through Open Source",
+        route: "/features/transparency-open-source",
+      },
+      {
+        icon: (
+          <svg
+            className="fill-current"
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              x="2"
+              y="2"
+              width="14"
+              height="14"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <path
+              d="M6 6H12V12H6V6Z"
+              fill="currentColor"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+          </svg>
+        ),
+        label: "Smart Pipelines with Breakpoint Recovery",
+        route: "/features/smart-pipelines",
+      },
+      {
+        icon: (
+          <svg
+            className="fill-current"
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 3H15V15H3V3Z"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeDasharray="4 4"
+            />
+          </svg>
+        ),
+        label: "Detailed Task Logging for Maximum Clarity",
+        route: "/features/task-logging",
+      },
+      {
+        icon: (
+          <svg
+            className="fill-current"
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M9 3L12 9H6L9 3ZM9 15L6 9H12L9 15Z"
+              fill="currentColor"
+            />
+          </svg>
+        ),
+        label: "Integrate Seamlessly with Any API",
+        route: "/features/api-integration",
+      },
+      {
+        icon: (
+          <svg
+            className="fill-current"
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 15H15V13H3V15ZM3 11H15V9H3V11ZM3 7H15V5H3V7ZM3 3H15V1H3V3Z"
+              fill="currentColor"
+            />
+          </svg>
+        ),
+        label: "Flexible Deployment",
+        route: "/features/flexible-deployment",
+      },
+      {
+        icon: (
+          <svg
+            className="fill-current"
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M9 3L6 6H12L9 3ZM6 12L9 15L12 12H6ZM3 9H15"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+          </svg>
+        ),
+        label: "Transformation using Python/Spark SQL",
+        route: "/features/transformation-python-spark-sql",
+      },
+      {
+        icon: (
+          <svg
+            className="fill-current"
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5 7L9 11L13 7"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        ),
+        label: "Automatic Recommend Setting for Target",
+        route: "/features/recommend-settings",
+      },
+      {
+        icon: (
+          <svg
+            className="fill-current"
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              x="3"
+              y="3"
+              width="12"
+              height="12"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <path
+              d="M3 9H15"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+          </svg>
+        ),
+        label: "Custom Schema Types",
+        route: "/features/custom-schema-types",
+      },
+    ],
+  }
 ];
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
