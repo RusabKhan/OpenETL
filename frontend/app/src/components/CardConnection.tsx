@@ -1,7 +1,8 @@
 "use client";
 
 import { Connection } from "@/types/connection";
-import React, { useState } from "react";
+import React from "react";
+import Spinner from "./common/Spinner";
 
 interface DatabaseConnectionListProps {
   connections: Connection[];
@@ -18,10 +19,7 @@ const CardConnections: React.FC<DatabaseConnectionListProps> = ({
     <div className="container mx-auto p-4">
       <h1 className="mb-4 text-2xl font-bold">{name}</h1>
       {isLoading ? (
-        <div
-          className="h-16 w-16 animate-spin rounded-full border-t-4 border-solid border-blue-500"
-          role="status"
-        ></div>
+        <Spinner />
       ) : (
         <>
           {connections.length === 0 ? (
