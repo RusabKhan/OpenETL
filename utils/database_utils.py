@@ -996,22 +996,36 @@ class DatabaseUtils():
             .limit(per_page) \
             .all()
 
+        integration_ids = [integration.id for integration in schedulers]
+
+        # Query history where ids are in integration_ids
+        history = self.session.query(OpenETLIntegrationsRuntimes) \
+            .filter(OpenETLIntegrationsRuntimes.integration.in_(integration_ids)) \
+            .all()
+
+
         results = [
             {
-                "uid": scheduler.uid,
+                "id": scheduler.id,
                 "integration_name": scheduler.integration_name,
                 "integration_type": scheduler.integration_type,
                 "cron_expression": scheduler.cron_expression,
-                "integration_status": scheduler.integration_status,
-                "last_run_status": scheduler.last_run_status,
-                "start_date": scheduler.start_date.isoformat() if scheduler.start_date else None,
-                "end_date": scheduler.end_date.isoformat() if scheduler.end_date else None,
-                "next_run_time": scheduler.next_run_time.isoformat() if scheduler.next_run_time else None,
-                "last_run_time": scheduler.last_run_time.isoformat() if scheduler.last_run_time else None,
-                "error_message": scheduler.error_message,
+                "is_running": scheduler.is_running,
                 "is_enabled": scheduler.is_enabled,
                 "created_at": scheduler.created_at.isoformat() if scheduler.created_at else None,
-                "updated_at": scheduler.updated_at.isoformat() if scheduler.updated_at else None
+                "updated_at": scheduler.updated_at.isoformat() if scheduler.updated_at else None,
+                "history": [
+                    {
+                        "id": history.id,
+                        "run_status": history.run_status,
+                        "start_date": history.start_date.isoformat() if history.start_date else None,
+                        "end_date": history.end_date.isoformat() if history.end_date else None,
+                        "error_message": history.error_message,
+                        "created_at": history.created_at.isoformat() if history.created_at else None,
+                        "updated_at": history.updated_at.isoformat() if history.updated_at else None,
+                    }
+                    for history in history if history.integration == scheduler.id
+                ]
             }
             for scheduler in schedulers
         ]
