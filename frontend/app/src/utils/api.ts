@@ -1,6 +1,9 @@
-import { ParamMetadata } from "@/types/connectors";
-import { StoreConnections } from "@/types/store_connections";
-import { TestConnection } from "@/types/test_connection";
+import {
+  ParamMetadata,
+  StoreConnectionsParam,
+  TestConnection,
+} from "@/types/connectors";
+import { IntegrationConfig } from "@/types/integration";
 import axios from "axios";
 
 // Define the base URL globally for reuse
@@ -46,6 +49,9 @@ export const getConnectorAuthDetails = async (name: string, type: string) => {
     `/connector/get_connector_auth_details/${name}/${type}`,
   );
 };
+export const getIntegrations = async () => {
+  return apiRequest("get", "/pipeline/get_integrations");
+};
 
 // POST
 export const fetchCreatedConnections = async (type: string) => {
@@ -58,13 +64,18 @@ export const test_connection = async (params: TestConnection) => {
     ...params,
   });
 };
-export const store_connection = async (params: StoreConnections) => {
+export const store_connection = async (params: StoreConnectionsParam) => {
   return apiRequest("post", "/connector/store_connection", {
     ...params,
   });
 };
 export const fetch_metadata = async (params: ParamMetadata) => {
   return apiRequest("post", "/connector/fetch_metadata", {
+    ...params,
+  });
+};
+export const create_integration = async (params: IntegrationConfig) => {
+  return apiRequest("post", "/pipeline/create_integration", {
     ...params,
   });
 };

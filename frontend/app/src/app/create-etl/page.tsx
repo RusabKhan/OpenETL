@@ -9,19 +9,37 @@ import {
   getCurrentTime,
 } from "@/utils/func";
 import { IntegrationConfig } from "@/types/integration";
-import { fetch_metadata, fetchCreatedConnections } from "@/utils/api";
-import { StoreConnections } from "@/types/store_connections";
-import { Metadata, ParamMetadata } from "@/types/connectors";
+import {
+  create_integration,
+  fetch_metadata,
+  fetchCreatedConnections,
+} from "@/utils/api";
+import {
+  GetCreatedConnections,
+  Metadata,
+  ParamMetadata,
+  StoreConnectionsParam,
+} from "@/types/connectors";
 import Spinner from "@/components/common/Spinner";
+import SelectableDates from "@/components/SelectableDates";
+import Toast from "@/components/common/Toast";
 
 interface IntegrationProps {
   integration: IntegrationConfig;
   setIntegration: Dispatch<SetStateAction<IntegrationConfig>>;
 }
 
+interface ConfigInterface {
+  config: string;
+  value: string;
+  isEditing: boolean;
+}
+
 const tabs = ["Select Source & Target", "Spark/Hadoop Config", "Finish"];
 const source_types = ["database", "api"];
 const target_types = ["database"];
+const target_table_types = ["new", "existing"];
+const frequency_options = ["Weekly", "Monthly", "Daily", "Weekends", "Weekday"];
 
 const initial_integration: IntegrationConfig = {
   frequency: "Weekly",
@@ -30,8 +48,8 @@ const initial_integration: IntegrationConfig = {
   integration_type: "full_load",
   schedule_date: [getCurrentDate()],
   schedule_time: getCurrentTime(),
-  source_connection: 1,
-  source_schema: "public",
+  source_connection: 0,
+  source_schema: "",
   source_table: "",
   spark_config: {
     "spark.app.name": "",
@@ -40,15 +58,31 @@ const initial_integration: IntegrationConfig = {
     "spark.executor.instances": "1",
     "spark.executor.memory": "1g",
   },
-  target_connection: 1,
-  target_schema: "public",
+  target_connection: 0,
+  target_schema: "",
   target_table: "",
+  batch_size: 100000,
 };
 
 const CreateEtl = () => {
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<
+    "success" | "error" | "warning" | "info"
+  >("success");
+
   const [activeTab, setActiveTab] = useState("selectsource&target");
   const [integration, setIntegration] =
     useState<IntegrationConfig>(initial_integration);
+
+  const showToast = (
+    message: string,
+    type: "success" | "error" | "warning" | "info" = "success",
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
   const handleNextTab = () => {
     if (activeTab === "selectsource&target") {
@@ -65,9 +99,19 @@ const CreateEtl = () => {
       setActiveTab("spark/hadoopconfig");
     }
   };
+
+  const handleCreateIntegration = () => {
+    const create_etl = async () => {
+      await create_integration(integration);
+      showToast("Creating Integration!... ✅", "success");
+    };
+
+    create_etl();
+  };
+
   return (
     <DefaultLayout>
-      <div className="mx-auto max-w-7xl p-6">
+      <div>
         <Breadcrumb pageName="Create ETL" />
 
         {/* Tabs */}
@@ -94,8 +138,18 @@ const CreateEtl = () => {
             setIntegration={setIntegration}
           />
         )}
-        {activeTab === "spark/hadoopconfig" && <SparkConfigTab />}
-        {activeTab === "finish" && <FinishTab />}
+        {activeTab === "spark/hadoopconfig" && (
+          <SparkConfigTab
+            integration={integration}
+            setIntegration={setIntegration}
+          />
+        )}
+        {activeTab === "finish" && (
+          <FinishTab
+            integration={integration}
+            setIntegration={setIntegration}
+          />
+        )}
 
         {/* Navigation buttons */}
         <div className="mt-6 flex justify-between">
@@ -117,32 +171,38 @@ const CreateEtl = () => {
           )}
           {activeTab === "finish" && (
             <button
-              onClick={() => alert("ETL Integration Created!")}
+              onClick={handleCreateIntegration}
               className="rounded bg-green-500 px-4 py-2 text-white"
             >
               Create Integration
             </button>
           )}
         </div>
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          visible={toastVisible}
+          onClose={() => setToastVisible(false)}
+        />
       </div>
     </DefaultLayout>
   );
 };
 
 // Source & Target Tab
-const SourceTargetTab: React.FC<IntegrationProps> = (
-  integration,
-  setIntegration,
-) => {
+const SourceTargetTab: React.FC<IntegrationProps> = (params) => {
+  const { integration, setIntegration } = params;
   const [sourceType, setSourceType] = useState("database");
   const [targetType, setTargetType] = useState("database");
+  const [targetTableType, setTargetTableType] = useState("new");
   const [sourceConnections, setSourceConnections] = useState<
-    StoreConnections[]
+    GetCreatedConnections[]
   >([]);
   const [targetConnections, setTargetConnections] = useState<
-    StoreConnections[]
+    GetCreatedConnections[]
   >([]);
-  const [metadata, setMetadata] = useState<Metadata | undefined>();
+  const [sourceMetadata, setSourceMetadata] = useState<Metadata | undefined>();
+  const [targetMetadata, setTargetMetadata] = useState<Metadata | undefined>();
   const [sourceSchema, setSourceSchema] = useState("");
   const [sourceTable, setSourceTable] = useState("");
   const [targetSchema, setTargetSchema] = useState("");
@@ -163,20 +223,33 @@ const SourceTargetTab: React.FC<IntegrationProps> = (
     }
   };
 
-  const getMetadata = async (param: ParamMetadata) => {
-    setSourceIsLoading(true);
-    try {
-      const res = await fetch_metadata(param);
-      setMetadata(res);
-    } catch (err: any) {
-      console.error(err);
-    } finally {
-      setSourceIsLoading(false);
+  const getMetadata = async (param: ParamMetadata, is_source: boolean) => {
+    if (is_source) {
+      setSourceIsLoading(true);
+      try {
+        const res = await fetch_metadata(param);
+        setSourceMetadata(res);
+      } catch (err: any) {
+        console.error(err);
+      } finally {
+        setSourceIsLoading(false);
+      }
+    } else {
+      setTargetIsLoading(true);
+      try {
+        const res = await fetch_metadata(param);
+        setTargetMetadata(res);
+      } catch (err: any) {
+        console.error(err);
+      } finally {
+        setTargetIsLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    getConnections(sourceType);
+    getConnections(sourceType, true);
+    getConnections(sourceType, false);
   }, []);
 
   const handleSourceTypeChange = (
@@ -199,17 +272,39 @@ const SourceTargetTab: React.FC<IntegrationProps> = (
     setTargetIsLoading(false);
   };
 
+  const handleTargetTableTypeChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setTargetIsLoading(true);
+    const source = event.target.value;
+    setTargetTableType(source);
+    setTargetIsLoading(false);
+  };
+
   const handleConnectionChange = (
     event: React.ChangeEvent<HTMLSelectElement>,
-    connections: StoreConnections[],
+    connections: GetCreatedConnections[],
+    is_source: boolean,
   ) => {
     const { value } = event.target;
     if (value !== "-") {
       const selected =
-        connections.find((source) => source.connection_name === value) ||
+        connections.find((source) => source.id === parseInt(value)) ||
         connections[0];
 
-      const metadata = {
+      if (is_source) {
+        setIntegration((prev) => ({
+          ...prev,
+          source_connection: selected.id,
+        }));
+      } else {
+        setIntegration((prev) => ({
+          ...prev,
+          target_connection: selected.id,
+        }));
+      }
+
+      const metadata_params = {
         auth_options: {
           auth_type: {
             name: selected.auth_type.toUpperCase(),
@@ -224,7 +319,7 @@ const SourceTargetTab: React.FC<IntegrationProps> = (
         connector_type: selected.connection_type,
       };
 
-      getMetadata(metadata);
+      getMetadata(metadata_params, is_source);
     }
   };
 
@@ -237,13 +332,16 @@ const SourceTargetTab: React.FC<IntegrationProps> = (
           <div>
             <label className="mb-1 block text-sm font-medium">Source</label>
             <select
-              onChange={(e) => handleConnectionChange(e, sourceConnections)}
+              value={integration.source_connection}
+              onChange={(e) =>
+                handleConnectionChange(e, sourceConnections, true)
+              }
               disabled={sourceIsLoading}
               className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             >
               <option value="-">----</option>
-              {sourceConnections.map((source: StoreConnections, i) => (
-                <option value={source.connection_name} key={i}>
+              {sourceConnections.map((source: GetCreatedConnections, i) => (
+                <option value={source.id} key={i}>
                   {source.connection_name}
                 </option>
               ))}
@@ -276,13 +374,19 @@ const SourceTargetTab: React.FC<IntegrationProps> = (
             </label>
             <select
               value={sourceSchema}
-              onChange={(e) => setSourceSchema(e.target.value)}
+              onChange={(e) => {
+                setSourceSchema(e.target.value);
+                setIntegration((prev) => ({
+                  ...prev,
+                  source_schema: e.target.value,
+                }));
+              }}
               disabled={sourceIsLoading}
               className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             >
               <option value="-">----</option>
-              {metadata &&
-                Object.keys(metadata).map((schema, i) => (
+              {sourceMetadata &&
+                Object.keys(sourceMetadata).map((schema, i) => (
                   <option value={schema} key={i}>
                     {schema}
                   </option>
@@ -295,29 +399,37 @@ const SourceTargetTab: React.FC<IntegrationProps> = (
             </label>
             <select
               value={sourceTable}
-              onChange={(e) => setSourceTable(e.target.value)}
+              onChange={(e) => {
+                setSourceTable(e.target.value);
+                setIntegration((prev) => ({
+                  ...prev,
+                  source_table: e.target.value,
+                }));
+              }}
               disabled={sourceIsLoading}
               className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             >
               <option value="-">----</option>
-              {metadata !== undefined && sourceSchema && (
+              {sourceMetadata !== undefined && sourceSchema && (
                 <>
-                  {Array.isArray(metadata[sourceSchema])
-                    ? metadata[sourceSchema].map((table, i) => (
+                  {Array.isArray(sourceMetadata[sourceSchema])
+                    ? sourceMetadata[sourceSchema].map((table, i) => (
                         <option value={table} key={i}>
                           {table}
                         </option>
                       ))
-                    : Object.keys(metadata[sourceSchema]).map((table, i) => (
-                        <option value={table} key={i}>
-                          {table}
-                        </option>
-                      ))}
+                    : Object.keys(sourceMetadata[sourceSchema]).map(
+                        (table, i) => (
+                          <option value={table} key={i}>
+                            {table}
+                          </option>
+                        ),
+                      )}
                 </>
               )}
             </select>
           </div>
-          {sourceIsLoading && <Spinner />}
+          <Spinner visible={sourceIsLoading} message="Loading source..." />
         </div>
       </div>
 
@@ -328,13 +440,16 @@ const SourceTargetTab: React.FC<IntegrationProps> = (
           <div>
             <label className="mb-1 block text-sm font-medium">Target</label>
             <select
-              onChange={(e) => handleConnectionChange(e, sourceConnections)}
-              disabled={sourceIsLoading}
+              value={integration.target_connection}
+              onChange={(e) =>
+                handleConnectionChange(e, targetConnections, false)
+              }
+              disabled={targetIsLoading}
               className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             >
               <option value="-">----</option>
-              {sourceConnections.map((target: StoreConnections, i) => (
-                <option value={target.connection_name} key={i}>
+              {targetConnections.map((target: GetCreatedConnections, i) => (
+                <option value={target.id} key={i}>
                   {target.connection_name}
                 </option>
               ))}
@@ -364,37 +479,45 @@ const SourceTargetTab: React.FC<IntegrationProps> = (
             <label className="mb-1 block text-sm font-medium">
               Target Schema
             </label>
-            <input
-              type="text"
+            <select
+              value={targetSchema}
+              onChange={(e) => {
+                setTargetSchema(e.target.value);
+                setIntegration((prev) => ({
+                  ...prev,
+                  target_schema: e.target.value,
+                }));
+              }}
+              disabled={targetIsLoading}
               className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              value="public"
-              readOnly
-            />
+            >
+              <option value="-">----</option>
+              {targetMetadata &&
+                Object.keys(targetMetadata).map((schema, i) => (
+                  <option value={schema} key={i}>
+                    {schema}
+                  </option>
+                ))}
+            </select>
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">
               Target Tables
             </label>
             <div className="flex items-center gap-4">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="targetTable"
-                  value="database"
-                  defaultChecked
-                  className="mr-2"
-                />
-                New
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="targetTable"
-                  value="database"
-                  className="mr-2"
-                />
-                Existing
-              </label>
+              {target_table_types.map((type, i) => (
+                <label className="flex items-center" key={i}>
+                  <input
+                    type="radio"
+                    name="targetTable"
+                    value={type}
+                    checked={targetTableType === type}
+                    className="mr-2"
+                    onChange={handleTargetTableTypeChange}
+                  />
+                  {capitalizeFirstLetter(type)}
+                </label>
+              ))}
             </div>
           </div>
           <div></div>
@@ -402,10 +525,53 @@ const SourceTargetTab: React.FC<IntegrationProps> = (
             <label className="mb-1 block text-sm font-medium">
               Target Tables
             </label>
-            <select className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
-              <option value="-">----</option>
-            </select>
+            {targetTableType === "existing" ? (
+              <select
+                value={targetTable}
+                onChange={(e) => {
+                  setTargetTable(e.target.value);
+                  setIntegration((prev) => ({
+                    ...prev,
+                    target_table: e.target.value,
+                  }));
+                }}
+                disabled={targetIsLoading}
+                className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="-">----</option>
+                {targetMetadata !== undefined && targetSchema && (
+                  <>
+                    {Array.isArray(targetMetadata[targetSchema])
+                      ? targetMetadata[targetSchema].map((table, i) => (
+                          <option value={table} key={i}>
+                            {table}
+                          </option>
+                        ))
+                      : Object.keys(targetMetadata[targetSchema]).map(
+                          (table, i) => (
+                            <option value={table} key={i}>
+                              {table}
+                            </option>
+                          ),
+                        )}
+                  </>
+                )}
+              </select>
+            ) : (
+              <input
+                type="text"
+                value={integration.target_table}
+                onChange={(e) =>
+                  setIntegration((prev) => ({
+                    ...prev,
+                    target_table: e.target.value,
+                  }))
+                }
+                className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              />
+            )}
           </div>
+          <Spinner visible={targetIsLoading} message="Loading target..." />
         </div>
       </div>
     </div>
@@ -413,20 +579,70 @@ const SourceTargetTab: React.FC<IntegrationProps> = (
 };
 
 // Spark/Hadoop Config Tab
-const SparkConfigTab = () => {
-  const [sparkConfig, setSparkConfig] = useState([
-    { config: "spark.driver.memory", value: "1g", isEditing: false },
-    { config: "spark.executor.memory", value: "1g", isEditing: false },
-    { config: "spark.executor.cores", value: "1", isEditing: false },
-    { config: "spark.executor.instances", value: "1", isEditing: false },
-    {
-      config: "spark.app.name",
-      value: "my_connection_to_my_connection",
-      isEditing: false,
-    },
-  ]);
+const SparkConfigTab: React.FC<IntegrationProps> = (params) => {
+  const { integration, setIntegration } = params;
+  const [sparkConfig, setSparkConfig] = useState<ConfigInterface[]>([]);
 
-  const [hadoopConfig, setHadoopConfig] = useState([]);
+  const [hadoopConfig, setHadoopConfig] = useState<ConfigInterface[]>([]);
+
+  useEffect(() => {
+    const sparkConfigArray = Object.entries(integration.spark_config).map(
+      ([key, value]) => ({
+        config: key,
+        value: value,
+        isEditing: false,
+      }),
+    );
+    const hadoopConfigArray = Object.entries(integration.hadoop_config).map(
+      ([key, value]) => ({
+        config: key,
+        value: value,
+        isEditing: false,
+      }),
+    );
+    setSparkConfig(sparkConfigArray);
+    setHadoopConfig(hadoopConfigArray);
+  }, []);
+
+  const save_spark_config = () => {
+    const data = sparkConfig.map((record) => ({
+      [record.config]: record.value,
+    }));
+    const result = data.reduce((acc, current) => {
+      const [key, value] = Object.entries(current)[0]; // Extract key-value pair
+      acc[key] = value; // Assign to the accumulator
+      return acc;
+    }, {});
+    setIntegration((prev) => ({
+      ...prev,
+      spark_config: result,
+    }));
+  };
+
+  const save_hadoop_config = () => {
+    const data = hadoopConfig.map((record) => ({
+      [record.config]: record.value,
+    }));
+    const result = data.reduce((acc, current) => {
+      const [key, value] = Object.entries(current)[0]; // Extract key-value pair
+      acc[key] = value; // Assign to the accumulator
+      return acc;
+    }, {});
+    setIntegration((prev) => ({
+      ...prev,
+      hadoop_config: result,
+    }));
+  };
+
+  useEffect(() => {
+    // Saves the spark config in integration whenever the table has any changes.
+    save_spark_config();
+  }, [sparkConfig]);
+
+  useEffect(() => {
+    // Saves the hadoop config in integration whenever the table has any changes.
+    save_hadoop_config();
+  }, [hadoopConfig]);
 
   // Add a new row to the table
   const handleAddRow = (setConfig: any) => {
@@ -443,9 +659,9 @@ const SparkConfigTab = () => {
 
   const handleEdit = (setConfig: any, index: any) => {
     setConfig((prev: any) =>
-      prev.map((item: any, idx: any) =>
-        idx === index ? { ...item, isEditing: !item.isEditing } : item,
-      ),
+      prev.map((item: any, idx: any) => {
+        return idx === index ? { ...item, isEditing: !item.isEditing } : item;
+      }),
     );
   };
 
@@ -478,16 +694,16 @@ const SparkConfigTab = () => {
                     <input
                       type="text"
                       value={row.config}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setConfig((prev: any) =>
                           prev.map((item: any, idx: any) =>
                             idx === index
                               ? { ...item, config: e.target.value }
                               : item,
                           ),
-                        )
-                      }
-                      className="w-full border border-gray-300 px-2 py-1"
+                        );
+                      }}
+                      className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   ) : (
                     row.config
@@ -501,7 +717,7 @@ const SparkConfigTab = () => {
                       onChange={(e) =>
                         handleChange(setConfig, index, e.target.value)
                       }
-                      className="w-full border border-gray-300 px-2 py-1"
+                      className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   ) : (
                     row.value
@@ -636,101 +852,159 @@ const SparkConfigTab = () => {
 };
 
 // Finish Tab
-const FinishTab = () => (
-  <div className="space-y-6">
-    <div className="rounded-sm border bg-white p-6 dark:bg-boxdark">
-      <h2 className="mb-4 text-lg font-semibold">Finish</h2>
-      <div className="grid gap-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium">
-            Enter unique integration name
-          </label>
-          <input
-            type="text"
-            className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="Enter integration name"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
+const FinishTab: React.FC<IntegrationProps> = (params) => {
+  const { integration, setIntegration } = params;
+
+  const [scheduleType, setScheduleType] = useState("frequency");
+
+  useEffect(() => {
+    setIntegration((prev) => ({
+      ...prev,
+      integration_name: `${integration.source_schema}_${integration.source_table}_to_${integration.target_schema}_${integration.target_table}`,
+    }));
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-sm border bg-white p-6 dark:bg-boxdark">
+        <h2 className="mb-4 text-lg font-semibold">Finish</h2>
+        <div className="grid gap-4">
           <div>
-            <div className="mb-2">
-              <label className="mb-1 block text-sm font-medium">
-                Select Schedule Type
-              </label>
-              <div className="flex flex-col gap-4">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="scheduleType"
-                    value="frequency"
-                    defaultChecked
-                    className="mr-2"
-                  />
-                  Frequency
+            <label className="mb-1 block text-sm font-medium">
+              Enter unique integration name
+            </label>
+            <input
+              type="text"
+              value={integration.integration_name}
+              onChange={(e) =>
+                setIntegration((prev) => ({
+                  ...prev,
+                  integration_name: e.target.value,
+                }))
+              }
+              className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Enter integration name"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div className="mb-4">
+                <label className="mb-1 block text-sm font-medium">
+                  Select Schedule Type
                 </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="scheduleType"
-                    value="selectedDates"
-                    className="mr-2"
-                  />
-                  Selected Dates
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="scheduleType"
+                      value="frequency"
+                      checked={scheduleType === "frequency"}
+                      onChange={(e) => setScheduleType(e.target.value)}
+                      className="mr-2"
+                    />
+                    Frequency
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="scheduleType"
+                      value="selectedDates"
+                      checked={scheduleType === "selectedDates"}
+                      onChange={(e) => setScheduleType(e.target.value)}
+                      className="mr-2"
+                    />
+                    Selected Dates
+                  </label>
+                </div>
+              </div>
+              <div className="mb-4">
+                <label className="mb-1 block text-sm font-medium">
+                  Select Frequency
                 </label>
+                <select
+                  value={integration.frequency}
+                  onChange={(e) =>
+                    setIntegration((prev) => ({
+                      ...prev,
+                      frequency: e.target.value,
+                    }))
+                  }
+                  disabled={scheduleType === "selectedDates"}
+                  className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                >
+                  {frequency_options.map((option, i) => (
+                    <option value={option} key={i}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Select Integration Type
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="integrationType"
+                      value={integration.integration_type}
+                      defaultChecked
+                      className="mr-2"
+                    />
+                    {capitalizeFirstLetter(
+                      integration.integration_type.replace("_", " "),
+                    )}
+                  </label>
+                </div>
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">
-                Select Frequency
-              </label>
-              <select className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
-                <option value="weekly">Weekly</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium">
-                Schedule Time
-              </label>
-              <input
-                type="time"
-                className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                defaultValue="19:05"
-              />
-            </div>
+              <div className="mb-4">
+                <label className="mb-1 block text-sm font-medium">
+                  Schedule Time
+                </label>
+                <input
+                  type="time"
+                  value={integration.schedule_time}
+                  onChange={(e) =>
+                    setIntegration((prev) => ({
+                      ...prev,
+                      schedule_time: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Schedule Date
-              </label>
-              <input
-                type="date"
-                className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              />
+              <div>
+                <SelectableDates
+                  integration={integration}
+                  setIntegration={setIntegration}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Batch Size
+                </label>
+                <input
+                  type="number"
+                  value={integration.batch_size}
+                  onChange={(e) =>
+                    setIntegration((prev) => ({
+                      ...prev,
+                      batch_size: parseInt(e.target.value),
+                    }))
+                  }
+                  className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
             </div>
-          </div>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">
-            Select Integration Type
-          </label>
-          <div className="flex gap-4">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="integrationType"
-                value="fullLoad"
-                defaultChecked
-                className="mr-2"
-              />
-              Full Load
-            </label>
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default CreateEtl;

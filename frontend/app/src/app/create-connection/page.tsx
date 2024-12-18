@@ -30,8 +30,21 @@ const CreateConnection = () => {
 
   const [fields, setFields] = useState<DatabaseAuthParams | ApiAuthParams>();
   const [authType, setAuthType] = useState<string[]>(["basic"]);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<
+    "success" | "error" | "warning" | "info"
+  >("success");
+
+  const showToast = (
+    message: string,
+    type: "success" | "error" | "warning" | "info" = "success",
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
   useEffect(() => {
     const fetchConnectors = async () => {
@@ -105,7 +118,7 @@ const CreateConnection = () => {
       const testResult = await test_connection(testPayload);
 
       if (!testResult) {
-        setError("Test Connection Failed! ❌");
+        showToast("Test Connection Failed! ❌", "error");
         return;
       }
 
@@ -120,9 +133,10 @@ const CreateConnection = () => {
       const response = await store_connection(storePayload);
 
       if (response[0]) {
+        showToast("Connection added!", "success");
         router.push("/connections");
       } else {
-        setError("Can't save the connection! ❌");
+        showToast("Can't save the connection! ❌", "error");
       }
     } catch (error) {
       console.error(error);
@@ -131,7 +145,7 @@ const CreateConnection = () => {
 
   return (
     <DefaultLayout>
-      <div className="mx-auto max-w-4xl">
+      <div>
         <Breadcrumb pageName="Create Connection" />
 
         <form
@@ -259,16 +273,6 @@ const CreateConnection = () => {
               Create Connection
             </button>
           </div>
-
-          {error && (
-            <div
-              className="relative rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700"
-              role="alert"
-            >
-              <strong className="font-bold">Error!</strong>
-              <span className="block sm:inline">{error}</span>
-            </div>
-          )}
         </form>
       </div>
     </DefaultLayout>

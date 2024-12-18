@@ -6,7 +6,7 @@ import { base_url, fetchCreatedConnections } from "@/utils/api";
 import CardConnections from "@/components/CardConnection";
 import Head from "next/head";
 import axios from "axios";
-import { Connection } from "@/types/connection";
+import { Connection } from "@/types/connectors";
 
 const Connections = () => {
   const [databases, setDatabases] = useState([]);
@@ -59,7 +59,7 @@ const Connections = () => {
         />
       </Head>
       <DefaultLayout>
-        <div className="mx-auto max-w-242.5">
+        <div>
           <Breadcrumb pageName="Connections" />
 
           <CardConnections

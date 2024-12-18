@@ -2,9 +2,13 @@ export type SparkConfig = {
   [key: string]: string;
 };
 
+export type HadoopConfig = {
+  [key: string]: string;
+};
+
 export type IntegrationConfig = {
   frequency: string; // e.g., "Weekly"
-  hadoop_config: Record<string, unknown>; // Assuming it's a generic object
+  hadoop_config: HadoopConfig; // Hadoop configuration details
   integration_name: string; // e.g., ""
   integration_type: string; // e.g., "full_load"
   schedule_date: string[]; // Array of dates in "YYYY-MM-DD" format
@@ -16,4 +20,5 @@ export type IntegrationConfig = {
   target_connection: number; // ID or identifier for the target connection
   target_schema: string; // e.g., "public"
   target_table: string; // e.g., ""
+  batch_size: number; // e.g., 100000
 };
