@@ -976,7 +976,7 @@ class DatabaseUtils():
             'integrations': integrations_dict
         }
 
-    def get_all_integration(self, page: int = 1, per_page: int = 30):
+    def get_all_integration(self, page: int = 1, per_page: int = 30, integration_id=None):
         """
         Get all integrations paginated.
 
@@ -996,14 +996,6 @@ class DatabaseUtils():
             .limit(per_page) \
             .all()
 
-        integration_ids = [integration.id for integration in schedulers]
-
-        # Query history where ids are in integration_ids
-        history = self.session.query(OpenETLIntegrationsRuntimes) \
-            .filter(OpenETLIntegrationsRuntimes.integration.in_(integration_ids)) \
-            .all()
-
-
         results = [
             {
                 "id": scheduler.id,
@@ -1014,18 +1006,6 @@ class DatabaseUtils():
                 "is_enabled": scheduler.is_enabled,
                 "created_at": scheduler.created_at.isoformat() if scheduler.created_at else None,
                 "updated_at": scheduler.updated_at.isoformat() if scheduler.updated_at else None,
-                "history": [
-                    {
-                        "id": history.id,
-                        "run_status": history.run_status,
-                        "start_date": history.start_date.isoformat() if history.start_date else None,
-                        "end_date": history.end_date.isoformat() if history.end_date else None,
-                        "error_message": history.error_message,
-                        "created_at": history.created_at.isoformat() if history.created_at else None,
-                        "updated_at": history.updated_at.isoformat() if history.updated_at else None,
-                    }
-                    for history in history if history.integration == scheduler.id
-                ]
             }
             for scheduler in schedulers
         ]
@@ -1037,6 +1017,26 @@ class DatabaseUtils():
             "total_items": total_items,
             "total_pages": total_pages,
             "data": results
+        }
+
+    def get_integration_history(self, integration_id, page: int = 1, per_page: int = 30):
+
+        offset = (page - 1) * per_page
+        total_items = self.session.query(OpenETLIntegrationsRuntimes).count()
+        total_pages = (total_items + per_page - 1) // per_page
+
+        history = self.session.query(OpenETLIntegrationsRuntimes) \
+            .filter(OpenETLIntegrationsRuntimes.integration == integration_id) \
+            .offset(offset) \
+            .limit(per_page) \
+            .all()
+
+        return {
+            "page": page,
+            "per_page": per_page,
+            "total_items": total_items,
+            "total_pages": total_pages,
+            "data": history
         }
 
     def create_integration(self, integration_name, integration_type, target_schema, source_schema, spark_config,

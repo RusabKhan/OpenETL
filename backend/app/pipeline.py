@@ -112,6 +112,24 @@ async def delete_pipeline_api(request: Request, pipeline_id: str):
 
 
 @router.get("/get_integrations")
-async def get_integrations_api(request: Request, page: int = 1, page_size: int = 10):
+async def get_integrations_api(
+        request: Request,
+        integration_id: str | None = None,
+        page: int = 1,
+        page_size: int = 10,
+
+):
     db = DatabaseUtils(**get_open_etl_document_connection_details())
+    if integration_id:
+        return db.get_all_integration(integration_id=integration_id, page=page, per_page=page_size)
     return db.get_all_integration(page=page, per_page=page_size)
+
+@router.get("/get_integration_history/{integration_id}")
+async def get_integration_history_api(
+        request: Request,
+        integration_id: str | None = None,
+        page: int = 1,
+        page_size: int = 10,
+):
+    db = DatabaseUtils(**get_open_etl_document_connection_details())
+    return db.get_integration_history(integration_id=integration_id, page=page, per_page=page_size)
