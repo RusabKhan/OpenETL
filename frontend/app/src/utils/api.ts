@@ -1,9 +1,10 @@
 import {
   ParamMetadata,
+  ParamUpdateConnection,
   StoreConnectionsParam,
   TestConnection,
 } from "@/types/connectors";
-import { IntegrationConfig } from "@/types/integration";
+import { IntegrationConfig, ParamUpdateIntegration } from "@/types/integration";
 import axios from "axios";
 
 // Define the base URL globally for reuse
@@ -78,4 +79,20 @@ export const create_integration = async (params: IntegrationConfig) => {
   return apiRequest("post", "/pipeline/create_integration", {
     ...params,
   });
+};
+
+// DELETE
+export const delete_connection = async (id: number) => {
+  return apiRequest(
+    "delete",
+    `/connector/delete_connection/?document_id=${id}`,
+  );
+};
+
+// UPDATE
+export const update_connection = async (params: ParamUpdateConnection) => {
+  return apiRequest("post", "/connector/update_connection", params);
+};
+export const update_integration = async (params: ParamUpdateIntegration) => {
+  return apiRequest("post", "/pipeline/update_integration", params);
 };

@@ -35,3 +35,19 @@ export const getCurrentDate = () => {
 
   return `${year}-${month}-${day}`;
 };
+
+export function formatNumber(num: number) {
+  if (num >= 1000000000) {
+    // For billions (e.g., 1.32B)
+    return (num / 1000000000).toFixed(1).replace(/\.0$/, "") + "B";
+  } else if (num >= 1000000) {
+    // For millions (e.g., 1.32M)
+    return (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+  } else if (num >= 1000) {
+    // For thousands (e.g., 13.2k)
+    return (num / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+  } else {
+    // For numbers below 1000
+    return num.toString();
+  }
+}

@@ -23,6 +23,7 @@ import {
 import Spinner from "@/components/common/Spinner";
 import SelectableDates from "@/components/SelectableDates";
 import Toast from "@/components/common/Toast";
+import { useRouter } from "next/navigation";
 
 interface IntegrationProps {
   integration: IntegrationConfig;
@@ -74,6 +75,7 @@ const CreateEtl = () => {
   const [activeTab, setActiveTab] = useState("selectsource&target");
   const [integration, setIntegration] =
     useState<IntegrationConfig>(initial_integration);
+  const router = useRouter();
 
   const showToast = (
     message: string,
@@ -104,6 +106,7 @@ const CreateEtl = () => {
     const create_etl = async () => {
       await create_integration(integration);
       showToast("Creating Integration!... ✅", "success");
+      router.push("/integrations");
     };
 
     create_etl();

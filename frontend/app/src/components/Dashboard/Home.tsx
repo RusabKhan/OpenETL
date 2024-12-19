@@ -7,6 +7,7 @@ import ChatCard from "../Chat/ChatCard";
 import TableOne from "../Tables/TableOne";
 import CardDataStats from "../CardDataStats";
 import { fetchDashboardData } from "@/utils/api";
+import { formatNumber } from "@/utils/func";
 
 const MapOne = dynamic(() => import("@/components/Maps/MapOne"), {
   ssr: false,
@@ -24,7 +25,7 @@ const Home: React.FC = () => {
     total_rows_migrated: 0,
     integrations: [],
   });
-  
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -100,7 +101,7 @@ const Home: React.FC = () => {
         </CardDataStats>
         <CardDataStats
           title="Total Rows Migrated"
-          total={`${dashData.total_rows_migrated}`}
+          total={formatNumber(dashData.total_rows_migrated)}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

@@ -14,13 +14,14 @@ import { Connectors } from "@/types/connectors";
 import { ApiAuthParams, DatabaseAuthParams } from "@/types/auth_params";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { useRouter } from "next/navigation";
+import Toast from "@/components/common/Toast";
 
 const CreateConnection = () => {
   const [connection, setConnection] = useState({
     connection_type: "database",
     connection_name: "",
     connector_name: "postgresql",
-    auth_type: "basic",
+    auth_type: "",
   });
 
   const [connectors, setConnectors] = useState<Connectors>({
@@ -108,7 +109,7 @@ const CreateConnection = () => {
     e.preventDefault();
 
     const testPayload = {
-      auth_type: authType[0],
+      auth_type: connection.auth_type,
       connector_name: connection.connector_name,
       connector_type: connection.connection_type,
       auth_params: fields as DatabaseAuthParams | ApiAuthParams,
@@ -116,7 +117,6 @@ const CreateConnection = () => {
 
     try {
       const testResult = await test_connection(testPayload);
-
       if (!testResult) {
         showToast("Test Connection Failed! ❌", "error");
         return;
@@ -237,6 +237,7 @@ const CreateConnection = () => {
                 onChange={handleChange}
                 className="w-full rounded-sm bg-whiten p-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               >
+                <option value="-">----</option>
                 {authType.map((auth, i) => (
                   <option value={auth} key={i}>
                     {capitalizeFirstLetter(auth)}
@@ -274,6 +275,12 @@ const CreateConnection = () => {
             </button>
           </div>
         </form>
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          visible={toastVisible}
+          onClose={() => setToastVisible(false)}
+        />
       </div>
     </DefaultLayout>
   );

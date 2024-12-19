@@ -22,3 +22,30 @@ export type IntegrationConfig = {
   target_table: string; // e.g., ""
   batch_size: number; // e.g., 100000
 };
+
+export type ListIntegrationConfig = {
+  id: string;
+  integration_name: string;
+  integration_type: string;
+  cron_expression: string[];
+  is_running: boolean;
+  is_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+  history: [];
+};
+
+export type PaginatedIntegrationConfig = {
+  page: number;
+  per_page: number;
+  total_items: number;
+  total_pages: number;
+  data?: ListIntegrationConfig[];
+};
+
+export type ParamUpdateIntegration = {
+  pipeline_id: string;
+  fields: {
+    [key: string]: string;
+  };
+};

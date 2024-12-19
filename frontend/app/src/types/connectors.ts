@@ -5,7 +5,16 @@ export type Connection = {
   connection_name: string;
   connection_type: string;
   connector_name: string;
+  auth_type: string;
+  connection_credentials: DatabaseAuthParams | ApiAuthParams;
   logo?: string;
+};
+
+export type ParamUpdateConnection = {
+  document_id: string;
+  fields: {
+    [key: string]: string;
+  };
 };
 
 export type Connectors = {

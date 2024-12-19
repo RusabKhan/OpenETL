@@ -2,7 +2,11 @@
 import { useEffect, useState } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
-import { base_url, fetchCreatedConnections } from "@/utils/api";
+import {
+  base_url,
+  delete_connection,
+  fetchCreatedConnections,
+} from "@/utils/api";
 import CardConnections from "@/components/CardConnection";
 import Head from "next/head";
 import axios from "axios";
@@ -49,6 +53,11 @@ const Connections = () => {
     load();
   }, []);
 
+  const onDelete = async (id: number) => {
+    await delete_connection(id);
+    load();
+  };
+
   return (
     <>
       <Head>
@@ -66,11 +75,15 @@ const Connections = () => {
             connections={databases}
             name="Database Connections"
             isLoading={isLoading}
+            onDelete={onDelete}
+            load={load}
           />
           <CardConnections
             connections={apis}
             name="API Connections"
             isLoading={isLoading}
+            onDelete={onDelete}
+            load={load}
           />
         </div>
       </DefaultLayout>
