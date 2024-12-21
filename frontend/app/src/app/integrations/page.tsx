@@ -27,7 +27,7 @@ const Integrations = () => {
     load_integrations();
   }, []);
 
-  const columns = ["Id", "Name", "Type", "Is Enabled", "Is Running"];
+  const columns = ["Id", "Name", "Type", "Cron Expression", "Is Enabled", "Is Running"];
 
   return (
     <>

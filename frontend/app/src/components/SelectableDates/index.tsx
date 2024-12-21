@@ -56,14 +56,16 @@ const SelectableDates: React.FC<SelectableDatesInterface> = (params) => {
   return (
     <div className="py-4">
       {/* Label */}
-      <label className="mb-2 block text-sm text-gray-400">Selected Dates</label>
+      <label className="mb-2 block text-sm text-black dark:text-white">
+        Selected Dates
+      </label>
 
       {/* Container */}
-      <div className="flex flex-wrap items-center gap-2 rounded-md border border-red-500 bg-gray-800 p-2">
+      <div className="flex flex-wrap items-center gap-2 rounded-md border border-red-500 bg-whiten p-2 dark:bg-boxdark">
         {selectedDates.map((date) => (
           <div
             key={date}
-            className="flex items-center space-x-2 rounded-md bg-red-500 px-3 py-1 text-white"
+            className="flex items-center space-x-2 rounded-md bg-success px-3 py-1 text-white"
           >
             <span className="text-sm">{date}</span>
             <button
@@ -81,7 +83,7 @@ const SelectableDates: React.FC<SelectableDatesInterface> = (params) => {
           onChange={handleInputChange}
           onKeyDown={addDate}
           placeholder="Add a date..."
-          className="flex-1 border-none bg-gray-700 p-1 text-gray-200 focus:outline-none"
+          className="flex-1 border-none bg-whiten p-1 text-black dark:text-gray-200 focus:outline-none dark:bg-gray-700"
         />
       </div>
 

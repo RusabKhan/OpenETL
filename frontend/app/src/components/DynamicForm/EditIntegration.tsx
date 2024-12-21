@@ -12,10 +12,22 @@ const EditIntegration: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
   // Handle input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    if (value === "false") {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: false,
+      }));
+    } else if (value === "true") {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: true,
+      }));
+    } else {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
   };
 
   // Handle form submission

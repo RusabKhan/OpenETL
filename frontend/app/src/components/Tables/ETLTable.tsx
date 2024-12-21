@@ -1,6 +1,7 @@
 import { ListIntegrationConfig } from "@/types/integration";
 import EditIntegration from "../DynamicForm/EditIntegration";
 import { useState } from "react";
+import Link from "next/link";
 
 interface ETLTableInterface {
   columns: string[];
@@ -54,9 +55,14 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                   <label className="sr-only">checkbox</label>
                 </div>
               </td>
-              <td className="px-6 py-4">{integration.id}</td>
+              <td className="px-6 py-4">
+                <Link href={`/integrations/${integration.id}`}>
+                  {integration.id}
+                </Link>
+              </td>
               <td className="px-6 py-4">{integration.integration_name}</td>
               <td className="px-6 py-4">{integration.integration_type}</td>
+              <td className="px-6 py-4">{integration.cron_expression}</td>
               <td className="px-6 py-4">
                 <p
                   className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${

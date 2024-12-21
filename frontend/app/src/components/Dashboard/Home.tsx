@@ -7,7 +7,9 @@ import ChatCard from "../Chat/ChatCard";
 import TableOne from "../Tables/TableOne";
 import CardDataStats from "../CardDataStats";
 import { fetchDashboardData } from "@/utils/api";
-import { formatNumber } from "@/utils/func";
+import { formatDateTime, formatNumber } from "@/utils/func";
+import { DashboardConfig } from "@/types/integration";
+import Breadcrumb from "../Breadcrumbs/Breadcrumb";
 
 const MapOne = dynamic(() => import("@/components/Maps/MapOne"), {
   ssr: false,
@@ -18,7 +20,7 @@ const ChartThree = dynamic(() => import("@/components/Charts/ChartThree"), {
 });
 
 const Home: React.FC = () => {
-  const [dashData, setDashData] = useState({
+  const [dashData, setDashData] = useState<DashboardConfig>({
     total_api_connections: 0,
     total_db_connections: 0,
     total_pipelines: 0,
@@ -39,9 +41,18 @@ const Home: React.FC = () => {
     loadData();
   }, []);
 
+  const columns = [
+    "Integration Name",
+    "Run Count",
+    "Latest Run Status",
+    "Error Message",
+    "Start Date",
+    "End Date",
+  ];
+
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
         <CardDataStats
           title="Total API Connections"
           total={`${dashData.total_api_connections}`}
@@ -120,7 +131,55 @@ const Home: React.FC = () => {
         </CardDataStats>
       </div>
 
-      <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
+      <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <h2 className="text-title-md2 font-semibold text-black dark:text-white mb-4">
+          Integration Stats
+        </h2>
+        <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400 rtl:text-right">
+          <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+              {columns.map((column, i) => (
+                <th key={i} scope="col" className="px-6 py-3">
+                  {column}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {dashData.integrations.map((integration, key) => (
+              <tr
+                key={key}
+                className="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600"
+              >
+                <td className="px-6 py-4">{integration.integration_name}</td>
+                <td className="px-6 py-4">{integration.run_count}</td>
+                <td className="px-6 py-4">
+                  <p
+                    className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
+                      integration.latest_run_status === "success"
+                        ? "bg-success text-success"
+                        : integration.latest_run_status === "running"
+                          ? "bg-danger text-warning"
+                          : "bg-danger text-danger"
+                    }`}
+                  >
+                    {integration.latest_run_status}
+                  </p>
+                </td>
+                <td className="px-6 py-4">{integration.error_message || "None"}</td>
+                <td className="px-6 py-4">
+                  {formatDateTime(integration.start_date)}
+                </td>
+                <td className="px-6 py-4">
+                  {formatDateTime(integration.end_date)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
         <ChartOne />
         <ChartTwo />
         <ChartThree />
@@ -129,7 +188,7 @@ const Home: React.FC = () => {
           <TableOne />
         </div>
         <ChatCard />
-      </div>
+      </div> */}
     </>
   );
 };

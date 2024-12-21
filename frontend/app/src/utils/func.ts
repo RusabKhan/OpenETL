@@ -51,3 +51,20 @@ export function formatNumber(num: number) {
     return num.toString();
   }
 }
+
+export function formatDateTime(dateTimeString: string): string {
+  const date = new Date(dateTimeString); // Convert the string into a Date object
+
+  // Format the date and time
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  };
+
+  return date.toLocaleString("en-US", options); // Convert to a human-readable format
+}

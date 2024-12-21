@@ -53,6 +53,9 @@ export const getConnectorAuthDetails = async (name: string, type: string) => {
 export const getIntegrations = async () => {
   return apiRequest("get", "/pipeline/get_integrations");
 };
+export const getIntegrationHistory = async (id: string) => {
+  return apiRequest("get", `/pipeline/get_integration_history/${id}`);
+};
 
 // POST
 export const fetchCreatedConnections = async (type: string) => {
