@@ -992,6 +992,7 @@ class DatabaseUtils():
         total_items = self.session.query(OpenETLIntegrations).count()
 
         schedulers = self.session.query(OpenETLIntegrations) \
+            .order_by(OpenETLIntegrations.created_at.desc()) \
             .offset(offset) \
             .limit(per_page) \
             .all()
@@ -1001,7 +1002,7 @@ class DatabaseUtils():
                 "id": scheduler.id,
                 "integration_name": scheduler.integration_name,
                 "integration_type": scheduler.integration_type,
-                "cron_expression": scheduler.cron_expression,
+                "cron_expression": [parse_cron_expression(cron) for cron in scheduler.cron_expression],
                 "is_running": scheduler.is_running,
                 "is_enabled": scheduler.is_enabled,
                 "created_at": scheduler.created_at.isoformat() if scheduler.created_at else None,
@@ -1027,6 +1028,7 @@ class DatabaseUtils():
 
         history = self.session.query(OpenETLIntegrationsRuntimes) \
             .filter(OpenETLIntegrationsRuntimes.integration == integration_id) \
+            .order_by(OpenETLIntegrationsRuntimes.created_at.desc()) \
             .offset(offset) \
             .limit(per_page) \
             .all()
@@ -1160,3 +1162,40 @@ def generate_cron_expression(schedule_time, schedule_dates=None, frequency=None)
         return cron_expressions
     else:
         raise ValueError("Unsupported scheduling details provided.")
+
+
+def parse_cron_expression(cron_expr):
+    """
+    Reverse-engineers a cron expression into its individual components.
+
+    Args:
+    - cron_expr: A cron expression in the format 'minute hour day_of_month month day_of_week'
+
+    Returns:
+    - A dictionary with components of the cron expression
+    """
+    cron_parts = cron_expr.split()
+
+    if len(cron_parts) != 5:
+        raise ValueError("Invalid cron expression. It should have exactly 5 parts.")
+
+    minute, hour, day_of_month, month, day_of_week = cron_parts
+
+    # Helper function to format the components
+    def format_component(component):
+        if component == "*":
+            return "Every value (wildcard), e.g: every hour if in hour."
+        elif "," in component:
+            return f"List: {component.split(',')}"
+        elif "-" in component:
+            return f"Range: {component}"
+        else:
+            return f"Specific value: {component}"
+
+    return {
+        "minute": format_component(minute),
+        "hour": format_component(hour),
+        "day_of_month": format_component(day_of_month),
+        "month": format_component(month),
+        "day_of_week": format_component(day_of_week)
+    }
