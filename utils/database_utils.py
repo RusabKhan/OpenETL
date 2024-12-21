@@ -1166,13 +1166,13 @@ def generate_cron_expression(schedule_time, schedule_dates=None, frequency=None)
 
 def parse_cron_expression(cron_expr):
     """
-    Reverse-engineers a cron expression into its individual components.
+    Reverse-engineers a cron expression into its individual components with detailed explanations.
 
     Args:
     - cron_expr: A cron expression in the format 'minute hour day_of_month month day_of_week'
 
     Returns:
-    - A dictionary with components of the cron expression
+    - A dictionary with components of the cron expression, with explanations.
     """
     cron_parts = cron_expr.split()
 
@@ -1182,20 +1182,37 @@ def parse_cron_expression(cron_expr):
     minute, hour, day_of_month, month, day_of_week = cron_parts
 
     # Helper function to format the components
-    def format_component(component):
+    def format_component(component, component_name):
         if component == "*":
-            return "Every value (wildcard), e.g: every hour if in hour."
+            if component_name in ["minute", "hour"]:
+                return f"Every {component_name}, e.g: every {component_name}."
+            elif component_name == "day_of_month":
+                return "Every day of the month."
+            elif component_name == "month":
+                return "Every month."
+            elif component_name == "day_of_week":
+                return "Every day of the week."
         elif "," in component:
             return f"List: {component.split(',')}"
         elif "-" in component:
             return f"Range: {component}"
         else:
-            return f"Specific value: {component}"
+            # Return the actual value (e.g., "09-15" or just "5" for day of week)
+            return f"Value: {component}"
+
+    # Time and date details
+    time_detail = f"Time: {hour}:{minute}" if hour != "*" and minute != "*" else "Time: Not specified (wildcard)"
+
+    # Month and date specific details
+    date_detail = f"Date: Day {day_of_month} of the month" if day_of_month != "*" else "Date: Any day of the month"
 
     return {
-        "minute": format_component(minute),
-        "hour": format_component(hour),
-        "day_of_month": format_component(day_of_month),
-        "month": format_component(month),
-        "day_of_week": format_component(day_of_week)
+        "minute": format_component(minute, "minute"),
+        "hour": format_component(hour, "hour"),
+        "day_of_month": format_component(day_of_month, "day_of_month"),
+        "month": format_component(month, "month"),
+        "day_of_week": format_component(day_of_week, "day_of_week"),
+        "time_detail": time_detail,
+        "date_detail": date_detail
     }
+
