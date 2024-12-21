@@ -126,11 +126,12 @@ def extract_xcom_value(task_id, **context):
 
 def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=None, job_type=None,
                  source_table=None, source_schema=None, target_table=None, target_schema=None,
-                 source_connection_details=None, target_connection_details=None, batch_size=100000):
+                 source_connection_details=None, target_connection_details=None, batch_size=100000, logger=None):
     """
     A function that runs a pipeline with the specified configurations, particularly used in the airflow DAG to run a pipeline.
 
     Args:
+        logger:
         target_schema:
         job_type:
         job_id:
@@ -149,19 +150,6 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
         NotImplementedError: If the target connection type is API.
     """
     try:
-        log_folder = f'{os.environ["OPENETL_HOME"]}/.logs'
-        if not os.path.exists(log_folder):
-            os.makedirs(log_folder)
-        file_handler = logging.FileHandler(
-            f'{log_folder}/integration_{job_id}_{job_name}_{datetime.now().strftime("%Y%m%d%H%M%S")}.log')
-        file_handler.setLevel(logging.INFO)
-
-        # Create a formatter and set the formatter for the file handler
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        file_handler.setFormatter(formatter)
-
-        # Add the file handler to the logger
-        logger.addHandler(file_handler)
 
         logger.info("RUNNING PIPELINE")
 
