@@ -6,15 +6,16 @@ if "OPENETL_HOME" not in os.environ:
     os.environ["OPENETL_HOME"] = script_directory
 
 import streamlit as st
+from st_pages import Page, Section, show_pages, add_page_title, hide_pages
 
-if "style_setting_set" not in st.session_state:
-    st.set_page_config(layout="wide",page_icon="utils/logo/favicon.png", page_title="OpenETL")
-    st.session_state.style_setting_set = True
+from utils import generic_utils as gu
+from utils.local_connection_utils import create_con_directory
+from dotenv import load_dotenv
+import pandas as pd
 
 
-
-
-# Redirecting stdout to a stream
+gu.set_page_config(page_title="OpenETL", page_icon=None, initial_sidebar_state="expanded",
+                   layout="wide", menu_items={}, page_style_state_variable="home")
 
 
 def set_session():
@@ -73,12 +74,8 @@ def set_session():
 
     if "style_setting" not in st.session_state:
         st.session_state.style_setting = {}
-        
-    if "dashboard_tab_data" not in st.session_state:
-        st.session_state.dashboard_tab_data = {}
-    if "dashboard_thread_started" not in st.session_state:
-        st.session_state.dashboard_thread_started = False
 
+    load_dotenv(dotenv_path='.env')
 
 # STYLE VARIABLES
 # if "connection_create_connection_style_set" not in st.session_state:
@@ -97,57 +94,60 @@ def set_session():
 
 def __init__():
     set_session()
-    #create_con_directory()
-    st.markdown(
-        """
-        <style>
-        .block-container.st-emotion-cache-1jicfl2.ea3mdgi5 {
-        padding: 3rem 1rem 10rem;
-        }
-        .reportview-container {
-            margin-top: -2em;
-        }
-        #MainMenu {visibility: hidden;}
-        .stAppDeployButton {display:none;}
-        footer {visibility: hidden;}
-        #stDecoration {display:none;}
-        
-        .stStatusWidget {
-            display: none;
-            visibility: hidden;
-        }
-
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.logo("utils/logo/logo.png")
-
-try:
-    __init__()
-except Exception as e:
-    pass
+    create_con_directory()
 
 
-current_page = st.navigation({
-    "Home": [
-        st.Page("home.py", title="Home", default=True, icon=":material/home:"),],
-    "Connections": [
-        st.Page("app/connection/create_connection.py", title="Create connection",
-                icon=":material/add:"),
-        st.Page("app/connection/connection.py", title="Connections",
-                icon=":material/list:")
-    ],
-    # Page("query_editor/query.py","Query Editor"),
-    # Page("api/create_api.py", "Create API"),
-    # Page("pipeline/pipelines.py", "My ETL"),
-    "Pipelines": [
-        st.Page("app/pipeline/create_pipelines.py", title="Create ETL",
-                icon=":material/add:"),
-            # Page("api/fetch_data.py","Fetch Data"),
+col1, col2, col3, col4 = st.columns(4)
 
-    ]}
+# sample data
+data = {
+    "Pipeline name": ["Pipeline A", "Pipeline B", "Pipeline C"],
+    "Pipeline status": ["Running", "Completed", "Failed"],
+    "Last run": ["2024-06-01 14:00", "2024-06-02 15:00", "2024-06-03 16:00"],
+    "Scheduled run": ["2024-06-05 14:00", "2024-06-06 15:00", "2024-06-07 16:00"],
+}
+
+df = pd.DataFrame(data)
+
+# Sample metrics for the blocks
+total_api_connections = 5
+total_db_connections = 10
+total_pipelines = 3
+total_rows_migrated = 100000
+
+with col1:
+    st.metric(label="Total API Connections", value=total_api_connections)
+
+with col2:
+    st.metric(label="Total DB Connections", value=total_db_connections)
+
+with col3:
+    st.metric(label="Total Pipelines", value=total_pipelines)
+
+with col4:
+    st.metric(label="Total Rows Migrated", value=total_rows_migrated)
+
+st.markdown("---")  # Divider
+
+# Displaying the dataframe below the metrics
+st.subheader("Pipeline Details")
+with st.container():
+    st.dataframe(df, use_container_width=True, height=300,hide_index=True)
+
+
+__init__()
+
+
+show_pages(
+    [
+        Page("main.py", "Home"),
+        Page("connection/create_connection.py", "Create a new connection"),
+        Page("connection/connection.py", "Connections"),
+        # Page("query_editor/query.py","Query Editor"),
+        #Page("api/create_api.py", "Create API"),
+        #Page("pipeline/pipelines.py", "My ETL"),
+        Page("pipeline/create_pipelines.py", "Create ETL"),
+        # Page("api/fetch_data.py","Fetch Data"),
+
+    ]
 )
-
-
-current_page.run()
