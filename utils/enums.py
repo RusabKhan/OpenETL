@@ -26,3 +26,25 @@ class ColumnActions(Enum):
     DROP = "drop"
     MODIFY = "modify"
     
+    
+class APIMethod(Enum):
+    GET = "get"
+    POST = "post"
+    PUT = "put"
+    PATCH = "patch"
+    DELETE = "delete"
+
+
+class RunStatus(Enum):
+    SUCCESS = "success"
+    FAILED = "failed"
+    RUNNING = "running"
+
+class IntegrationType(Enum):
+    FULL_LOAD = "full_load"
+
+
+class LogsType(Enum):
+    INTEGRATION = "integration"
+    CELERY = "celery"
+    SCHEDULER = "scheduler"

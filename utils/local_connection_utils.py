@@ -2,7 +2,9 @@
 """
 import os
 import json
+from typing import List
 
+from utils.enums import LogsType
 
 directory = f'{os.getcwd()}/.local'
 pipelines_directory = f"{directory}/pipelines"
@@ -200,3 +202,40 @@ def read_all_apis():
 def read_api_config(apiname):
     with open(os.path.join(api_directory, f"{apiname}.json")) as f:
         return json.load(f)
+
+
+def get_log_file_path(logs_dir: str, integration_id: str | None = None, logs_type: LogsType = LogsType.INTEGRATION):
+    """
+    Get the log file path based on logs type and integration_id.
+    """
+    if logs_type == LogsType.SCHEDULER:
+        return os.path.join(logs_dir, "scheduler.log")
+    elif logs_type == LogsType.CELERY:
+        return os.path.join(logs_dir, "celery.log")
+    elif logs_type == LogsType.INTEGRATION and integration_id:
+        return os.path.join(logs_dir, f"{integration_id}.log")
+    return None
+
+
+# Helper function to paginate the log file content
+def paginate_log_content(log_file_path: str, page: int, per_page: int):
+    """
+    Paginate the log content by reading the log file and slicing the lines based on the page and per_page.
+    Also, return the total number of pages.
+    """
+    log_lines = []
+
+    # Open the log file and read line by line
+    with open(log_file_path, 'r') as log_file:
+        log_lines = log_file.readlines()
+
+    # Calculate total pages
+    total_lines = len(log_lines)
+    total_pages = (total_lines // per_page) + (1 if total_lines % per_page != 0 else 0)
+
+    # Slice the lines based on the requested page
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_lines = log_lines[start:end]
+
+    return paginated_lines, total_pages

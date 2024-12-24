@@ -9,15 +9,9 @@ Functions:
 - jdbc_form: Generates a JDBC form based on the specified engine.
 """
 import streamlit as st
-from .jdbc_engine_utils import JDBCEngine
-from .database_utils import DatabaseUtils
-import pandas as pd
-from .local_connection_utils import store_connection_config, read_api_config
-from .generic_utils import check_missing_values, get_open_etl_document_connection_details
-import json
-import os
+
+from utils.api_utils import send_request
 from utils.enums import *
-import utils.connector_utils as con_utils
 
 """This module contains functions related to form generation and card generation.
 """
@@ -51,11 +45,12 @@ class GenerateForm():
         print("Creating connection...")
 
     def connection_form(self, engine="",engine_type=""):
-        con_data = con_utils.get_connector_auth_details(engine, engine_type)
+        con_data = send_request("connector/get_connector_auth_details/{}/{}".format(engine,engine_type.value), method=APIMethod.GET, timeout=10)
         auth_types = list(con_data.keys())
         auth_value = {}
         connection_name = None
         authentication_type = None
+        stored = None
 
         col1, col2 = st.columns(2)
 
@@ -92,20 +87,25 @@ class GenerateForm():
 
         with test_col:
             if st.button("Create Connection"):
-                test = con_utils.connector_test_connection(auth_type=authentication_type, connector_type=engine_type, 
-                                                       connector_name=engine, **auth_value)
+                data={"auth_type":authentication_type, "connector_type":engine_type.value, 
+                                                       "connector_name":engine, "auth_params":auth_value}
+                
+                test = send_request("connector/test_connection",
+                                    method=APIMethod.POST, json=data, timeout=10)
                 if test == True:
 
                     
                     json_data = {"connection_credentials": auth_value,"connector_name": engine, "auth_type": authentication_type
                                  ,"connection_name": connection_name, "connection_type": engine_type.value
                                  }
-                    vals = get_open_etl_document_connection_details()
-                    stored = DatabaseUtils(**vals).write_document(json_data)
+                    test_conn_request_data = {"auth_params": auth_value, "connector_name": engine,
+                                              "auth_type": authentication_type, "connector_type": engine_type.value}
+                    if send_request("connector/test_connection", method=APIMethod.POST, json=test_conn_request_data, timeout=10) == True:
+                        stored = send_request("connector/store_connection", method=APIMethod.POST, json=json_data, timeout=10)
                     if stored[0]:
                         st.success('Connection created!', icon="✅")
                     else:
-                        st.error(f"Connection failed. Please try again. Or check the connection details: {stored[1]}",icon="❌")
+                        st.error(f"Connection failed. Please try again. Or check the connection details:{stored[1]}",icon="❌")
                 else:
                     st.error("Connection failed. Please try again. Or check the connection details:")
 
@@ -138,9 +138,10 @@ def create_button_columns(data,connection_type, num_columns=5):
         end_index = min(start_index + num_columns, num_names)
         
         for i in range(start_index, end_index):
-            default_img = con_utils.get_connector_image(data[i]['connector_name'], connection_type)
+            url = "connector/get_connector_image/{}/{}".format(data[i]['connector_name'],connection_type)
+            default_img = send_request(url, method=APIMethod.GET, timeout=10)
             with cols[i % num_columns]:
                 # Creating a container for the image and button
                     st.image(default_img, width=100)
-                    st.button(data[i]['connection_name'])
+                    st.button(data[i]['connection_name'], key="{}{}{}".format(connection_type,data[i]['connector_name'],i))
 
