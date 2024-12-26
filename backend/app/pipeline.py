@@ -152,11 +152,14 @@ async def get_logs_api(
     - Pagination via `page` and `per_page` query params.
     """
     logs_dir = os.path.join(os.environ['OPENETL_HOME'], ".logs")
-    log_file_path = get_log_file_path(logs_dir, integration_id, logs_type)
+    log_file_paths = get_log_file_path(logs_dir, integration_id, logs_type)
 
-    if not log_file_path or not os.path.isfile(log_file_path):
-        return JSONResponse(content={"message": "Log file not found"}, status_code=404)
-    log_content, total_pages = paginate_log_content(log_file_path, page, per_page)
-    return JSONResponse(content={"logs": log_content, "page": page, "per_page": per_page, "total_pages": total_pages})
+    log_content, total_pages = paginate_log_content(log_file_paths, page, per_page)
 
+    return JSONResponse(content={
+        "logs": log_content,
+        "page": page,
+        "per_page": per_page,
+        "total_pages": total_pages
+    })
 
