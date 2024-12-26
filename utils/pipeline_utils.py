@@ -10,6 +10,7 @@ Functions:
 """
 
 import os
+import sys
 # base_dir = os.getenv('OPENETL_HOME')
 # sys.path.append(base_dir)
 import uuid
@@ -26,13 +27,11 @@ import utils.database_utils as database_utils
 
 import logging
 
+
 # Create a logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+
 
 # Create a file handler and set the logging level to INFO
-
-
 
 
 def create_airflow_dag(config):
@@ -60,9 +59,11 @@ def create_airflow_dag(config):
     integration_name = config['integration_name']
 
     op_args = {
-        "config": {"source": {"table": config["source_table"], "schema": config["source_schema"], "connection_type": config["source_type"],
+        "config": {"source": {"table": config["source_table"], "schema": config["source_schema"],
+                              "connection_type": config["source_type"],
                               "connection_name": config["source_connection_name"]},
-                   "target": {"table": config["target_table"], "schema": config["target_schema"], "connection_type": config["target_type"],
+                   "target": {"table": config["target_table"], "schema": config["target_schema"],
+                              "connection_type": config["target_type"],
                               "connection_name": config["target_connection_name"]}},
     }
     with open(f"{os.getcwd()}/utils/airflow_templates/full_load.py", 'r') as file:
@@ -76,7 +77,8 @@ def create_airflow_dag(config):
     return True
 
 
-def read_data(connector_name, auth_values, auth_type, table, connection_type, schema="public", config = {}, batch_size = 100000):
+def read_data(connector_name, auth_values, auth_type, table, connection_type, schema="public", config={},
+              batch_size=100000, logger=None):
     """
     Reads data from a specified connection type.
 
@@ -99,8 +101,8 @@ def read_data(connector_name, auth_values, auth_type, table, connection_type, sc
     elif connection_type.lower() == ConnectionType.API.value:
         for data in con_utils.fetch_data_from_connector(connector_name, auth_values, auth_type, table, connection_type,
                                                         schema="public"):
-            logging.info("######data######")
-            logging.info(data)
+            logger.info("######data######")
+            logger.info(data)
             if not isinstance(data, pd.DataFrame):
                 raise ValueError("Fetched data must be a pandas DataFrame")
 
@@ -112,7 +114,6 @@ def read_data(connector_name, auth_values, auth_type, table, connection_type, sc
                 main_df = pd.DataFrame()  # Reset
 
         yield main_df
-
 
 
 def extract_xcom_value(task_id, **context):
@@ -165,7 +166,7 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
             jar = jdbc_database_jars[engine]
             driver = jdbc_engine_drivers[engine]
             connection_details = {key.upper(): value for key,
-                                  value in target_credentials.items()}
+            value in target_credentials.items()}
             con_string = jdbc_connection_strings[engine].format(
                 **connection_details)
 
@@ -186,18 +187,21 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
             logger.info("PRINTING OUT JARS")
             logger.info(jar)
             spark_class = sp_ut.SparkConnection(spark_configuration=spark_config,
-                                                hadoop_configuration=hadoop_config, jar=jar, connection_string=con_string)
+                                                hadoop_configuration=hadoop_config, jar=jar,
+                                                connection_string=con_string)
             spark_session = spark_class.initializeSpark()
-            spark_config["spark.app.name"] = spark_config["spark.app.name"]+f"_{batch_id}_read_source_table{source_table}"
+            spark_config["spark.app.name"] = spark_config[
+                                                 "spark.app.name"] + f"_{batch_id}_read_source_table{source_table}"
             if source_connection_details["connection_type"].lower() == ConnectionType.DATABASE.value:
 
                 connection_details_upper = {key.upper(): value for key, value in connection_details.items()}
-                spark_conn_url = {"url":jdbc_connection_strings[engine].format(**connection_details_upper),
+                spark_conn_url = {"url": jdbc_connection_strings[engine].format(**connection_details_upper),
                                   "dbtable": source_table,
                                   "driver": jdbc_engine_drivers[engine]}
                 df = spark_class.read_via_spark(spark_conn_url)
                 run_pipeline_target(df=df, spark_class=spark_class, con_string=con_string,
-                                    target_table=target_table, batch_id=batch_id, driver=driver, spark_session=spark_session, db_class=db)
+                                    target_table=target_table, batch_id=batch_id, driver=driver,
+                                    spark_session=spark_session, db_class=db)
             else:
                 for df in read_data(connector_name=source_connection_details['connector_name'],
                                     auth_values=source_credentials,
@@ -205,12 +209,15 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                                     table=source_table,
                                     connection_type=source_connection_details['connection_type'],
                                     schema=source_schema,
-                                    batch_size=batch_size):
+                                    batch_size=batch_size,
+                                    logger=logger):
                     df = spark_session.createDataFrame(df)
                     row_count = df.count()
                     run_pipeline_target(df=df, row_count=row_count, spark_class=spark_class, con_string=con_string,
-                                        target_table=target_table, batch_id=batch_id, driver=driver, spark_session=spark_session, db_class=db)
-                    update_db(job_id, job_id, None, RunStatus.SUCCESS, datetime.utcnow(), row_count=row_count)
+                                        target_table=target_table, batch_id=batch_id, driver=driver,
+                                        spark_session=spark_session, db_class=db, logger=logger)
+                    update_db(job_id, job_id, None, RunStatus.SUCCESS, datetime.utcnow(), row_count=row_count
+                              )
 
             logger.info("FINISHED PIPELINE")
             logger.info("DISPOSING ENGINES")
@@ -231,8 +238,8 @@ def update_db(celery_task_id, integration, error_message, run_status, start_date
                                   end_date=start_date, row_count=row_count)
 
 
-def run_pipeline_target(df, spark_class,row_count, con_string, target_table, batch_id, driver, spark_session, db_class):
-
+def run_pipeline_target(df, spark_class, row_count, con_string, target_table, batch_id, driver, spark_session, db_class,
+                        logger):
     logger.info(df.limit(2))
 
     # Display column data types
