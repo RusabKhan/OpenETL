@@ -10,7 +10,7 @@ from starlette.responses import JSONResponse
 
 from utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details, generate_cron_expression
 from utils.enums import IntegrationType, LogsType
-from utils.local_connection_utils import  paginate_log_content, get_log_file_path
+from utils.local_connection_utils import  paginate_logfile_content, get_log_file_path
 
 sys.path.append(os.environ['OPENETL_HOME'])
 
@@ -156,7 +156,7 @@ async def get_logs_api(
 
     if not log_file_path or not os.path.isfile(log_file_path):
         return JSONResponse(content={"message": "Log file not found"}, status_code=404)
-    log_content, total_pages = paginate_log_content(log_file_path, page, per_page)
+    log_content, total_pages = paginate_logfile_content(log_file_path, page, per_page)
     return JSONResponse(content={"logs": log_content, "page": page, "per_page": per_page, "total_pages": total_pages})
 
 

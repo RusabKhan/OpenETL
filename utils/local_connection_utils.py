@@ -218,7 +218,7 @@ def get_log_file_path(logs_dir: str, integration_id: str | None = None, logs_typ
 
 
 # Helper function to paginate the log file content
-def paginate_log_content(log_file_path: str, page: int, per_page: int):
+def paginate_logfile_content(log_file_path: str, page: int, per_page: int):
     """
     Paginate the log content by reading the log file and slicing the lines based on the page and per_page.
     Also, return the total number of pages.
