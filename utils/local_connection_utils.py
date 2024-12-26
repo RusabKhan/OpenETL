@@ -3,6 +3,7 @@
 import os
 import json
 
+from utils.enums import LogsType
 
 directory = f'{os.getcwd()}/.local'
 pipelines_directory = f"{directory}/pipelines"
@@ -200,3 +201,67 @@ def read_all_apis():
 def read_api_config(apiname):
     with open(os.path.join(api_directory, f"{apiname}.json")) as f:
         return json.load(f)
+
+def paginate_log_content(log_file_paths: list[str], page: int, per_page: int):
+    """
+    Paginate the content of multiple log files.
+
+    Args:
+        log_file_paths: A list of paths to log files.
+        page: The page number to retrieve.
+        per_page: The number of lines per page.
+
+    Returns:
+        A tuple containing:
+            - A list of paginated lines from all log files.
+            - The total number of pages across all log files.
+    """
+
+    all_log_lines = []
+
+    # Read all log files and collect lines
+    for log_file_path in log_file_paths:
+        with open(log_file_path, 'r') as log_file:
+            log_lines = log_file.readlines()
+            all_log_lines.extend(log_lines)
+
+    # Calculate total pages
+    total_lines = len(all_log_lines)
+    total_pages = (total_lines // per_page) + (1 if total_lines % per_page != 0 else 0)
+
+    # Slice the lines based on the requested page
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_lines = all_log_lines[start:end]
+
+    return paginated_lines, total_pages
+
+
+def get_log_file_path(logs_dir: str, integration_id: str | None = None, logs_type: LogsType = LogsType.INTEGRATION):
+    """
+    Get log files from the specified directory, filtered and sorted by modification time.
+    """
+    log_files = []
+
+    # Handle each log type case
+    if logs_type == LogsType.SCHEDULER:
+        file_path = os.path.join(logs_dir, "scheduler.log")
+        if os.path.isfile(file_path):
+            log_files.append(file_path)
+
+    elif logs_type == LogsType.CELERY:
+        file_path = os.path.join(logs_dir, "celery.log")
+        if os.path.isfile(file_path):
+            log_files.append(file_path)
+
+    elif logs_type == LogsType.INTEGRATION and integration_id:
+        log_files = [
+            os.path.join(logs_dir, file)
+            for file in os.listdir(logs_dir)
+            if file.startswith(integration_id)
+
+        ]
+    # Sort log files by modification time (most recent first)
+    log_files.sort(key=lambda x: x[1], reverse=True)
+
+    return log_files
