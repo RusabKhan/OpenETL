@@ -2,6 +2,8 @@ import sys
 import time
 import os
 import logging
+from datetime import datetime
+
 from celery import Celery
 from celery.signals import after_setup_logger, task_prerun
 from utils.database_utils import get_open_etl_document_connection_details, DatabaseUtils
@@ -52,12 +54,12 @@ def configure_task_logger(task_id=None, task=None, args=None, **kwargs):
     This appends Celery worker logs to the job-specific log file and includes console logs.
     """
     if task.name == "utils.celery_utils.run_pipeline":
-        # Extract job_id from args (first argument)
+        # Extract job_id and job_name from args
         job_id = args[0] if args else "unknown_job"
         job_name = args[1] if len(args) > 1 else "unknown_name"
 
         # Log file for this job
-        job_log_file = f"{LOG_DIR}/{job_id}.log"
+        job_log_file = f"{LOG_DIR}/{job_id}-{job_name}-{datetime.now().strftime('%Y%m%d%H%M%S')}.log"
 
         # Configure Celery worker logging for this task
         task_logger = logging.getLogger('celery')
@@ -68,7 +70,7 @@ def configure_task_logger(task_id=None, task=None, args=None, **kwargs):
 
         # Stream handler to capture console logs
         stream_handler = logging.StreamHandler(sys.stdout)
-        stream_handler.setLevel(logging.INFO)
+        stream_handler.setLevel(logging.DEBUG)  # Set stream handler level to DEBUG
         stream_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 
         # Add both handlers to the task logger
@@ -83,8 +85,14 @@ def configure_task_logger(task_id=None, task=None, args=None, **kwargs):
         job_logger.addHandler(file_handler)
         job_logger.addHandler(stream_handler)
 
-        # Log that the logger was successfully configured
+        # Set root logger level to NOTSET
+        logging.getLogger('').setLevel(logging.NOTSET)
+
+        # Log job configuration details
         job_logger.info(f"Configured logger for job_id: {job_id}, log file: {job_log_file}")
+        job_logger.info(f"Task name: {task.name}")
+        job_logger.info(f"Task arguments: {args}")
+
 
 
 # Task definition
