@@ -1,5 +1,7 @@
 import os
 import sys
+import uuid
+
 sys.path.append(os.environ['OPENETL_HOME'])
 
 import logging
@@ -99,9 +101,15 @@ def check_and_schedule_tasks():
 
     # Remove jobs no longer in the database
     for job_id in current_job_ids - integration_ids:
-        scheduler.remove_job(job_id)
-        app.control.revoke(job_id, terminate=True)
-        logger.info(f"Removed job: {job_id}. Not found in DB")
+        try:
+            # Check if the job_id is a valid UUID
+            uuid.UUID(job_id)  # This will raise an exception if it's not a valid UUID
+            scheduler.remove_job(job_id)
+            app.control.revoke(job_id, terminate=True)
+            logger.info(f"Removed job: {job_id}. Not found in DB")
+        except ValueError:
+            # If job_id is not a valid UUID, do not remove it
+            logger.info(f"Skipped removing job: {job_id}. Not a valid UUID.")
 
     # Remove disabled integrations
     for job_id in disabled_integrations:
