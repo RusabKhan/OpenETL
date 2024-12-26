@@ -42,3 +42,9 @@ class RunStatus(Enum):
 
 class IntegrationType(Enum):
     FULL_LOAD = "full_load"
+
+
+class LogsType(Enum):
+    INTEGRATION = "integration"
+    CELERY = "celery"
+    SCHEDULER = "scheduler"

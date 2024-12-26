@@ -992,6 +992,7 @@ class DatabaseUtils():
         total_items = self.session.query(OpenETLIntegrations).count()
 
         schedulers = self.session.query(OpenETLIntegrations) \
+            .order_by(OpenETLIntegrations.created_at.desc()) \
             .offset(offset) \
             .limit(per_page) \
             .all()
@@ -1001,7 +1002,7 @@ class DatabaseUtils():
                 "id": scheduler.id,
                 "integration_name": scheduler.integration_name,
                 "integration_type": scheduler.integration_type,
-                "cron_expression": scheduler.cron_expression,
+                "cron_expression": [parse_cron_expression(cron) for cron in scheduler.cron_expression],
                 "is_running": scheduler.is_running,
                 "is_enabled": scheduler.is_enabled,
                 "created_at": scheduler.created_at.isoformat() if scheduler.created_at else None,
@@ -1027,6 +1028,7 @@ class DatabaseUtils():
 
         history = self.session.query(OpenETLIntegrationsRuntimes) \
             .filter(OpenETLIntegrationsRuntimes.integration == integration_id) \
+            .order_by(OpenETLIntegrationsRuntimes.created_at.desc()) \
             .offset(offset) \
             .limit(per_page) \
             .all()
@@ -1160,3 +1162,57 @@ def generate_cron_expression(schedule_time, schedule_dates=None, frequency=None)
         return cron_expressions
     else:
         raise ValueError("Unsupported scheduling details provided.")
+
+
+def parse_cron_expression(cron_expr):
+    """
+    Reverse-engineers a cron expression into its individual components with detailed explanations.
+
+    Args:
+    - cron_expr: A cron expression in the format 'minute hour day_of_month month day_of_week'
+
+    Returns:
+    - A dictionary with components of the cron expression, with explanations.
+    """
+    cron_parts = cron_expr.split()
+
+    if len(cron_parts) != 5:
+        raise ValueError("Invalid cron expression. It should have exactly 5 parts.")
+
+    minute, hour, day_of_month, month, day_of_week = cron_parts
+
+    # Helper function to format the components
+    def format_component(component, component_name):
+        if component == "*":
+            if component_name in ["minute", "hour"]:
+                return f"Every {component_name}, e.g: every {component_name}."
+            elif component_name == "day_of_month":
+                return "Every day of the month."
+            elif component_name == "month":
+                return "Every month."
+            elif component_name == "day_of_week":
+                return "Every day of the week."
+        elif "," in component:
+            return f"List: {component.split(',')}"
+        elif "-" in component:
+            return f"Range: {component}"
+        else:
+            # Return the actual value (e.g., "09-15" or just "5" for day of week)
+            return f"Value: {component}"
+
+    # Time and date details
+    time_detail = f"Time: {hour}:{minute}" if hour != "*" and minute != "*" else "Time: Not specified (wildcard)"
+
+    # Month and date specific details
+    date_detail = f"Date: Day {day_of_month} of the month" if day_of_month != "*" else "Date: Any day of the month"
+
+    return {
+        "minute": format_component(minute, "minute"),
+        "hour": format_component(hour, "hour"),
+        "day_of_month": format_component(day_of_month, "day_of_month"),
+        "month": format_component(month, "month"),
+        "day_of_week": format_component(day_of_week, "day_of_week"),
+        "time_detail": time_detail,
+        "date_detail": date_detail
+    }
+
