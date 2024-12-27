@@ -48,3 +48,4 @@ class LogsType(Enum):
     INTEGRATION = "integration"
     CELERY = "celery"
     SCHEDULER = "scheduler"
+    API = "api"
