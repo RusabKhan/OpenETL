@@ -1,9 +1,8 @@
 import sys
 import os
 from datetime import timedelta
-from http.client import HTTPException
 from celery.result import AsyncResult
-from fastapi import APIRouter, Body, Request
+from fastapi import APIRouter, Body, Request, HTTPException
 from utils.celery_utils import app as celery_app, get_task_details
 
 router = APIRouter(prefix="/worker", tags=["worker","celery"])
@@ -34,23 +33,20 @@ async def get_task_logs(task_id: str):
     """
     Fetch the logs of a specific Celery task.
     """
-    try:
-        task = AsyncResult(task_id, app=celery_app)
-        if not task:
-            raise HTTPException(status_code=404, detail="Task not found")
+    task = AsyncResult(task_id, app=celery_app)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
 
-        # Assuming logs are stored separately; replace with your log-fetching logic
-        log_file = f"logs/{task_id}.log"
-        if not os.path.exists(log_file):
-            raise HTTPException(status_code=404, detail="Log file not found")
+    # Assuming logs are stored separately; replace with your log-fetching logic
+    log_file = f"logs/{task_id}.log"
+    if not os.path.exists(log_file):
+        raise HTTPException(status_code=404, detail="Log file not found")
 
-        with open(log_file, "r") as file:
-            logs = file.read()
+    with open(log_file, "r") as file:
+        logs = file.read()
 
-        return {"task_id": task_id, "logs": logs}
+    return {"task_id": task_id, "logs": logs}
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # Fetch Celery worker status
@@ -59,17 +55,14 @@ async def get_worker_status():
     """
     Fetch the status of Celery workers.
     """
-    try:
-        inspect = celery_app.control.inspect()
-        active_workers = inspect.active() or {}
-        registered_tasks = inspect.registered() or {}
+    inspect = celery_app.control.inspect()
+    active_workers = inspect.active() or {}
+    registered_tasks = inspect.registered() or {}
 
-        return {
-            "active_workers": list(active_workers.keys()),
-            "registered_tasks": registered_tasks
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching worker status: {str(e)}")
+    return {
+        "active_workers": list(active_workers.keys()),
+        "registered_tasks": registered_tasks
+    }
 
 
 # Fetch task retry details
@@ -92,11 +85,8 @@ async def revoke_task(task_id: str, terminate: bool = False):
     """
     Revoke a Celery task.
     """
-    try:
-        celery_app.control.revoke(task_id, terminate=terminate)
-        return {"message": f"Task {task_id} revoked", "terminated": terminate}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error revoking task: {str(e)}")
+    celery_app.control.revoke(task_id, terminate=terminate)
+    return {"message": f"Task {task_id} revoked", "terminated": terminate}
 
 
 @router.get("/tasks")
@@ -104,19 +94,16 @@ async def get_all_tasks():
     """
     Retrieve details of all active and scheduled tasks.
     """
-    try:
-        inspect = celery_app.control.inspect()
-        active = inspect.active() or {}
-        scheduled = inspect.scheduled() or {}
-        reserved = inspect.reserved() or {}
+    inspect = celery_app.control.inspect()
+    active = inspect.active() or {}
+    scheduled = inspect.scheduled() or {}
+    reserved = inspect.reserved() or {}
 
-        return {
-            "active_tasks": active,
-            "scheduled_tasks": scheduled,
-            "reserved_tasks": reserved,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching tasks: {str(e)}")
+    return {
+        "active_tasks": active,
+        "scheduled_tasks": scheduled,
+        "reserved_tasks": reserved,
+    }
 
 
 @router.get("/queue-info")
@@ -124,12 +111,9 @@ async def get_queue_info():
     """
     Get information about the task queues.
     """
-    try:
-        inspect = celery_app.control.inspect()
-        queues = inspect.active_queues() or {}
-        return {"queues": queues}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching queue info: {str(e)}")
+    inspect = celery_app.control.inspect()
+    queues = inspect.active_queues() or {}
+    return {"queues": queues}
 
 
 @router.delete("/clear-tasks")
@@ -137,16 +121,13 @@ async def clear_tasks():
     """
     Clear tasks from the backend based on status (e.g., SUCCESS, FAILURE).
     """
-    try:
-        backend = celery_app.backend
-        if not hasattr(backend, "cleanup"):
-            raise HTTPException(status_code=400, detail="Backend does not support cleanup.")
+    backend = celery_app.backend
+    if not hasattr(backend, "cleanup"):
+        raise HTTPException(status_code=400, detail="Backend does not support cleanup.")
 
-        # Call the backend's cleanup function with the specific task status
-        backend.cleanup()
-        return {"message": f"Cleared tasks"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error clearing tasks: {str(e)}")
+    # Call the backend's cleanup function with the specific task status
+    backend.cleanup()
+    return {"message": f"Cleared tasks"}
 
 
 @router.get("/task-history/{task_id}")
@@ -154,22 +135,19 @@ async def get_task_history(task_id: str):
     """
     Fetch the execution history of a task.
     """
-    try:
-        task = AsyncResult(task_id, app=celery_app)
-        if not task:
-            raise HTTPException(status_code=404, detail="Task not found")
+    task = AsyncResult(task_id, app=celery_app)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
 
-        history = {
-            "task_id": task_id,
-            "status": task.status,
-            "date_done": task.date_done,
-            "traceback": task.traceback,
-            "result": task.result,
-        }
+    history = {
+        "task_id": task_id,
+        "status": task.status,
+        "date_done": task.date_done,
+        "traceback": task.traceback,
+        "result": task.result,
+    }
 
-        return history
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching task history: {str(e)}")
+    return history
 
 
 #@router.post("/reschedule-task/")
@@ -179,32 +157,29 @@ async def reschedule_task(task_id: str = Body(...), eta: str = Body(...)):
     """
     from datetime import datetime
 
-    try:
-        # Parse ETA (ensure it's in a valid datetime format)
-        celery_app.control.revoke(task_id)
+    # Parse ETA (ensure it's in a valid datetime format)
+    celery_app.control.revoke(task_id)
 
-        # Re-apply the task with the new ETA
-        task = AsyncResult(task_id, app=celery_app)
-        if task.state not in ["SUCCESS", "FAILURE", "REVOKED"]:
-            # Revoke if running or pending
-            task.forget()
-            task.revoke(terminate=True)
+    # Re-apply the task with the new ETA
+    task = AsyncResult(task_id, app=celery_app)
+    if task.state not in ["SUCCESS", "FAILURE", "REVOKED"]:
+        # Revoke if running or pending
+        task.forget()
+        task.revoke(terminate=True)
 
-        # Apply the task with the new ETA
-        if eta is None:
-            eta = datetime.now() + timedelta(minutes=10)# Default ETA 10 minutes from now
-        else:
-            eta = datetime.fromisoformat(eta)
+    # Apply the task with the new ETA
+    if eta is None:
+        eta = datetime.now() + timedelta(minutes=10)# Default ETA 10 minutes from now
+    else:
+        eta = datetime.fromisoformat(eta)
 
-        return celery_app.send_task(
-            id=task_id,
-            name=task.name,
-            args=task.args or [],
-            kwargs=task.kwargs or {},
-            eta=eta
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error rescheduling task: {str(e)}")
+    return celery_app.send_task(
+        id=task_id,
+        name=task.name,
+        args=task.args or [],
+        kwargs=task.kwargs or {},
+        eta=eta
+    )
 
 
 @router.get("/task-error/{task_id}")

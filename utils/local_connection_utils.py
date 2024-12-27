@@ -253,6 +253,10 @@ def get_log_file_path(logs_dir: str, integration_id: str | None = None, logs_typ
         file_path = os.path.join(logs_dir, "celery.log")
         if os.path.isfile(file_path):
             log_files.append(file_path)
+    elif logs_type == LogsType.API:
+            file_path = os.path.join(logs_dir, "api.log")
+            if os.path.isfile(file_path):
+                log_files.append(file_path)
 
     elif logs_type == LogsType.INTEGRATION and integration_id:
         log_files = [
