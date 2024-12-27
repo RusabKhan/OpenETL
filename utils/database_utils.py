@@ -988,14 +988,22 @@ class DatabaseUtils():
             dict: A dictionary containing the paginated results.
         """
         offset = (page - 1) * per_page
-
+        schedulers = None
         total_items = self.session.query(OpenETLIntegrations).count()
 
-        schedulers = self.session.query(OpenETLIntegrations) \
-            .order_by(OpenETLIntegrations.created_at.desc()) \
-            .offset(offset) \
-            .limit(per_page) \
-            .all()
+        if integration_id:
+            schedulers = self.session.query(OpenETLIntegrations) \
+                .filter(OpenETLIntegrations.id == integration_id) \
+                .order_by(OpenETLIntegrations.created_at.desc()) \
+                .offset(offset) \
+                .limit(per_page) \
+                .all()
+        else:
+            schedulers = self.session.query(OpenETLIntegrations) \
+                .order_by(OpenETLIntegrations.created_at.desc()) \
+                .offset(offset) \
+                .limit(per_page) \
+                .all()
 
         results = [
             {
