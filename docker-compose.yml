@@ -15,6 +15,8 @@ services:
     env_file:
       - .env
     restart: always
+    volumes:
+      - ${OPENETL_HOME}/.logs:.logs
 
   frontend:
     build:
@@ -51,9 +53,9 @@ services:
       - "7077:7077"  # Spark Master
     networks:
       - openetl-network
-
-
     restart: always
+    volumes:
+      - ${OPENETL_HOME}/.logs:.logs
 
   spark-worker-1:
     image: bitnami/spark:3.5.3
@@ -70,8 +72,8 @@ services:
     networks:
       - openetl-network
     restart: always
-
-
+    volumes:
+      - ${OPENETL_HOME}/.logs:.logs
 
   spark-worker-2:
     image: bitnami/spark:3.5.3
@@ -88,6 +90,8 @@ services:
     networks:
       - openetl-network
     restart: always
+    volumes:
+      - ${OPENETL_HOME}/.logs:.logs
 
   redis:
     image: redis
@@ -107,6 +111,8 @@ services:
     networks:
       - openetl-network
     restart: always
+    volumes:
+      - ${OPENETL_HOME}/.logs:.logs
 
   celery_worker:
     container_name: openetl-celery-worker
@@ -119,6 +125,8 @@ services:
     depends_on:
       - redis
     restart: always
+    volumes:
+      - ${OPENETL_HOME}/.logs:.logs
 
 networks:
   openetl-network:
