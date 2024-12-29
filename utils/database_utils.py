@@ -1238,17 +1238,39 @@ def parse_cron_expression(cron_expr):
         possible_months = expand_wildcard(month, "month")
         possible_days_of_week = expand_wildcard(day_of_week, "day_of_week")
 
-        # Get the next possible execution date
-        next_execution = now
-        while True:
-            if str(next_execution.minute) in possible_minutes and str(next_execution.hour) in possible_hours:
-                if str(next_execution.month) in possible_months:
-                    if str(next_execution.day) in possible_days_of_month:
-                        if str(calendar.weekday(next_execution.year, next_execution.month, next_execution.day)) in possible_days_of_week:
-                            break
-            next_execution += timedelta(minutes=1)
+        # Start checking from the next minute
+        next_execution = now + timedelta(minutes=1)
+        max_execution_date = now + timedelta(days=365)  # Limit to +1 year
 
-        return next_execution
+        while next_execution <= max_execution_date:
+            if str(next_execution.month) not in possible_months:
+                next_execution = next_execution.replace(day=1, hour=0, minute=0) + timedelta(days=32)
+                next_execution = next_execution.replace(day=1)  # Reset to the first day of the next month
+                continue
+
+            if str(next_execution.day) not in possible_days_of_month:
+                next_execution += timedelta(days=1)
+                next_execution = next_execution.replace(hour=0, minute=0)
+                continue
+
+            if str(calendar.weekday(next_execution.year, next_execution.month,
+                                    next_execution.day)) not in possible_days_of_week:
+                next_execution += timedelta(days=1)
+                next_execution = next_execution.replace(hour=0, minute=0)
+                continue
+
+            if str(next_execution.hour) not in possible_hours:
+                next_execution += timedelta(hours=1)
+                next_execution = next_execution.replace(minute=0)
+                continue
+
+            if str(next_execution.minute) in possible_minutes:
+                return next_execution
+
+            next_execution += timedelta(minutes=1)
+            return next_execution
+
+        raise ValueError("No valid execution time found within 1 year.")
 
     # Format the cron expression components
     minute_detail = format_component(minute, "minute")
