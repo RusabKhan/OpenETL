@@ -47,7 +47,7 @@ class Connector(API):
         token = auth_params.get('username')
 
         if not domain or not token:
-            raise ValueError("Domain and Token must be provided in authentication_details.")
+            raise ValueError("Domain and Username must be provided in authentication_details.")
 
         # Update base_url and auth URLs with the dynamic domain
         self.base_url = self.base_url.format(domain=domain)
