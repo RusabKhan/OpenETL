@@ -1,4 +1,3 @@
-
 from utils.database_utils import DatabaseUtils
 from utils.main_api_class import API
 from utils.enums import *
@@ -15,33 +14,30 @@ class Connector(API):
 
     def __init__(self):
         super().__init__()
-        self.logo = "https://upload.wikimedia.org/wikipedia/commons/3/3f/HubSpot_Logo.svg"
-        self.base_url = "https://api.hubapi.com/crm/v3"
+        self.logo = "https://upload.wikimedia.org/wikipedia/commons/e/e3/Salesforce_logo.svg"
+        self.base_url = "https://your_instance.salesforce.com/services/data/vXX.X"  # Replace 'your_instance' and 'vXX.X' with your specific Salesforce instance and API version
         self.tables = {
-            "get_all_contacts": "objects/contacts",
-            "get_all_companies": "objects/companies",
-            "get_all_deals": "objects/deals",
-            "get_all_activities": "objects/engagements",
-            "get_lists_associated_with_a_marketing_event": "/marketing/v3/marketing-events/associations/:marketingEventId/lists",
-            "find_marketing_events_by_externaleventid": "/marketing/v3/marketing-events/:externalEventId/identifiers",
-            "read_budget": "/marketing/v3/campaigns/:campaignGuid/budget/totals"
+            "get_all_contacts": "/sobjects/Contact",
+            "get_all_accounts": "/sobjects/Account",
+            "get_all_opportunities": "/sobjects/Opportunity",
+            "get_all_leads": "/sobjects/Lead"
         }
         self.pagination = {
-            "after": 0
+            "nextRecordsUrl": None
         }
-        self.limit = {"limit": 100}
+        self.limit = {"limit": 2000}  # Salesforce default is up to 2000 records per query
         self.connection_type = ConnectionType.API
-        self.api = "hubspot"
-        self.connection_name = "hubspot"
+        self.api = "salesforce"
+        self.connection_name = "salesforce"
         self.schema = "public"
         self.database = "public"
         self.authentication_details = {AuthType.BEARER: {
             "token": ""}
         }
-        self.auth_url = "https://app.hubspot.com/oauth/authorize"
-        self.token_url = "https://api.hubapi.com/oauth/v1/token"
+        self.auth_url = "https://login.salesforce.com/services/oauth2/authorize"
+        self.token_url = "https://login.salesforce.com/services/oauth2/token"
 
-        self.main_response_key = "results"
+        self.main_response_key = "records"
         self.required_libs = []
 
     def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params) -> bool:
@@ -51,17 +47,16 @@ class Connector(API):
         arr = []
         endpoint = self.construct_endpoint(table)
         while True:
-            pagination_query = urlencode(self.pagination)
-            limit_query = urlencode(self.limit)
-            paginated_endpoint = f"{endpoint}?{pagination_query}&{limit_query}"
+            paginated_endpoint = endpoint
+            if self.pagination["nextRecordsUrl"]:
+                paginated_endpoint = self.pagination["nextRecordsUrl"]
             resp = super().fetch_data(api_session, paginated_endpoint)
             yield resp[self.main_response_key]
 
-            if "paging" in resp and "next" in resp["paging"]:
-                self.pagination["after"] = resp["paging"]["next"]["after"]
+            if "nextRecordsUrl" in resp:
+                self.pagination["nextRecordsUrl"] = resp["nextRecordsUrl"]
             else:
                 break
-        
 
     def return_final_df(self, responses) -> pd.DataFrame:
         return super().return_final_df(responses)
@@ -80,5 +75,5 @@ class Connector(API):
     def test_connection(self, api_session) -> bool:
         return super().test_connection(api_session)
 
-    def get_metadata(self,*args, **kwargs) -> dict:
+    def get_metadata(self, *args, **kwargs) -> dict:
         return super().get_metadata()
