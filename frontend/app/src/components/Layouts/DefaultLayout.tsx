@@ -5,15 +5,17 @@ import Header from "@/components/Header";
 import Head from "next/head";
 
 export default function DefaultLayout({
+  title,
   children,
 }: {
+  title?: string;
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <>
       <Head>
-        <title>Dashboard OpenETL</title>
+        <title>{title || "Dashboard OpenETL"}</title>
         <meta name="description" content="Dashboard for OpenETL" />
       </Head>
       {/* <!-- ===== Page Wrapper Start ===== --> */}

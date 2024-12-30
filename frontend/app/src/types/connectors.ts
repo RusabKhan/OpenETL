@@ -37,7 +37,7 @@ export type ParamMetadata = {
   connector_type: string;
 };
 
-export type Metadata = {
+export type MetadataConfig = {
   [schema: string]: string[];
 };
 

@@ -16,7 +16,7 @@ import {
 } from "@/utils/api";
 import {
   GetCreatedConnections,
-  Metadata,
+  MetadataConfig,
   ParamMetadata,
   StoreConnectionsParam,
 } from "@/types/connectors";
@@ -204,8 +204,12 @@ const SourceTargetTab: React.FC<IntegrationProps> = (params) => {
   const [targetConnections, setTargetConnections] = useState<
     GetCreatedConnections[]
   >([]);
-  const [sourceMetadata, setSourceMetadata] = useState<Metadata | undefined>();
-  const [targetMetadata, setTargetMetadata] = useState<Metadata | undefined>();
+  const [sourceMetadata, setSourceMetadata] = useState<
+    MetadataConfig | undefined
+  >();
+  const [targetMetadata, setTargetMetadata] = useState<
+    MetadataConfig | undefined
+  >();
   const [sourceSchema, setSourceSchema] = useState("");
   const [sourceTable, setSourceTable] = useState("");
   const [targetSchema, setTargetSchema] = useState("");

@@ -59,35 +59,26 @@ const Connections = () => {
   };
 
   return (
-    <>
-      <Head>
-        <title>Connections | OpenETL</title>
-        <meta
-          name="description"
-          content="Conections page for OpenETL dashboard"
-        />
-      </Head>
-      <DefaultLayout>
-        <div>
-          <Breadcrumb pageName="Connections" />
+    <DefaultLayout title="Connections | OpenETL">
+      <div>
+        <Breadcrumb pageName="Connections" />
 
-          <CardConnections
-            connections={databases}
-            name="Database Connections"
-            isLoading={isLoading}
-            onDelete={onDelete}
-            load={load}
-          />
-          <CardConnections
-            connections={apis}
-            name="API Connections"
-            isLoading={isLoading}
-            onDelete={onDelete}
-            load={load}
-          />
-        </div>
-      </DefaultLayout>
-    </>
+        <CardConnections
+          connections={databases}
+          name="Database Connections"
+          isLoading={isLoading}
+          onDelete={onDelete}
+          load={load}
+        />
+        <CardConnections
+          connections={apis}
+          name="API Connections"
+          isLoading={isLoading}
+          onDelete={onDelete}
+          load={load}
+        />
+      </div>
+    </DefaultLayout>
   );
 };
 
