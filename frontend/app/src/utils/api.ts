@@ -4,7 +4,11 @@ import {
   StoreConnectionsParam,
   TestConnection,
 } from "@/types/connectors";
-import { IntegrationConfig, ParamUpdateIntegration } from "@/types/integration";
+import {
+  IntegrationConfig,
+  LogsParam,
+  ParamUpdateIntegration,
+} from "@/types/integration";
 import axios from "axios";
 
 // Define the base URL globally for reuse
@@ -55,6 +59,12 @@ export const getIntegrations = async () => {
 };
 export const getIntegrationHistory = async (id: string) => {
   return apiRequest("get", `/pipeline/get_integration_history/${id}`);
+};
+export const getPipelineLogs = async (params: LogsParam) => {
+  return apiRequest(
+    "get",
+    `/pipeline/get_logs?${params.integration_id ? `integration_id=${params.integration_id}&logs_type=${params.logs_type}` : `logs_type=${params.logs_type}`}&page=${params.page}&per_page=${params.per_page}`,
+  );
 };
 
 // POST

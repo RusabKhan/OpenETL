@@ -33,12 +33,14 @@ const EditIntegration: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Destructure id and rest of form data
-    const { id, ...fields } = formData;
+    const { id, is_enabled, is_running } = formData;
 
     const params = {
       pipeline_id: id,
-      fields,
+      fields: {
+        is_enabled,
+        is_running,
+      },
     };
     await update_integration(params);
     closeForm();
@@ -83,7 +85,13 @@ const EditIntegration: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
         {/* Dynamic Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {Object.entries(formData).map(([key, value]) => {
-            if (key !== "id" && key !== "created_at" && key !== "updated_at") {
+            if (
+              key !== "id" &&
+              key !== "created_at" &&
+              key !== "updated_at" &&
+              key !== "cron_expression" &&
+              key !== "integration_type"
+            ) {
               return (
                 <div key={key} className="flex flex-col">
                   <label

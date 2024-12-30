@@ -23,11 +23,23 @@ export type IntegrationConfig = {
   batch_size: number; // e.g., 100000
 };
 
+export type CronExpressionConfig = {
+  cron_expression: string;
+  day_of_month: string;
+  minute: string;
+  hour: string;
+  month: string;
+  day_of_week: string;
+  next_execution: string;
+  next_execution_full: string;
+  explanation: string;
+};
+
 export type ListIntegrationConfig = {
   id: string;
   integration_name: string;
   integration_type: string;
-  cron_expression: string;
+  cron_expression: CronExpressionConfig[];
   is_running: boolean;
   is_enabled: boolean;
   created_at: string;
@@ -84,4 +96,18 @@ export type DashboardConfig = {
   total_pipelines: number;
   total_rows_migrated: number;
   integrations: DashboardIntegrationConfig[];
-}
+};
+
+export type LogsParam = {
+  integration_id?: string;
+  logs_type: string;
+  per_page: number;
+  page?: number;
+};
+
+export type LogsConfig = {
+  logs: string[];
+  per_page: number;
+  total_pages: number;
+  page: number;
+};

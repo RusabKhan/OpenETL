@@ -60,9 +60,20 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                   {integration.id}
                 </Link>
               </td>
-              <td className="px-6 py-4">{integration.integration_name}</td>
+              <td className="y-4 break-all px-6">
+                {integration.integration_name}
+              </td>
               <td className="px-6 py-4">{integration.integration_type}</td>
-              <td className="px-6 py-4">{integration.cron_expression}</td>
+              <td className="px-6 py-4">
+                {integration.cron_expression.map((cron) => (
+                  <span>{cron.cron_expression}</span>
+                ))}
+              </td>
+              <td className="px-6 py-4">
+                {integration.cron_expression.map((cron) => (
+                  <span>{cron.explanation}</span>
+                ))}
+              </td>
               <td className="px-6 py-4">
                 <p
                   className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${

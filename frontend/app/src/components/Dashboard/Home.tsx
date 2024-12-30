@@ -131,53 +131,57 @@ const Home: React.FC = () => {
         </CardDataStats>
       </div>
 
-      <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white mb-4">
-          Integration Stats
-        </h2>
-        <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400 rtl:text-right">
-          <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              {columns.map((column, i) => (
-                <th key={i} scope="col" className="px-6 py-3">
-                  {column}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {dashData.integrations.map((integration, key) => (
-              <tr
-                key={key}
-                className="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600"
-              >
-                <td className="px-6 py-4">{integration.integration_name}</td>
-                <td className="px-6 py-4">{integration.run_count}</td>
-                <td className="px-6 py-4">
-                  <p
-                    className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
-                      integration.latest_run_status === "success"
-                        ? "bg-success text-success"
-                        : integration.latest_run_status === "running"
-                          ? "bg-danger text-warning"
-                          : "bg-danger text-danger"
-                    }`}
-                  >
-                    {integration.latest_run_status}
-                  </p>
-                </td>
-                <td className="px-6 py-4">{integration.error_message || "None"}</td>
-                <td className="px-6 py-4">
-                  {formatDateTime(integration.start_date)}
-                </td>
-                <td className="px-6 py-4">
-                  {formatDateTime(integration.end_date)}
-                </td>
+      {dashData.integrations.length > 0 && (
+        <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+          <h2 className="mb-4 text-title-md2 font-semibold text-black dark:text-white">
+            Integration Stats
+          </h2>
+          <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400 rtl:text-right">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
+              <tr>
+                {columns.map((column, i) => (
+                  <th key={i} scope="col" className="px-6 py-3">
+                    {column}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {dashData.integrations.map((integration, key) => (
+                <tr
+                  key={key}
+                  className="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600"
+                >
+                  <td className="px-6 py-4">{integration.integration_name}</td>
+                  <td className="px-6 py-4">{integration.run_count}</td>
+                  <td className="px-6 py-4">
+                    <p
+                      className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
+                        integration.latest_run_status === "success"
+                          ? "bg-success text-success"
+                          : integration.latest_run_status === "running"
+                            ? "bg-danger text-warning"
+                            : "bg-danger text-danger"
+                      }`}
+                    >
+                      {integration.latest_run_status}
+                    </p>
+                  </td>
+                  <td className="px-6 py-4">
+                    {integration.error_message || "None"}
+                  </td>
+                  <td className="px-6 py-4">
+                    {formatDateTime(integration.start_date)}
+                  </td>
+                  <td className="px-6 py-4">
+                    {formatDateTime(integration.end_date)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
         <ChartOne />

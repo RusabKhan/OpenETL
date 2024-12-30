@@ -27,17 +27,34 @@ const Integrations = () => {
     load_integrations();
   }, []);
 
-  const columns = ["Id", "Name", "Type", "Cron Expression", "Is Enabled", "Is Running"];
+  const columns = [
+    "Id",
+    "Name",
+    "Type",
+    "Cron Expression",
+    "Explanation",
+    "Is Enabled",
+    "Is Running",
+  ];
 
   return (
     <>
       <DefaultLayout>
         <Breadcrumb pageName="List Integrations" />
-        <ETLTable
-          columns={columns}
-          data={integrations?.data}
-          load={load_integrations}
-        />
+        {integrations?.data && integrations?.data?.length > 0 ? (
+          <ETLTable
+            columns={columns}
+            data={integrations?.data}
+            load={load_integrations}
+          />
+        ) : (
+          <div
+            className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:bg-gray-800 dark:text-red-400"
+            role="alert"
+          >
+            <span className="font-medium">Oops!</span> No records found!
+          </div>
+        )}
       </DefaultLayout>
     </>
   );

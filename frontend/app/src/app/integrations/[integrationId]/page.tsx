@@ -39,58 +39,67 @@ const IntegrationHistory = () => {
       <DefaultLayout>
         <Breadcrumb pageName="Integration history" />
 
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-          <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400 rtl:text-right">
-            <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
-              <tr>
-                {columns.map((column, i) => (
-                  <th key={i} scope="col" className="px-6 py-3">
-                    {column}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {data?.data?.map((integration, key) => (
-                <tr
-                  key={key}
-                  className="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600"
-                >
-                  <td className="px-6 py-4">{integration.id}</td>
-                  <td className="px-6 py-4">{integration.integration}</td>
-                  <td className="px-6 py-4">
-                    <p
-                      className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
-                        integration.run_status === "success"
-                          ? "bg-success text-success"
-                          : integration.run_status === "running"
-                            ? "bg-danger text-warning"
-                            : "bg-danger text-danger"
-                      }`}
-                    >
-                      {integration.run_status}
-                    </p>
-                  </td>
-                  <td className="px-6 py-4">{integration.row_count}</td>
-                  <td className="px-6 py-4">{integration.error_message}</td>
-                  <td className="px-6 py-4">
-                    {formatDateTime(integration.start_date)}
-                  </td>
-                  <td className="px-6 py-4">
-                    {formatDateTime(integration.end_date)}
-                  </td>
-                  <td className="px-6 py-4">
-                    {formatDateTime(integration.created_at)}
-                  </td>
-                  <td className="px-6 py-4">
-                    {formatDateTime(integration.updated_at)}
-                  </td>
+        {data?.data && data?.data?.length > 0 ? (
+          <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+            <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400 rtl:text-right">
+              <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                  {columns.map((column, i) => (
+                    <th key={i} scope="col" className="px-6 py-3">
+                      {column}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+
+              <tbody>
+                {data?.data?.map((integration, key) => (
+                  <tr
+                    key={key}
+                    className="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600"
+                  >
+                    <td className="px-6 py-4">{integration.id}</td>
+                    <td className="px-6 py-4">{integration.integration}</td>
+                    <td className="px-6 py-4">
+                      <p
+                        className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
+                          integration.run_status === "success"
+                            ? "bg-success text-success"
+                            : integration.run_status === "running"
+                              ? "bg-danger text-warning"
+                              : "bg-danger text-danger"
+                        }`}
+                      >
+                        {integration.run_status}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4">{integration.row_count}</td>
+                    <td className="px-6 py-4">{integration.error_message}</td>
+                    <td className="px-6 py-4">
+                      {formatDateTime(integration.start_date)}
+                    </td>
+                    <td className="px-6 py-4">
+                      {formatDateTime(integration.end_date)}
+                    </td>
+                    <td className="px-6 py-4">
+                      {formatDateTime(integration.created_at)}
+                    </td>
+                    <td className="px-6 py-4">
+                      {formatDateTime(integration.updated_at)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div
+            className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:bg-gray-800 dark:text-red-400"
+            role="alert"
+          >
+            <span className="font-medium">Oops!</span> No records found!
+          </div>
+        )}
       </DefaultLayout>
     </>
   );
