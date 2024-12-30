@@ -2,7 +2,7 @@ from fastapi import APIRouter, Body, HTTPException, Request
 import os
 import sys
 
-from backend.app.models.main import ConnectionBody
+from app.models.main import ConnectionBody
 
 sys.path.append(os.environ['OPENETL_HOME'])
 
