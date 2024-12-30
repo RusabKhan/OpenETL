@@ -2,6 +2,8 @@
 """
 import os
 import json
+from typing import List, Tuple
+import regex as re
 
 from utils.enums import LogsType
 
@@ -202,7 +204,7 @@ def read_api_config(apiname):
     with open(os.path.join(api_directory, f"{apiname}.json")) as f:
         return json.load(f)
 
-def paginate_log_content(log_file_paths: list[str], page: int, per_page: int):
+def paginate_log_content(log_file_paths: List[str], page: int, per_page: int) -> Tuple[List[str], int]:
     """
     Paginate the content of multiple log files.
 
@@ -213,17 +215,43 @@ def paginate_log_content(log_file_paths: list[str], page: int, per_page: int):
 
     Returns:
         A tuple containing:
-            - A list of paginated lines from all log files.
+            - A list of paginated log entries from all log files (newest first).
             - The total number of pages across all log files.
     """
 
+    log_entry_pattern = re.compile(
+        r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) "
+        r"(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]),\d{3}"
+    )
+
+    def process_log_lines(lines: List[str]) -> List[str]:
+        """Ensure that each entry is a single log starting with a timestamp."""
+        processed_entries = []
+        current_entry = ""
+
+        for line in lines:
+            if log_entry_pattern.match(line):  # Start of a new log entry
+                if current_entry:  # Save the current entry if exists
+                    processed_entries.append(current_entry.strip())
+                current_entry = line  # Start a new log entry
+            else:
+                current_entry += line  # Append to the current log entry
+
+        if current_entry:  # Append the last entry
+            processed_entries.append(current_entry.strip())
+
+        return processed_entries
+
     all_log_lines = []
 
-    # Read all log files and collect lines
+    # Read all log files and process lines into complete entries
     for log_file_path in log_file_paths:
         with open(log_file_path, 'r') as log_file:
             log_lines = log_file.readlines()
-            all_log_lines.extend(log_lines)
+            all_log_lines.extend(process_log_lines(log_lines))
+
+    # Reverse log entries to have the newest entries first
+    all_log_lines.reverse()
 
     # Calculate total pages
     total_lines = len(all_log_lines)
@@ -237,10 +265,23 @@ def paginate_log_content(log_file_paths: list[str], page: int, per_page: int):
     return paginated_lines, total_pages
 
 
-def get_log_file_path(logs_dir: str, integration_id: str | None = None, logs_type: LogsType = LogsType.INTEGRATION):
+def get_log_file_path(
+    logs_dir: str,
+    integration_id: str | None = None,
+    logs_type: str = "INTEGRATION"
+) -> List[str]:
     """
     Get log files from the specified directory, filtered and sorted by modification time.
+
+    Args:
+        logs_dir: Directory where logs are stored.
+        integration_id: ID of the integration (if applicable).
+        logs_type: Type of log file (e.g., "INTEGRATION", "SCHEDULER", "CELERY", "API").
+
+    Returns:
+        A list of log file paths sorted by modification time (newest first).
     """
+
     log_files = []
 
     # Handle each log type case
@@ -253,19 +294,21 @@ def get_log_file_path(logs_dir: str, integration_id: str | None = None, logs_typ
         file_path = os.path.join(logs_dir, "celery.log")
         if os.path.isfile(file_path):
             log_files.append(file_path)
+
     elif logs_type == LogsType.API:
-            file_path = os.path.join(logs_dir, "api.log")
-            if os.path.isfile(file_path):
-                log_files.append(file_path)
+        file_path = os.path.join(logs_dir, "api.log")
+        if os.path.isfile(file_path):
+            log_files.append(file_path)
 
     elif logs_type == LogsType.INTEGRATION and integration_id:
         log_files = [
             os.path.join(logs_dir, file)
             for file in os.listdir(logs_dir)
-            if file.startswith(integration_id)
-
+            if file.startswith(integration_id) and os.path.isfile(os.path.join(logs_dir, file))
         ]
-    # Sort log files by modification time (most recent first)
-    log_files.sort(key=lambda x: x[1], reverse=True)
+
+    # Sort files by modification time, newest first
+    log_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
 
     return log_files
+
