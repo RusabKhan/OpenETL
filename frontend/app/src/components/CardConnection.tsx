@@ -22,7 +22,15 @@ const CardConnections: React.FC<DatabaseConnectionListProps> = ({
 }) => {
   const [selectedConnection, setSelectedConnection] =
     useState<Connection | null>(null);
+  const [deleteConnection, setDeleteConnection] = useState<Connection | null>(
+    null,
+  );
   const [showForm, setShowForm] = useState(false);
+
+  const handleDelete = (id: number) => {
+    setDeleteConnection(null);
+    onDelete(id);
+  };
 
   return (
     <div className="container mx-auto p-4">
@@ -62,7 +70,7 @@ const CardConnections: React.FC<DatabaseConnectionListProps> = ({
                   </svg>
                 </button>
                 <button
-                  onClick={() => onDelete(parseInt(connection.id, 10))}
+                  onClick={() => setDeleteConnection(connection)}
                   className="rounded bg-red-500 px-3 py-1 text-sm font-medium text-white transition hover:bg-red-600"
                 >
                   <svg
@@ -199,6 +207,34 @@ const CardConnections: React.FC<DatabaseConnectionListProps> = ({
               }}
             />
           )}
+        </div>
+      )}
+      {deleteConnection && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-sm rounded-lg border bg-white p-6 shadow-md dark:bg-boxdark">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+              Confirm Delete
+            </h2>
+            <p className="mt-2 text-sm text-gray-600 dark:text-white">
+              Are you sure you want to delete{" "}
+              <strong>{deleteConnection.connection_name}</strong>? This action
+              cannot be undone.
+            </p>
+            <div className="mt-4 flex justify-end space-x-4">
+              <button
+                onClick={() => setDeleteConnection(null)}
+                className="rounded bg-gray-300 px-4 py-2 text-gray-800 hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(parseInt(deleteConnection.id, 10))}
+                className="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
       <Spinner visible={isLoading} message="Loading connection..." />

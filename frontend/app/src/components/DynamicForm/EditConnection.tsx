@@ -6,10 +6,7 @@ interface DynamicFormProps {
   closeForm: () => void;
 }
 
-const EditConnection: React.FC<DynamicFormProps> = ({
-  data,
-  closeForm,
-}) => {
+const EditConnection: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
   const [formData, setFormData] = useState(data);
 
   // Handle input change
@@ -21,6 +18,23 @@ const EditConnection: React.FC<DynamicFormProps> = ({
     }));
   };
 
+  const handleNestedChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    parentKey: string,
+  ) => {
+    const { name, value } = e.target;
+
+    setFormData((prevData) => ({
+      ...prevData,
+      [parentKey]: {
+        ...prevData[parentKey],
+        [name]: value,
+      },
+    }));
+  };
+
+  console.log(formData);
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,8 +43,8 @@ const EditConnection: React.FC<DynamicFormProps> = ({
 
     const params = {
       document_id: id,
-      fields
-    }
+      fields,
+    };
     await update_connection(params);
     closeForm();
   };
@@ -44,7 +58,7 @@ const EditConnection: React.FC<DynamicFormProps> = ({
       ></div>
 
       {/* Sidebar */}
-      <div className="animate-slide-in-right relative h-full w-96 bg-white p-6 shadow-lg dark:bg-boxdark">
+      <div className="overflow-y-scroll animate-slide-in-right relative h-full w-96 bg-white p-6 shadow-lg dark:bg-boxdark">
         {/* Close Button */}
         <button
           onClick={closeForm}
@@ -67,30 +81,67 @@ const EditConnection: React.FC<DynamicFormProps> = ({
         </button>
 
         {/* Title */}
-        <h2 className="mb-6 text-2xl font-bold text-gray-800 dark:text-white">Edit</h2>
+        <h2 className="mb-6 text-2xl font-bold text-gray-800 dark:text-white">
+          Edit
+        </h2>
 
         {/* Dynamic Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {Object.entries(formData).map(([key, value]) => {
             if (key !== "id") {
-              return (
-                <div key={key} className="flex flex-col">
-                  <label
-                    htmlFor={key}
-                    className="text-sm font-medium capitalize text-gray-700 dark:text-white"
-                  >
-                    {key.replace("_", " ")}
-                  </label>
-                  <input
-                    id={key}
-                    name={key}
-                    value={value}
-                    onChange={handleChange}
-                    className="mt-1 rounded border bg-whiten p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-boxdark"
-                  />
-                </div>
-              );
+              // Check if the value is an object (nested)
+              if (typeof value === "object" && value !== null) {
+                return (
+                  <div key={key} className="space-y-2">
+                    <h3 className="text-sm font-bold capitalize text-gray-700 dark:text-white">
+                      {key.replace("_", " ")}
+                    </h3>
+                    {Object.entries(value).map(([nestedKey, nestedValue]) => (
+                      <div
+                        key={`${key}.${nestedKey}`}
+                        className="flex flex-col"
+                      >
+                        <label
+                          htmlFor={`${key}.${nestedKey}`}
+                          className="text-sm font-medium capitalize text-gray-700 dark:text-white"
+                        >
+                          {nestedKey.replace("_", " ")}
+                        </label>
+                        <input
+                          id={`${key}.${nestedKey}`}
+                          name={nestedKey}
+                          value={nestedValue}
+                          onChange={
+                            (e) => handleNestedChange(e, key) // Pass the parent key to the nested handler
+                          }
+                          className="mt-1 rounded border bg-whiten p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-boxdark"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                );
+              } else {
+                // Handle top-level properties
+                return (
+                  <div key={key} className="flex flex-col">
+                    <label
+                      htmlFor={key}
+                      className="text-sm font-medium capitalize text-gray-700 dark:text-white"
+                    >
+                      {key.replace("_", " ")}
+                    </label>
+                    <input
+                      id={key}
+                      name={key}
+                      value={value}
+                      onChange={handleChange}
+                      className="mt-1 rounded border bg-whiten p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-boxdark"
+                    />
+                  </div>
+                );
+              }
             }
+            return null; // For keys like "id" or any other excluded fields
           })}
 
           {/* Submit Button */}
