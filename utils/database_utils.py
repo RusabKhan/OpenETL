@@ -1229,55 +1229,49 @@ def parse_cron_expression(cron_expr):
 
     # Get the next execution date based on the cron expression
     def get_next_execution(minute, hour, day_of_month, month, day_of_week):
+        # Convert cron parts into sets for easier comparison
+        def parse_cron_part(part, valid_range):
+            if part == "*":
+                return set(valid_range)
+            elif "-" in part:
+                start, end = map(int, part.split("-"))
+                return set(range(start, end + 1))
+            elif "," in part:
+                return set(map(int, part.split(",")))
+            else:
+                return {int(part)}
+
+        # Parse each part of the cron expression
+        valid_minutes = parse_cron_part(minute, range(60))
+        valid_hours = parse_cron_part(hour, range(24))
+        valid_days = parse_cron_part(day_of_month, range(1, 32))
+        valid_months = parse_cron_part(month, range(1, 13))
+        valid_weekdays = parse_cron_part(day_of_week, range(7))
+
+        # Start searching from the next minute
         now = datetime.now()
-
-        # Expand wildcard components into possible values
-        possible_minutes = expand_wildcard(minute, "minute")
-        possible_hours = expand_wildcard(hour, "hour")
-        possible_days_of_month = expand_wildcard(day_of_month, "day_of_month")
-        possible_months = expand_wildcard(month, "month")
-        possible_days_of_week = expand_wildcard(day_of_week, "day_of_week")
-
-        # Start checking from the next minute
         next_execution = now + timedelta(minutes=1)
-        max_execution_date = now + timedelta(days=365)  # Limit to +1 year
 
-        while next_execution <= max_execution_date:
-            if str(next_execution.month) not in possible_months:
-                next_execution = next_execution.replace(day=1, hour=0, minute=0) + timedelta(days=32)
-                next_execution = next_execution.replace(day=1)  # Reset to the first day of the next month
-                continue
-
-            if str(next_execution.day) not in possible_days_of_month:
-                next_execution += timedelta(days=1)
-                next_execution = next_execution.replace(hour=0, minute=0)
-                continue
-
-            if str(calendar.weekday(next_execution.year, next_execution.month,
-                                    next_execution.day)) not in possible_days_of_week:
-                next_execution += timedelta(days=1)
-                next_execution = next_execution.replace(hour=0, minute=0)
-                continue
-
-            if str(next_execution.hour) not in possible_hours:
-                next_execution += timedelta(hours=1)
-                next_execution = next_execution.replace(minute=0)
-                continue
-
-            if str(next_execution.minute) in possible_minutes:
+        while next_execution < now + timedelta(days=3650):
+            if (
+                    next_execution.minute in valid_minutes and
+                    next_execution.hour in valid_hours and
+                    next_execution.day in valid_days and
+                    next_execution.month in valid_months and
+                    next_execution.weekday() in valid_weekdays
+            ):
                 return next_execution
 
             next_execution += timedelta(minutes=1)
-            return next_execution
 
-        raise ValueError("No valid execution time found within 1 year.")
+        raise ValueError("No valid execution time found within 10 years.")
 
     # Format the cron expression components
     minute_detail = format_component(minute, "minute")
     hour_detail = format_component(hour, "hour")
-    day_of_month_detail = format_component(day_of_month, "day_of_month")
+    day_of_month_detail = format_component(day_of_month, "date of month")
     month_detail = format_component(month, "month")
-    day_of_week_detail = format_component(day_of_week, "day_of_week")
+    day_of_week_detail = format_component(day_of_week, "date of week")
 
     # Get the next execution date
     next_execution = get_next_execution(minute, hour, day_of_month, month, day_of_week)
@@ -1287,9 +1281,9 @@ def parse_cron_expression(cron_expr):
 
     # Construct the explanation in plain sentences
     explanation = (
-        f"This job expression runs at {hour}:{minute} on {day_of_month_detail} in {month_detail}. "
-        f"It occurs on {day_of_week_detail}. The next execution will be at {next_execution_12hr} "
-        f"on {next_execution.strftime('%Y-%m-%d')}."
+        f"This schedule runs at {hour}:{minute} on {day_of_month_detail} during {month_detail}. "
+        f"It happens on {day_of_week_detail}. The next time it will run is at {next_execution_12hr} "
+        f"on {next_execution.strftime('%B %d, %Y')}."
     )
 
     return {
