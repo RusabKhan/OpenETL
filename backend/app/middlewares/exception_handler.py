@@ -3,12 +3,33 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 import traceback
 import sys
+from sqlalchemy.exc import (
+    IntegrityError,
+    NoResultFound,
+    MultipleResultsFound,
+    OperationalError,
+    ProgrammingError,
+    SQLAlchemyError,
+)
+from functools import wraps
 
 
 class ExceptionHandlingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
             return await call_next(request)
+        except NoResultFound:
+            return await self.handle_exception(f"No result found for the given query", request, 404)
+        except MultipleResultsFound:
+            return await self.handle_exception("Multiple results found where one was expected.", request, 400)
+        except IntegrityError as exc:
+            return await self.handle_exception(f"Database integrity error: {str(exc.orig)}", request, 409)
+        except OperationalError as exc:
+            return await self.handle_exception(f"Operational error occurred: {str(exc.orig)}", request, 500)
+        except ProgrammingError as exc:
+            return await self.handle_exception(f"Programming error: {str(exc.orig)}", request, 400)
+        except SQLAlchemyError as exc:
+            return await self.handle_exception(f"A general Database error occurred: {str(exc)}", request, 500)
         except ValueError as exc:
             return await self.handle_exception(exc, request, 400)
         except HTTPException as exc:
@@ -40,3 +61,5 @@ class ExceptionHandlingMiddleware(BaseHTTPMiddleware):
             "trace": trace_info,
         }
         return JSONResponse(status_code=status_code, content=error_response)
+
+
