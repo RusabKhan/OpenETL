@@ -13,7 +13,7 @@ class Connector(API):
 
     def __init__(self):
         super().__init__()
-        self.logo = "https://upload.wikimedia.org/wikipedia/commons/a/a4/Freshdesk_Logo.png"
+        self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/freshdesk.png"
         self.base_url = "https://{domain}.freshdesk.com/api/v2"  # To be set dynamically using domain from auth_details
         self.tables = {
             "get_all_contacts": "/contacts",
