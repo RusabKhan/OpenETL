@@ -14,7 +14,7 @@ class Connector(API):
 
     def __init__(self):
         super().__init__()
-        self.logo = "https://upload.wikimedia.org/wikipedia/commons/e/e3/Salesforce_logo.svg"
+        self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/639decbfa51e772ab2070c32_salesforce.svg"
         self.base_url = "https://your_instance.salesforce.com/services/data/vXX.X"  # Replace 'your_instance' and 'vXX.X' with your specific Salesforce instance and API version
         self.tables = {
             "get_all_contacts": "/sobjects/Contact",

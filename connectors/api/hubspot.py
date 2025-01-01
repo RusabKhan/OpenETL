@@ -15,7 +15,7 @@ class Connector(API):
 
     def __init__(self):
         super().__init__()
-        self.logo = "https://upload.wikimedia.org/wikipedia/commons/3/3f/HubSpot_Logo.svg"
+        self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/hubspot-icon.svg"
         self.base_url = "https://api.hubapi.com/crm/v3"
         self.tables = {
             "get_all_contacts": "objects/contacts",
