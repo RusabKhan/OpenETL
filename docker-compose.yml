@@ -15,6 +15,8 @@ services:
     env_file:
       - .env
     restart: always
+    volumes:
+      - ~/.logs:/app/.logs
 
   frontend:
     build:
@@ -46,14 +48,15 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
+      - SPARK_MASTER_LOG_DIR=/app/.logs
     ports:
       - "8080:8080"  # Spark Web UI
       - "7077:7077"  # Spark Master
     networks:
       - openetl-network
-
-
     restart: always
+    volumes:
+      - ~/.logs:/app/.logs
 
   spark-worker-1:
     image: bitnami/spark:3.5.3
@@ -67,11 +70,12 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
+      - SPARK_WORKER_LOG_DIR=/app/.logs
     networks:
       - openetl-network
     restart: always
-
-
+    volumes:
+      - ~/.logs:/app/.logs
 
   spark-worker-2:
     image: bitnami/spark:3.5.3
@@ -85,9 +89,12 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
+      - SPARK_WORKER_LOG_DIR=/app/.logs
     networks:
       - openetl-network
     restart: always
+    volumes:
+      - ~/.logs:/app/.logs
 
   redis:
     image: redis
@@ -107,6 +114,8 @@ services:
     networks:
       - openetl-network
     restart: always
+    volumes:
+      - ~/.logs:/app/.logs
 
   celery_worker:
     container_name: openetl-celery-worker
@@ -119,6 +128,8 @@ services:
     depends_on:
       - redis
     restart: always
+    volumes:
+      - ~/.logs:/app/.logs
 
 networks:
   openetl-network:

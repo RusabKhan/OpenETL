@@ -2,7 +2,7 @@ from fastapi import APIRouter, Body, HTTPException, Request
 import os
 import sys
 
-from backend.app.models.main import ConnectionBody
+from app.models.main import ConnectionBody
 
 sys.path.append(os.environ['OPENETL_HOME'])
 
@@ -59,38 +59,26 @@ async def get_connector_metadata_api(request: Request, connector_name: str, conn
 
 @router.post("/get_created_connections")
 async def created_connections_api(request: Request, connector_type: str = Body(...), connection_name: str = Body(None)):
-    try:
-        return con_utils.get_created_connections(connector_type, connection_name)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return con_utils.get_created_connections(connector_type, connection_name)
 
 
 @router.post("/fetch_metadata")
 async def connector_fetch_metadata_api(request: Request):
-    try:
-        body = await request.json()
-        connector_name = body.get("connector_name")
-        connector_type = body.get("connector_type")
-        auth_options = body.get("auth_options")
-        return con_utils.fetch_metadata(connection=connector_name, connection_type=connector_type,
-                                        auth_options=auth_options)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    body = await request.json()
+    connector_name = body.get("connector_name")
+    connector_type = body.get("connector_type")
+    auth_options = body.get("auth_options")
+    return con_utils.fetch_metadata(connection=connector_name, connection_type=connector_type,
+                                    auth_options=auth_options)
 
 
 @router.post("/update_connection")
 async def update_connection_api(request: Request, document_id: int = Body(...), fields: ConnectionBody = Body(...)):
-    try:
-        db = DatabaseUtils(**get_open_etl_document_connection_details())
-        return db.update_openetl_document(document_id=document_id, **fields.dict())
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    db = DatabaseUtils(**get_open_etl_document_connection_details())
+    return db.update_openetl_document(document_id=document_id, **fields.dict())
 
 
 @router.delete("/delete_connection")
 async def delete_connection_api(request: Request, document_id: int):
-    try:
-        db = DatabaseUtils(**get_open_etl_document_connection_details())
-        return db.delete_document(document_id=document_id)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    db = DatabaseUtils(**get_open_etl_document_connection_details())
+    return db.delete_document(document_id=document_id)
