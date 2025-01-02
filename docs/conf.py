@@ -54,3 +54,4 @@ texinfo_documents = [
 # Napoleon settings for Google and NumPy style docstrings
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
+master_doc = 'index'
