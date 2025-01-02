@@ -1,0 +1,212 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>generic_utils module &mdash; OpenETL 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            OpenETL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Utils</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="connector_utils.html">connector_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="local_connection_utils.html">local_connection_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_db_class.html">main_db_class module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scheduler_utils.html">scheduler_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cache.html">cache module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="database_utils.html">database_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spark_utils.html">spark_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="celery_utils.html">celery_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="enums.html">enums module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_api_class.html">main_api_class module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline_utils.html">pipeline_utils module</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tables</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tables/app.html">app module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tables/scheduler.html">scheduler module</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenETL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">generic_utils module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/generic_utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-generic_utils">
+<span id="generic-utils-module"></span><h1>generic_utils module<a class="headerlink" href="#module-generic_utils" title="Link to this heading"></a></h1>
+<p>This module contains utilitiy functions which can be used in particular case and are not relevant to any one scenario.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="generic_utils.check_missing_values">
+<span class="sig-name descname"><span class="pre">check_missing_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#generic_utils.check_missing_values" title="Link to this definition"></a></dt>
+<dd><p>Check on submit connection if any form field is missing values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Boolean value indicating whether a key is missing value and the key. For e.g if hostname is null, True, hostname. Else False,None</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="generic_utils.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_java</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#generic_utils.execute" title="Link to this definition"></a></dt>
+<dd><p>Execute a query on the given connection</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>connection</strong> (<em>string</em>) – Name of the connection</p></li>
+<li><p><strong>query</strong> (<em>string</em>) – The query to execute</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Database response in dataframe</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="generic_utils.extract_connections_db_or_api">
+<span class="sig-name descname"><span class="pre">extract_connections_db_or_api</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_or_api</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#generic_utils.extract_connections_db_or_api" title="Link to this definition"></a></dt>
+<dd><p>Get connections from config variable and divide them into a list of python/java based connections.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>py_or_java</strong> (<em>string</em>) – Python or Java. The connections type to be fetched from config variable.</p></li>
+<li><p><strong>configs</strong> (<em>list</em>) – list of configurations</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_type_</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="generic_utils.fetch_metadata">
+<span class="sig-name descname"><span class="pre">fetch_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auth_options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#generic_utils.fetch_metadata" title="Link to this definition"></a></dt>
+<dd><p>Fetch metadata from the given connection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>connections</strong> (<em>string</em>) – name of the connection</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>{“tables”: [],”schema”:[]}</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="generic_utils.set_page_config">
+<span class="sig-name descname"><span class="pre">set_page_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'OpenETL'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">menu_items</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_sidebar_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'expanded'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_icon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wide'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_style_state_variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#generic_utils.set_page_config" title="Link to this definition"></a></dt>
+<dd><p>Sets the page configuration for a Streamlit application.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page_title</strong> (<em>str</em>) – The title of the page. Defaults to “OpenETL”.</p></li>
+<li><p><strong>menu_items</strong> (<em>dict</em>) – A dictionary representing the menu items. Defaults to an empty dictionary.</p></li>
+<li><p><strong>initial_sidebar_state</strong> (<em>str</em>) – The initial state of the sidebar. Can be “expanded” or “collapsed”. Defaults to “expanded”.</p></li>
+<li><p><strong>page_icon</strong> (<em>str</em>) – The URL of the page icon. Defaults to None.</p></li>
+<li><p><strong>layout</strong> (<em>str</em>) – The layout of the page. Can be “wide” or “centered”. Defaults to “wide”.</p></li>
+<li><p><strong>page_style_state_variable</strong> (<em>str</em>) – The state variable used to check if the page style is already set. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, DataOmni Solutions.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

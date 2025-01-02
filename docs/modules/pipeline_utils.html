@@ -1,0 +1,227 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pipeline_utils module &mdash; OpenETL 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="app module" href="../tables/app.html" />
+    <link rel="prev" title="main_api_class module" href="main_api_class.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            OpenETL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Utils</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="connector_utils.html">connector_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="local_connection_utils.html">local_connection_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_db_class.html">main_db_class module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scheduler_utils.html">scheduler_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cache.html">cache module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="database_utils.html">database_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spark_utils.html">spark_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="celery_utils.html">celery_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="enums.html">enums module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_api_class.html">main_api_class module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">pipeline_utils module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pipeline_utils.create_airflow_dag"><code class="docutils literal notranslate"><span class="pre">create_airflow_dag()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pipeline_utils.extract_xcom_value"><code class="docutils literal notranslate"><span class="pre">extract_xcom_value()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pipeline_utils.read_data"><code class="docutils literal notranslate"><span class="pre">read_data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pipeline_utils.run_pipeline"><code class="docutils literal notranslate"><span class="pre">run_pipeline()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pipeline_utils.run_pipeline_target"><code class="docutils literal notranslate"><span class="pre">run_pipeline_target()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pipeline_utils.update_db"><code class="docutils literal notranslate"><span class="pre">update_db()</span></code></a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tables</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tables/app.html">app module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tables/scheduler.html">scheduler module</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenETL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">pipeline_utils module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/pipeline_utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-pipeline_utils">
+<span id="pipeline-utils-module"></span><h1>pipeline_utils module<a class="headerlink" href="#module-pipeline_utils" title="Link to this heading"></a></h1>
+<p>This module contains utility functions related to Airflow tasks and workflows.</p>
+<p>Functions:
+- run_pipeline: Runs the specified pipeline based on the provided parameters.
+- get_data: Retrieves data based on the specified parameters.
+- preprocess_data: Preprocesses the data before further processing.
+- post_process_data: Performs post-processing tasks on the data.
+- validate_data: Validates the data to ensure quality and consistency.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_utils.create_airflow_dag">
+<span class="sig-name descname"><span class="pre">create_airflow_dag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pipeline_utils.create_airflow_dag" title="Link to this definition"></a></dt>
+<dd><p>Store pipeline configuration in .local/pipelines directory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>string</em>) – Name of the pipeline</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Boolean, Config. True if stored</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_utils.extract_xcom_value">
+<span class="sig-name descname"><span class="pre">extract_xcom_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pipeline_utils.extract_xcom_value" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_utils.read_data">
+<span class="sig-name descname"><span class="pre">read_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connector_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auth_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auth_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schema</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'public'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pipeline_utils.read_data" title="Link to this definition"></a></dt>
+<dd><p>Reads data from a specified connection type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>connection_type</strong> (<em>str</em>) – The type of connection to use. Valid values are “database” or “api”.</p></li>
+<li><p><strong>table</strong> (<em>str</em>) – The name of the table to read from.</p></li>
+<li><p><strong>schema</strong> (<em>str</em>) – The schema of the table.</p></li>
+<li><p><strong>connection_name</strong> (<em>str</em>) – The name of the connection.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>If the connection type is “database”, returns a Spark DataFrame containing the data. If the connection type is “api” returns a pandas DataFrame containing the data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[DataFrame]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the connection type is not “database” or “api”.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_utils.run_pipeline">
+<span class="sig-name descname"><span class="pre">run_pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spark_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hadoop_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_schema</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_schema</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_connection_details</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_connection_details</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pipeline_utils.run_pipeline" title="Link to this definition"></a></dt>
+<dd><p>A function that runs a pipeline with the specified configurations, particularly used in the airflow DAG to run a pipeline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logger</strong></p></li>
+<li><p><strong>target_schema</strong></p></li>
+<li><p><strong>job_type</strong></p></li>
+<li><p><strong>job_id</strong></p></li>
+<li><p><strong>job_name</strong></p></li>
+<li><p><strong>target_table</strong></p></li>
+<li><p><strong>source_connection_details</strong></p></li>
+<li><p><strong>target_connection_details</strong></p></li>
+<li><p><strong>batch_size</strong></p></li>
+<li><p><strong>source_table</strong> (<em>str</em>) – The name of the source table.</p></li>
+<li><p><strong>source_schema</strong> (<em>str</em>) – The schema of the source table.</p></li>
+<li><p><strong>spark_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – The Spark configuration. Defaults to None.</p></li>
+<li><p><strong>hadoop_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – The Hadoop configuration. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>Exception</strong> – If no data is found in the source table.</p></li>
+<li><p><strong>NotImplementedError</strong> – If the target connection type is API.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_utils.run_pipeline_target">
+<span class="sig-name descname"><span class="pre">run_pipeline_target</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row_count</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">con_string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">driver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pipeline_utils.run_pipeline_target" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_utils.update_db">
+<span class="sig-name descname"><span class="pre">update_db</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">celery_task_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pipeline_utils.update_db" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="main_api_class.html" class="btn btn-neutral float-left" title="main_api_class module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../tables/app.html" class="btn btn-neutral float-right" title="app module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, DataOmni Solutions.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

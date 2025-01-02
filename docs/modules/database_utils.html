@@ -1,0 +1,830 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>database_utils module &mdash; OpenETL 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="spark_utils module" href="spark_utils.html" />
+    <link rel="prev" title="cache module" href="cache.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            OpenETL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Utils</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="connector_utils.html">connector_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="local_connection_utils.html">local_connection_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_db_class.html">main_db_class module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scheduler_utils.html">scheduler_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cache.html">cache module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">database_utils module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#database_utils.DatabaseUtils"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.alter_table_column_add_or_drop"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.alter_table_column_add_or_drop()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.alter_table_column_add_primary_key"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.alter_table_column_add_primary_key()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.cast_columns"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.cast_columns()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.close_session"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.close_session()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.commit_changes"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.commit_changes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.create_integration"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.create_integration()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.create_integration_history"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.create_integration_history()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.create_schema_if_not_exists"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.create_schema_if_not_exists()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.create_session"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.create_session()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.create_table"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.create_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.create_table_from_base"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.create_table_from_base()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.dataframe_details"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.dataframe_details()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.delete_document"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.delete_document()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.delete_integration"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.delete_integration()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.delete_oauth_token"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.delete_oauth_token()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.drop_table"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.drop_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.execute_query"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.execute_query()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.fetch_document"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.fetch_document()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.fetch_rows"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.fetch_rows()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.fill_na_based_on_dtype"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.fill_na_based_on_dtype()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.get_all_integration"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.get_all_integration()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.get_created_connections"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.get_created_connections()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.get_dashboard_data"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.get_dashboard_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.get_integration_history"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.get_integration_history()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.get_integrations_to_schedule"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.get_integrations_to_schedule()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.get_metadata"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.get_metadata()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.get_metadata_df"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.get_metadata_df()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.get_oauth_token"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.get_oauth_token()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.insert_openetl_batch"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.insert_openetl_batch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.map_to_spark_type"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.map_to_spark_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.match_pandas_schema_to_spark"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.match_pandas_schema_to_spark()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.save_oauth_token"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.save_oauth_token()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.test"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.test()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.truncate_table"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.truncate_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.update_integration"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.update_integration()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.update_integration_runtime"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.update_integration_runtime()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.update_openetl_batch"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.update_openetl_batch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.update_openetl_document"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.update_openetl_document()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.write_data"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.write_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database_utils.DatabaseUtils.write_document"><code class="docutils literal notranslate"><span class="pre">DatabaseUtils.write_document()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#database_utils.generate_cron_expression"><code class="docutils literal notranslate"><span class="pre">generate_cron_expression()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#database_utils.get_open_etl_document_connection_details"><code class="docutils literal notranslate"><span class="pre">get_open_etl_document_connection_details()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#database_utils.parse_cron_expression"><code class="docutils literal notranslate"><span class="pre">parse_cron_expression()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="spark_utils.html">spark_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="celery_utils.html">celery_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="enums.html">enums module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_api_class.html">main_api_class module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline_utils.html">pipeline_utils module</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tables</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tables/app.html">app module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tables/scheduler.html">scheduler module</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenETL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">database_utils module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/database_utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-database_utils">
+<span id="database-utils-module"></span><h1>database_utils module<a class="headerlink" href="#module-database_utils" title="Link to this heading"></a></h1>
+<p>This module contains utility functions for working with SQLAlchemy engine connections.</p>
+<p>Class:
+- SQLAlchemyEngine: Represents a class to connect with any database using SQLAlchemy.</p>
+<p>Methods:
+- __init__: Initializes the class with database connection details.
+- test: Tests the connection to the database.
+- get_metadata: Retrieves schema metadata from the connection.
+- execute_query: Executes a SQL query against the connection.
+- get_metadata_df: Retrieves schema metadata in a dataframe format.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DatabaseUtils</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hostname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to connect with any database using SQLAlchemy.</p>
+<p>Attributes:
+- engine (string): Sqlalchemy dialect
+- hostname (string): Your database hostname
+- username (string): Your database username
+- password (string): Your database password
+- port (string): Your database port
+- database (string): Your database
+- connection_name (string, optional): Description of the connection. Defaults to None.
+- connection_type (string, optional): Description of the connection type. Defaults to None.</p>
+<p>Methods:
+- __init__: Initializes the class with database connection details.
+- test: Tests the connection to the database.
+- get_metadata: Retrieves schema metadata from the connection.
+- execute_query: Executes a SQL query against the connection.
+- get_metadata_df: Retrieves schema metadata in a dataframe format.
+- dataframe_details: Generates details about each column in a DataFrame.
+- create_table: Creates a new table in the database.
+- fill_na_based_on_dtype: Replaces NaN values in a DataFrame based on column data types.
+- alter_table_column_add_or_drop: Alters a table by adding or dropping a column.
+- drop_table: Drops the specified table from the database.
+- truncate_table: Truncates a table by deleting all rows.
+- cast_columns: Casts columns in a DataFrame to specific data types.
+- map_to_spark_type: Maps Pandas DataFrame data types to Spark DataFrame data types.
+- match_pandas_schema_to_spark: Matches data types of columns in a Spark DataFrame to a specified schema.
+- write_data: Writes data to a table in the database.
+- create_session: Creates a new session and initializes metadata and base.
+- commit_changes: Commits the changes made within the session.
+- close_session: Closes the session and sets the session close flag.
+- __enter__: Enters the ‘with’ context and creates a new session.
+- __exit__: Exits the ‘with’ context, commits changes, and closes the session.
+- __dispose__: Disposes the session and engine.
+- create_schema_if_not_exists: Creates a schema in the database if it does not already exist.
+- alter_table_column_add_primary_key: Alters a table by adding a primary key to a specified column.
+- create_document_table: Creates a document table in the database.
+- create_batch_table: Creates a batch table in the database.
+- fetch_rows: Executes a select query on the specified table with provided conditions.
+- fetch_document: Fetches a single document based on the specified table, schema, and conditions.
+- write_document: Writes a document to the specified table in the database.
+- get_created_connections: Returns a list of created connections for the specified connector type.
+- insert_openetl_batch: Inserts a new OpenETLBatch instance into the database.
+- update_openetl_batch: Updates an OpenETLBatch instance in the database.
+- get_dashboard_data: Retrieves dashboard data including total counts and integration details.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.alter_table_column_add_or_drop">
+<span class="sig-name descname"><span class="pre">alter_table_column_add_or_drop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_details</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ColumnActions.ADD</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.alter_table_column_add_or_drop" title="Link to this definition"></a></dt>
+<dd><p>Alters a SQLAlchemy table by either adding or dropping a column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>action</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ColumnActions</span></code></span>)</p></li>
+<li><p><strong>table_name</strong> (<em>str</em>) – The name of the table to be altered.</p></li>
+<li><p><strong>column_name</strong> (<em>str</em>) – The name of the column to be added or dropped. Required if drop_column is False.</p></li>
+<li><p><strong>column_details</strong> (<em>str</em>) – The details of the column to be added. Required if drop_column is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing a boolean indicating success or failure and a message.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.alter_table_column_add_primary_key">
+<span class="sig-name descname"><span class="pre">alter_table_column_add_primary_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schema_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'open_etl'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.alter_table_column_add_primary_key" title="Link to this definition"></a></dt>
+<dd><p>Alter a table by adding a primary key to a specified column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table_name</strong> (<em>str</em>) – The name of the table to alter.</p></li>
+<li><p><strong>column_name</strong> (<em>str</em>) – The name of the column to set as the primary key. Defaults to ‘id’.</p></li>
+<li><p><strong>database.</strong> (<em>Currently not working changes do not reflect in the</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the primary key addition is successful, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.cast_columns">
+<span class="sig-name descname"><span class="pre">cast_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.cast_columns" title="Link to this definition"></a></dt>
+<dd><p>Function to cast columns in a DataFrame to specific data types based on the majority of data types in the columns.</p>
+<p>Parameters:
+- self: The object instance
+- df: The DataFrame containing the columns to be cast</p>
+<p>Returns:
+- df: The DataFrame with columns cast to specific data types</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.close_session">
+<span class="sig-name descname"><span class="pre">close_session</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.close_session" title="Link to this definition"></a></dt>
+<dd><p>Close the session and set the session close flag.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.commit_changes">
+<span class="sig-name descname"><span class="pre">commit_changes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.commit_changes" title="Link to this definition"></a></dt>
+<dd><p>Commit the changes made within the session.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.create_integration">
+<span class="sig-name descname"><span class="pre">create_integration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integration_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hadoop_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cron_expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.create_integration" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.create_integration_history">
+<span class="sig-name descname"><span class="pre">create_integration_history</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.create_integration_history" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.create_schema_if_not_exists">
+<span class="sig-name descname"><span class="pre">create_schema_if_not_exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schema_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'open_etl'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.create_schema_if_not_exists" title="Link to this definition"></a></dt>
+<dd><p>Creates a schema in the database if it does not already exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>schema_name</strong> (<em>str</em>) – The name of the schema to create. Defaults to ‘open_etl’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.create_session">
+<span class="sig-name descname"><span class="pre">create_session</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.create_session" title="Link to this definition"></a></dt>
+<dd><p>Create a new session and initialize metadata and base.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.create_table">
+<span class="sig-name descname"><span class="pre">create_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_schema</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'public'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.create_table" title="Link to this definition"></a></dt>
+<dd><p>Create a new table in the database. If already exists, skip creation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table_name</strong> (<em>str</em>) – The name of the table.</p></li>
+<li><p><strong>schema_details</strong> (<em>dict</em>) – column_name with python datatypes. Valid values are <cite>str</cite>, <cite>float</cite>, <cite>bool</cite>, <cite>int</cite>, <cite>list</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple indicating the success status and a message.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.create_table_from_base">
+<span class="sig-name descname"><span class="pre">create_table_from_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_schema</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'public'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.create_table_from_base" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.dataframe_details">
+<span class="sig-name descname"><span class="pre">dataframe_details</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.dataframe_details" title="Link to this definition"></a></dt>
+<dd><p>Generate a dictionary containing details about each column in the DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>DataFrame</em>) – The input DataFrame for which details are to be generated.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary where keys are column names and values are their data types.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.delete_document">
+<span class="sig-name descname"><span class="pre">delete_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.delete_document" title="Link to this definition"></a></dt>
+<dd><p>Deletes a document from the specified table in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>document_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the document is successfully deleted, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If an error occurs while deleting the document. The error message is logged.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.delete_integration">
+<span class="sig-name descname"><span class="pre">delete_integration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.delete_integration" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.delete_oauth_token">
+<span class="sig-name descname"><span class="pre">delete_oauth_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.delete_oauth_token" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.drop_table">
+<span class="sig-name descname"><span class="pre">drop_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.drop_table" title="Link to this definition"></a></dt>
+<dd><p>Drop the specified table from the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>table_name</strong> (<em>str</em>) – The name of the table to drop.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple indicating the success status and a message.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.execute_query">
+<span class="sig-name descname"><span class="pre">execute_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.execute_query" title="Link to this definition"></a></dt>
+<dd><p>Execute query against the connection</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>query</strong> (<em>string</em>) – Valid SQL query</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pandas dataframe of your query results</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.fetch_document">
+<span class="sig-name descname"><span class="pre">fetch_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'openetl_documents'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schema_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'open_etl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.fetch_document" title="Link to this definition"></a></dt>
+<dd><p>Fetches a single document based on the specified table, schema, and conditions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the table to fetch the document from. Defaults to ‘openetl_documents’.</p></li>
+<li><p><strong>schema_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The schema of the table. Defaults to ‘open_etl’.</p></li>
+<li><p><strong>conditions</strong> (<em>dict</em><em>, </em><em>optional</em>) – The conditions to filter the document retrieval. Defaults to {}.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary representing the fetched document with column names as keys.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.fetch_rows">
+<span class="sig-name descname"><span class="pre">fetch_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'openetl_documents'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schema_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'open_etl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.fetch_rows" title="Link to this definition"></a></dt>
+<dd><p>Executes a select query on the specified table with the provided conditions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the table to fetch rows from. Defaults to ‘openetl_documents’.</p></li>
+<li><p><strong>schema_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The schema of the table. Defaults to ‘open_etl’.</p></li>
+<li><p><strong>conditions</strong> (<em>dict</em><em>, </em><em>optional</em>) – The conditions to filter the rows. Defaults to {}.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the select query.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ResultProxy</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.fill_na_based_on_dtype">
+<span class="sig-name descname"><span class="pre">fill_na_based_on_dtype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.fill_na_based_on_dtype" title="Link to this definition"></a></dt>
+<dd><p>Replace NaN values in a Pandas DataFrame based on the data type of each column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> – Pandas DataFrame.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame with NaN values replaced based on column data types.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.get_all_integration">
+<span class="sig-name descname"><span class="pre">get_all_integration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.get_all_integration" title="Link to this definition"></a></dt>
+<dd><p>Get all integrations paginated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> (<em>int</em><em>, </em><em>optional</em>) – The page number. Defaults to 1.</p></li>
+<li><p><strong>per_page</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of items per page. Defaults to 30.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing the paginated results.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.get_created_connections">
+<span class="sig-name descname"><span class="pre">get_created_connections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connector_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.get_created_connections" title="Link to this definition"></a></dt>
+<dd><p>Returns a list of created connections for the specified connector type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>connector_type</strong> (<a class="reference internal" href="enums.html#enums.ConnectionType" title="enums.ConnectionType"><em>ConnectionType</em></a>) – The value of type of connector, defaults to ConnectionType.DATABASE.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dataframe of created connections.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.get_dashboard_data">
+<span class="sig-name descname"><span class="pre">get_dashboard_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.get_dashboard_data" title="Link to this definition"></a></dt>
+<dd><p>Retrieves dashboard data including total counts and integration details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing total counts and integration details.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.get_integration_history">
+<span class="sig-name descname"><span class="pre">get_integration_history</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integration_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.get_integration_history" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.get_integrations_to_schedule">
+<span class="sig-name descname"><span class="pre">get_integrations_to_schedule</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.get_integrations_to_schedule" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Type</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">OpenETLIntegrations</span></code>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.get_metadata">
+<span class="sig-name descname"><span class="pre">get_metadata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.get_metadata" title="Link to this definition"></a></dt>
+<dd><p>Get schema metadata from the connection</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>{“tables”: tables,”schema”:[]}</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.get_metadata_df">
+<span class="sig-name descname"><span class="pre">get_metadata_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.get_metadata_df" title="Link to this definition"></a></dt>
+<dd><p>Get your schema metadata in a dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pandas dataframe of your schema</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.get_oauth_token">
+<span class="sig-name descname"><span class="pre">get_oauth_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.get_oauth_token" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.insert_openetl_batch">
+<span class="sig-name descname"><span class="pre">insert_openetl_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.insert_openetl_batch" title="Link to this definition"></a></dt>
+<dd><p>Inserts a new OpenETLBatch instance into the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_date</strong> (<em>datetime</em>) – The start date of the batch.</p></li>
+<li><p><strong>batch_type</strong> (<em>str</em>) – The type of the batch.</p></li>
+<li><p><strong>batch_status</strong> (<em>str</em>) – The status of the batch.</p></li>
+<li><p><strong>batch_id</strong> (<em>str</em>) – The unique identifier of the batch.</p></li>
+<li><p><strong>integration_name</strong> (<em>str</em>) – The name of the integration.</p></li>
+<li><p><strong>rows_count</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of rows in the batch. Defaults to 0.</p></li>
+<li><p><strong>end_date</strong> (<em>datetime</em><em>, </em><em>optional</em>) – The end date of the batch. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The newly created OpenETLBatch instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../tables/app.html#app.OpenETLBatch" title="app.OpenETLBatch">OpenETLBatch</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.map_to_spark_type">
+<span class="sig-name descname"><span class="pre">map_to_spark_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pandas_dtype</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.map_to_spark_type" title="Link to this definition"></a></dt>
+<dd><p>Map Pandas DataFrame data types to equivalent Spark DataFrame data types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pandas_dtype</strong> (<em>str</em>) – Pandas DataFrame data type.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Spark DataFrame data type.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.match_pandas_schema_to_spark">
+<span class="sig-name descname"><span class="pre">match_pandas_schema_to_spark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spark_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schema_details</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.match_pandas_schema_to_spark" title="Link to this definition"></a></dt>
+<dd><p>Match the data types of columns in a Spark DataFrame to a specified schema.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>schema_details</strong></p></li>
+<li><p><strong>spark_df</strong> (<em>DataFrame</em>) – Spark DataFrame.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Spark DataFrame with matched data types.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.save_oauth_token">
+<span class="sig-name descname"><span class="pre">save_oauth_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refresh_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expires_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.save_oauth_token" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>access_token</strong></p></li>
+<li><p><strong>refresh_token</strong></p></li>
+<li><p><strong>expires_in</strong></p></li>
+<li><p><strong>scope</strong></p></li>
+<li><p><strong>connection_id</strong></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.test">
+<span class="sig-name descname"><span class="pre">test</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.test" title="Link to this definition"></a></dt>
+<dd><p>Test connection to database</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if connected else False</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Boolean</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.truncate_table">
+<span class="sig-name descname"><span class="pre">truncate_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.truncate_table" title="Link to this definition"></a></dt>
+<dd><p>Truncates a table by deleting all rows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>table_name</strong> (<em>str</em>) – The name of the table to truncate.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A tuple indicating the success status and a message.</dt><dd><p>The success status is True if truncation is successful, False otherwise.
+The message provides information about the truncation result.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.update_integration">
+<span class="sig-name descname"><span class="pre">update_integration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.update_integration" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.update_integration_runtime">
+<span class="sig-name descname"><span class="pre">update_integration_runtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.update_integration_runtime" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.update_openetl_batch">
+<span class="sig-name descname"><span class="pre">update_openetl_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.update_openetl_batch" title="Link to this definition"></a></dt>
+<dd><p>Updates an OpenETLBatch object in the database with the specified batch_id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_id</strong> (<em>int</em>) – The ID of the batch to update.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments specifying the fields to update and their new values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The updated OpenETLBatch object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../tables/app.html#app.OpenETLBatch" title="app.OpenETLBatch">OpenETLBatch</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If no OpenETLBatch object with the specified batch_id is found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.update_openetl_document">
+<span class="sig-name descname"><span class="pre">update_openetl_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.update_openetl_document" title="Link to this definition"></a></dt>
+<dd><p>Updates an OpenETLBatch object in the database with the specified batch_id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>document_id</strong> (<em>int</em>) – The ID of the batch to update.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments specifying the fields to update and their new values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The updated OpenETLBatch object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../tables/app.html#app.OpenETLBatch" title="app.OpenETLBatch">OpenETLBatch</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If no OpenETLBatch object with the specified batch_id is found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.write_data">
+<span class="sig-name descname"><span class="pre">write_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'openetl_batches'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">if_exists</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'append'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schema</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'public'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.write_data" title="Link to this definition"></a></dt>
+<dd><p>Writes data to a table in etl_batches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>) – The DataFrame to write to the table.</p></li>
+<li><p><strong>table_name</strong> (<em>str</em>) – The name of the table to write to.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database_utils.DatabaseUtils.write_document">
+<span class="sig-name descname"><span class="pre">write_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'openetl_documents'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schema_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'open_etl'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.write_document" title="Link to this definition"></a></dt>
+<dd><p>Writes a document to the specified table in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>document</strong> (<em>dict</em>) – The document to be written. It should contain a ‘document’ key with the document content.</p></li>
+<li><p><strong>table_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the table to write the document to. Defaults to ‘openetl_documents’.</p></li>
+<li><p><strong>schema_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The schema of the table. Defaults to ‘open_etl’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the document is successfully written, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If an error occurs while writing the document. The error message is logged.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="database_utils.generate_cron_expression">
+<span class="sig-name descname"><span class="pre">generate_cron_expression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schedule_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schedule_dates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.generate_cron_expression" title="Link to this definition"></a></dt>
+<dd><p>Generates a cron expression based on provided scheduling details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>schedule_time</strong> – Time string in ‘HH:MM:SS’ format.</p></li>
+<li><p><strong>schedule_dates</strong> – List of date strings in ‘YYYY-MM-DD’ format or None.</p></li>
+<li><p><strong>frequency</strong> – A string defining the frequency (‘daily’, ‘weekly’, ‘hourly’) or None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of cron expression strings.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="database_utils.get_open_etl_document_connection_details">
+<span class="sig-name descname"><span class="pre">get_open_etl_document_connection_details</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.get_open_etl_document_connection_details" title="Link to this definition"></a></dt>
+<dd><p>Get connection details for OpenETL Document</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="database_utils.parse_cron_expression">
+<span class="sig-name descname"><span class="pre">parse_cron_expression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cron_expr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.parse_cron_expression" title="Link to this definition"></a></dt>
+<dd><p>Reverse-engineers a cron expression into its individual components with detailed explanations,
+the next execution date in 12-hour format, months in numerical format, and the exact cron expression.</p>
+<p>Args:
+- cron_expr: A cron expression in the format ‘minute hour day_of_month month day_of_week’</p>
+<p>Returns:
+- A dictionary with components of the cron expression, with explanations, next execution date, and the exact cron expression.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cache.html" class="btn btn-neutral float-left" title="cache module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="spark_utils.html" class="btn btn-neutral float-right" title="spark_utils module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, DataOmni Solutions.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
