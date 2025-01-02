@@ -9,12 +9,10 @@ build:
   os: ubuntu-24.04
   tools:
     python: "3.13"
-    next: "14.2.4"
     nodejs: "18.19.1"
     npm: "9.2.0"
-    react: "18"
+    react: "18"  # react is generally included through npm, so no need to define separately
 
-# Build documentation in the "docs/" directory with Sphinx
 sphinx:
    configuration: docs/conf.py
 
@@ -23,4 +21,4 @@ sphinx:
 # See https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
 python:
     install:
-    - requirements: requirements.txt
+    - requirements: ./backend/requirements_backend.txt
