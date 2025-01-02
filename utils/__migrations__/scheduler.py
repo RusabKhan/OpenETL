@@ -14,6 +14,28 @@ Base = declarative_base()
 
 
 class OpenETLIntegrations(Base):
+    """
+    Represents the 'openetl_integrations' table in the database, storing integration configurations.
+
+    Attributes:
+        id (UUID): Unique identifier for the integration.
+        integration_name (str): Unique name of the integration.
+        integration_type (IntegrationType): Type of integration (e.g., API, DB).
+        cron_expression (list of str): Cron schedule for periodic tasks.
+        source_connection (int): Foreign key referencing the source connection.
+        target_connection (int): Foreign key referencing the target connection.
+        spark_config (dict): JSON configuration for Spark.
+        hadoop_config (dict): JSON configuration for Hadoop.
+        batch_size (int): Number of records to process in each batch.
+        source_table (str): Name of the source table.
+        target_table (str): Name of the target table.
+        source_schema (str): Name of the source schema.
+        target_schema (str): Name of the target schema.
+        is_enabled (bool): Indicates if the scheduler is enabled.
+        is_running (bool): Indicates if the scheduler is currently running.
+        created_at (datetime): Timestamp of when the record was created.
+        updated_at (datetime): Timestamp of when the record was last updated.
+    """
     __tablename__ = 'openetl_integrations'
     __table_args__ = {'schema': 'public'}
 
@@ -36,6 +58,21 @@ class OpenETLIntegrations(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)  # Record update time
 
 class OpenETLIntegrationsRuntimes(Base):
+    """
+    Represents the runtime history of OpenETL integrations.
+
+    Attributes:
+        id (UUID): Unique identifier for the runtime record.
+        integration (UUID): Foreign key referencing the OpenETL integration.
+        created_at (DateTime): Timestamp of when the record was created.
+        error_message (Text): Error message if the last run failed.
+        run_status (RunStatus): Status of the last run (e.g., success, failure).
+        start_date (DateTime): Scheduled start date of the integration run.
+        celery_task_id (String): Identifier for the associated Celery task.
+        end_date (DateTime): Scheduled end date of the integration run.
+        row_count (Integer): Number of rows processed in the run.
+        updated_at (DateTime): Timestamp of the last update to the record.
+    """
     __tablename__ = 'openetl_integrations_history'
     __table_args__ = {'schema': 'public'}
 

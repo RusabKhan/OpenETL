@@ -17,41 +17,8 @@ from utils.database_utils import DatabaseUtils, get_open_etl_document_connection
 from utils.enums import RunStatus
 
 # Global database and engine initialization
-db = DatabaseUtils(**get_open_etl_document_connection_details())
-engine = db.engine.url  # Using engine URL for jobstore
-scheduler_job_id = f"check_and_schedule_openetl_"
-global scheduler
-scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=db.engine)})
 
-# Configure logging
-LOG_DIR = f"{os.environ['OPENETL_HOME']}/.logs"  # Ensure this is set to the correct log directory
-os.makedirs(LOG_DIR, exist_ok=True)
-LOG_FILE = os.path.join(LOG_DIR, 'scheduler.log')
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler(LOG_FILE),  # Log to a file
-        logging.StreamHandler()          # Optionally, also log to console
-    ]
-)
-
-logger = logging.getLogger(__name__)
-file_handler = logging.FileHandler(LOG_FILE)
-file_handler.setLevel(logging.INFO)
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(file_formatter)
-
-# Console handler for logging to console
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.INFO)
-console_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-console_handler.setFormatter(console_formatter)
-
-# Add both handlers to the logger
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
 # Wrapper function for task execution
 def send_task_to_celery(job_id, job_name, job_type, source_connection, target_connection, source_table, target_table, source_schema,
                           target_schema, spark_config, hadoop_config, batch_size, **kwargs):
@@ -221,4 +188,39 @@ def start_scheduler():
 
 
 if __name__ == '__main__':
+    db = DatabaseUtils(**get_open_etl_document_connection_details())
+    engine = db.engine.url  # Using engine URL for jobstore
+    scheduler_job_id = f"check_and_schedule_openetl_"
+    global scheduler
+    scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=db.engine)})
+
+    # Configure logging
+    LOG_DIR = f"{os.environ['OPENETL_HOME']}/.logs"  # Ensure this is set to the correct log directory
+    os.makedirs(LOG_DIR, exist_ok=True)
+    LOG_FILE = os.path.join(LOG_DIR, 'scheduler.log')
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.FileHandler(LOG_FILE),  # Log to a file
+            logging.StreamHandler()  # Optionally, also log to console
+        ]
+    )
+
+    logger = logging.getLogger(__name__)
+    file_handler = logging.FileHandler(LOG_FILE)
+    file_handler.setLevel(logging.INFO)
+    file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    file_handler.setFormatter(file_formatter)
+
+    # Console handler for logging to console
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.INFO)
+    console_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    console_handler.setFormatter(console_formatter)
+
+    # Add both handlers to the logger
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
     start_scheduler()
