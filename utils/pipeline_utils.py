@@ -211,13 +211,15 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                                     schema=source_schema,
                                     batch_size=batch_size,
                                     logger=logger):
-                    df = spark_session.createDataFrame(df)
-                    row_count = df.count()
-                    run_pipeline_target(df=df, row_count=row_count, spark_class=spark_class, con_string=con_string,
-                                        target_table=target_table, batch_id=batch_id, driver=driver,
-                                        spark_session=spark_session, db_class=db, logger=logger)
-                    update_db(job_id, job_id, None, RunStatus.SUCCESS, datetime.utcnow(), row_count=row_count
-                              )
+
+                    if not df.empty:
+                        df = spark_session.createDataFrame(df)
+                        row_count = df.count()
+                        run_pipeline_target(df=df, row_count=row_count, spark_class=spark_class, con_string=con_string,
+                                            target_table=target_table, batch_id=batch_id, driver=driver,
+                                            spark_session=spark_session, db_class=db, logger=logger)
+                        update_db(job_id, job_id, None, RunStatus.SUCCESS, datetime.utcnow(), row_count=row_count
+                                  )
 
             logger.info("FINISHED PIPELINE")
             logger.info("DISPOSING ENGINES")
