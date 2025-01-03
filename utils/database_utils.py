@@ -997,16 +997,14 @@ class DatabaseUtils():
                 .filter(OpenETLIntegrations.id == integration_id) \
                 .order_by(OpenETLIntegrations.created_at.desc())
 
-            total_items = schedulers.offset(offset) \
-                .limit(per_page) \
-                .count()
-            schedulers = schedulers.all()
+            total_items = schedulers.count()
+            schedulers = schedulers.offset(offset).limit(per_page).all()
         else:
             schedulers = self.session.query(OpenETLIntegrations) \
                 .order_by(OpenETLIntegrations.created_at.desc()) \
                 .offset(offset) \
                 .limit(per_page)
-            total_items = schedulers.count()
+            total_items = self.session.query(OpenETLIntegrations).count()
             schedulers = schedulers.all()
 
         results = [
