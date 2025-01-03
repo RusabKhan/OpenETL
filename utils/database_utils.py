@@ -944,7 +944,7 @@ class DatabaseUtils():
             latest_runs_subquery,
             (OpenETLIntegrationsRuntimes.integration == latest_runs_subquery.c.integration) &
             (OpenETLIntegrationsRuntimes.start_date == latest_runs_subquery.c.latest_start_date)
-        ).all()
+        ).order_by(OpenETLIntegrationsRuntimes.created_at.desc()).all()
 
         # Retrieve run counts by integration
         run_counts = session.query(
@@ -990,21 +990,24 @@ class DatabaseUtils():
         """
         offset = (page - 1) * per_page
         schedulers = None
-        total_items = self.session.query(OpenETLIntegrations).count()
+        total_items = 0
 
         if integration_id:
             schedulers = self.session.query(OpenETLIntegrations) \
                 .filter(OpenETLIntegrations.id == integration_id) \
-                .order_by(OpenETLIntegrations.created_at.desc()) \
-                .offset(offset) \
+                .order_by(OpenETLIntegrations.created_at.desc())
+
+            total_items = schedulers.offset(offset) \
                 .limit(per_page) \
-                .all()
+                .count()
+            schedulers = schedulers.all()
         else:
             schedulers = self.session.query(OpenETLIntegrations) \
                 .order_by(OpenETLIntegrations.created_at.desc()) \
                 .offset(offset) \
-                .limit(per_page) \
-                .all()
+                .limit(per_page)
+            total_items = schedulers.count()
+            schedulers = schedulers.all()
 
         results = [
             {
@@ -1032,15 +1035,17 @@ class DatabaseUtils():
     def get_integration_history(self, integration_id, page: int = 1, per_page: int = 30):
 
         offset = (page - 1) * per_page
-        total_items = self.session.query(OpenETLIntegrationsRuntimes).count()
-        total_pages = (total_items + per_page - 1) // per_page
 
         history = self.session.query(OpenETLIntegrationsRuntimes) \
             .filter(OpenETLIntegrationsRuntimes.integration == integration_id) \
-            .order_by(OpenETLIntegrationsRuntimes.created_at.desc()) \
+            .order_by(OpenETLIntegrationsRuntimes.created_at.desc())
+
+        total_items = history.count()
+        total_pages = (total_items + per_page - 1) // per_page
+        history = history \
             .offset(offset) \
-            .limit(per_page) \
-            .all()
+            .limit(per_page).all()
+
 
         return {
             "page": page,
