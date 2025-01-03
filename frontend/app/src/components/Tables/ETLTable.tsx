@@ -1,20 +1,54 @@
-import { ListIntegrationConfig } from "@/types/integration";
+"use client";
+import { PaginatedIntegrationConfig } from "@/types/integration";
 import EditIntegration from "../DynamicForm/EditIntegration";
 import { useState } from "react";
 import Link from "next/link";
 
 interface ETLTableInterface {
   columns: string[];
-  data?: ListIntegrationConfig[];
+  data: PaginatedIntegrationConfig;
   load: () => void;
+  changePage: (pg: number) => void;
 }
 
 const ETLTable: React.FC<ETLTableInterface> = (params) => {
-  const { columns, data, load } = params;
+  const { columns, data, load, changePage } = params;
   const [showForm, setShowForm] = useState(false);
 
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+      <div className="pb-4">
+        <label
+          htmlFor="input-group-1"
+          className="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+        >
+          Search
+        </label>
+        <div className="relative mb-4 md:w-[25%]">
+          <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3.5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+              />
+            </svg>
+          </div>
+          <input
+            type="text"
+            id="input-group-1"
+            className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 ps-10 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500  dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+            placeholder="Search for integration"
+          />
+        </div>
+      </div>
       <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400 rtl:text-right">
         <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
           <tr>
@@ -40,7 +74,7 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
         </thead>
 
         <tbody>
-          {data?.map((integration, key) => (
+          {data.data?.map((integration, key) => (
             <tr
               key={key}
               className="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600"
@@ -65,8 +99,8 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
               </td>
               <td className="px-6 py-4">{integration.integration_type}</td>
               <td className="px-6 py-4">
-                {integration.cron_expression.map((cron) => (
-                  <span>{cron.cron_expression}</span>
+                {integration.cron_expression.map((cron, i) => (
+                  <span key={i}>{cron.cron_expression}</span>
                 ))}
               </td>
               <td className="px-6 py-4">
@@ -119,6 +153,53 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
           ))}
         </tbody>
       </table>
+      <nav
+        className="flex-column flex flex-wrap items-center justify-between pt-4 md:flex-row"
+        aria-label="Table navigation"
+      >
+        <span className="mb-4 block w-full text-sm font-normal text-gray-500 dark:text-gray-400 md:mb-0 md:inline md:w-auto">
+          Total Pages:{" "}
+          <span className="font-semibold text-gray-900 dark:text-white">
+            {data.total_pages}
+          </span>
+        </span>
+        <span className="mb-4 block w-full text-sm font-normal text-gray-500 dark:text-gray-400 md:mb-0 md:inline md:w-auto">
+          Total Items:{" "}
+          <span className="font-semibold text-gray-900 dark:text-white">
+            {data.total_items}
+          </span>
+        </span>
+        <ul className="inline-flex h-8 -space-x-px text-sm rtl:space-x-reverse">
+          {data.page !== 1 && (
+            <li>
+              <button
+                onClick={() => changePage(data.page - 1)}
+                className="ms-0 flex h-8 items-center justify-center rounded-s-lg border border-gray-300 bg-white px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              >
+                Previous
+              </button>
+            </li>
+          )}
+          <li>
+            <button
+              aria-current="page"
+              className="flex h-8 items-center justify-center border border-gray-300 bg-blue-50 px-3 text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white"
+            >
+              {data.page}
+            </button>
+          </li>
+          {data.total_pages !== data.page && (
+            <li>
+              <button
+                onClick={() => changePage(data.page + 1)}
+                className="flex h-8 items-center justify-center rounded-e-lg border border-gray-300 bg-white px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              >
+                Next
+              </button>
+            </li>
+          )}
+        </ul>
+      </nav>
     </div>
   );
 };

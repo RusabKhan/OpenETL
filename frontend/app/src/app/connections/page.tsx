@@ -11,11 +11,26 @@ import CardConnections from "@/components/CardConnection";
 import Head from "next/head";
 import axios from "axios";
 import { Connection } from "@/types/connectors";
+import Toast from "@/components/common/Toast";
 
 const Connections = () => {
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<
+    "success" | "error" | "warning" | "info"
+  >("success");
   const [databases, setDatabases] = useState([]);
   const [apis, setApis] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const showToast = (
+    message: string,
+    type: "success" | "error" | "warning" | "info" = "success",
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
   const load = async () => {
     setIsLoading(true);
@@ -27,7 +42,10 @@ const Connections = () => {
       setDatabases(data_res);
       setApis(api_res);
     } catch (err: any) {
-      console.log(err.message);
+      showToast(
+        err.message || "Failed to load connections. Please try again.",
+        "error",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -76,6 +94,12 @@ const Connections = () => {
           isLoading={isLoading}
           onDelete={onDelete}
           load={load}
+        />
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          visible={toastVisible}
+          onClose={() => setToastVisible(false)}
         />
       </div>
     </DefaultLayout>

@@ -138,8 +138,9 @@ const CreateConnection = () => {
       } else {
         showToast("Can't save the connection! ❌", "error");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      showToast(error.message || "Can't save the connection! ❌", "error");
     }
   };
 

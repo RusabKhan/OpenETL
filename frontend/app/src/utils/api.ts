@@ -9,27 +9,59 @@ import {
   LogsParam,
   ParamUpdateIntegration,
 } from "@/types/integration";
-import axios from "axios";
+import axios, { AxiosRequestConfig, Canceler } from "axios";
 
 // Define the base URL globally for reuse
 export const base_url = process.env.NEXT_PUBLIC_API_URL;
 
 // Generic API handler
+const pendingRequests = new Map<string, Canceler>();
+
 const apiRequest = async (
   method: "get" | "post" | "put" | "delete",
   endpoint: string,
   data?: object,
 ) => {
+  const url = `${base_url}${endpoint}`;
+
+  // Create a unique key for each request
+  const requestKey = `${method.toUpperCase()}::${url}`;
+
+  // Cancel any previous request with the same key
+  if (pendingRequests.has(requestKey)) {
+    const cancel = pendingRequests.get(requestKey);
+    cancel?.("Request canceled due to a new request with the same key.");
+    pendingRequests.delete(requestKey);
+  }
+
+  // Create a CancelToken
+  const cancelToken = new axios.CancelToken((canceler) => {
+    pendingRequests.set(requestKey, canceler);
+  });
+
   try {
-    const config = {
+    const config: AxiosRequestConfig = {
       method,
-      url: `${base_url}${endpoint}`,
+      url,
       ...(data && { data }),
+      cancelToken,
     };
 
     const response = await axios(config);
+
+    // Remove the request key after a successful response
+    pendingRequests.delete(requestKey);
+
     return response.data;
   } catch (error: any) {
+    // Remove the request key on error
+    pendingRequests.delete(requestKey);
+
+    if (axios.isCancel(error)) {
+      console.warn(`Request canceled: ${requestKey}`, error.message);
+      throw new Error("Request was canceled.");
+    }
+
     console.error(
       `Error in API request: ${method.toUpperCase()} ${endpoint}`,
       error.message,
@@ -54,17 +86,23 @@ export const getConnectorAuthDetails = async (name: string, type: string) => {
     `/connector/get_connector_auth_details/${name}/${type}`,
   );
 };
-export const getIntegrations = async () => {
-  return apiRequest("get", "/pipeline/get_integrations");
+export const getIntegrations = async (page?: number) => {
+  return apiRequest("get", `/pipeline/get_integrations?page=${page}`);
 };
-export const getIntegrationHistory = async (id: string) => {
-  return apiRequest("get", `/pipeline/get_integration_history/${id}`);
+export const getIntegrationHistory = async (id: string, page: number) => {
+  return apiRequest("get", `/pipeline/get_integration_history/${id}?page=${page}`);
 };
 export const getPipelineLogs = async (params: LogsParam) => {
   return apiRequest(
     "get",
     `/pipeline/get_logs?${params.integration_id ? `integration_id=${params.integration_id}&logs_type=${params.logs_type}` : `logs_type=${params.logs_type}`}&page=${params.page}&per_page=${params.per_page}`,
   );
+};
+export const getSchedulerListJobs = async () => {
+  return apiRequest("get", "/scheduler/list-jobs");
+};
+export const getCeleryTasks = async () => {
+  return apiRequest("get", "/worker/tasks");
 };
 
 // POST

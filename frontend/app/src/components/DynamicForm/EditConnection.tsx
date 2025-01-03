@@ -33,8 +33,6 @@ const EditConnection: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
     }));
   };
 
-  console.log(formData);
-
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +108,7 @@ const EditConnection: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
                         <input
                           id={`${key}.${nestedKey}`}
                           name={nestedKey}
-                          value={nestedValue}
+                          value={nestedValue as string}
                           onChange={
                             (e) => handleNestedChange(e, key) // Pass the parent key to the nested handler
                           }

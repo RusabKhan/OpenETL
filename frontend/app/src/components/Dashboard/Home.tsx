@@ -10,6 +10,7 @@ import { fetchDashboardData } from "@/utils/api";
 import { formatDateTime, formatNumber } from "@/utils/func";
 import { DashboardConfig } from "@/types/integration";
 import Breadcrumb from "../Breadcrumbs/Breadcrumb";
+import Toast from "../common/Toast";
 
 const MapOne = dynamic(() => import("@/components/Maps/MapOne"), {
   ssr: false,
@@ -20,6 +21,12 @@ const ChartThree = dynamic(() => import("@/components/Charts/ChartThree"), {
 });
 
 const Home: React.FC = () => {
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<
+    "success" | "error" | "warning" | "info"
+  >("success");
+
   const [dashData, setDashData] = useState<DashboardConfig>({
     total_api_connections: 0,
     total_db_connections: 0,
@@ -27,14 +34,25 @@ const Home: React.FC = () => {
     total_rows_migrated: 0,
     integrations: [],
   });
-
+  const showToast = (
+    message: string,
+    type: "success" | "error" | "warning" | "info" = "success",
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
+  
   useEffect(() => {
     const loadData = async () => {
       try {
         const result = await fetchDashboardData();
         setDashData(result);
       } catch (err: any) {
-        console.log(err.message);
+        showToast(
+          err.message || "Failed to load data. Please try again.",
+          "error",
+        );
       }
     };
 
@@ -183,16 +201,12 @@ const Home: React.FC = () => {
         </div>
       )}
 
-      {/* <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
-        <ChartOne />
-        <ChartTwo />
-        <ChartThree />
-        <MapOne />
-        <div className="col-span-12 xl:col-span-8">
-          <TableOne />
-        </div>
-        <ChatCard />
-      </div> */}
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        visible={toastVisible}
+        onClose={() => setToastVisible(false)}
+      />
     </>
   );
 };

@@ -6,6 +6,7 @@ import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import ETLTable from "@/components/Tables/ETLTable";
 import { PaginatedIntegrationConfig } from "@/types/integration";
 import { getIntegrations } from "@/utils/api";
+import Spinner from "@/components/common/Spinner";
 
 const initial_list = {
   page: 1,
@@ -18,14 +19,23 @@ const initial_list = {
 const Integrations = () => {
   const [integrations, setIntegrations] =
     useState<PaginatedIntegrationConfig>(initial_list);
+  const [isLoading, setIsloading] = useState(false);
+  const [page, setPage] = useState(1);
+
   const load_integrations = async () => {
-    const response = await getIntegrations();
+    setIsloading(true);
+    const response = await getIntegrations(page);
     setIntegrations(response);
+    setIsloading(false);
+  };
+
+  const changePage = (pg: number) => {
+    setPage(pg);
   };
 
   useEffect(() => {
     load_integrations();
-  }, []);
+  }, [page]);
 
   const columns = [
     "Id",
@@ -44,17 +54,19 @@ const Integrations = () => {
         {integrations?.data && integrations?.data?.length > 0 ? (
           <ETLTable
             columns={columns}
-            data={integrations?.data}
+            data={integrations}
             load={load_integrations}
+            changePage={changePage}
           />
         ) : (
           <div
-            className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:bg-gray-800 dark:text-red-400"
+            className="mb-4 rounded-lg bg-gray-200 p-4 text-sm dark:bg-gray-800"
             role="alert"
           >
             <span className="font-medium">Oops!</span> No records found!
           </div>
         )}
+        <Spinner visible={isLoading} />
       </DefaultLayout>
     </>
   );

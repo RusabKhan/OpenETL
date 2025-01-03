@@ -54,28 +54,39 @@ const Logs = () => {
 const SchedulerLogs = () => {
   const [logsData, setLogsData] = useState<LogsConfig>();
   const [isLoading, setIsloading] = useState(false);
+  const [page, setPage] = useState(1);
+
+  const loadLogs = async () => {
+    setIsloading(true);
+    const params = {
+      logs_type: "scheduler",
+      per_page: 20,
+      page: page,
+    };
+    const res = await getPipelineLogs(params);
+    setLogsData(res);
+    setIsloading(false);
+  };
+
+  const nextPage = () => {
+    setPage(page + 1);
+  };
+
+  const previousPage = () => {
+    setPage(page - 1);
+  };
 
   useEffect(() => {
-    const loadLogs = async () => {
-      setIsloading(true);
-      const params = {
-        logs_type: "scheduler",
-        per_page: 1000,
-        page: 1,
-      };
-      const res = await getPipelineLogs(params);
-      setLogsData(res);
-      setIsloading(false);
-    };
-
     loadLogs();
-  }, []);
+  }, [page]);
 
   return (
     <LogPanel
       title="Scheduler Logs"
       logsData={logsData}
       isLoading={isLoading}
+      nextPage={nextPage}
+      previousPage={previousPage}
     />
   );
 };
@@ -83,14 +94,23 @@ const SchedulerLogs = () => {
 const CeleryLogs = () => {
   const [logs, setLogs] = useState<LogsConfig>();
   const [isLoading, setIsloading] = useState(false);
+  const [page, setPage] = useState(1);
+
+  const nextPage = () => {
+    setPage(page + 1);
+  };
+
+  const previousPage = () => {
+    setPage(page - 1);
+  };
 
   useEffect(() => {
     const loadLogs = async () => {
       setIsloading(true);
       const params = {
         logs_type: "celery",
-        per_page: 1000,
-        page: 1,
+        per_page: 20,
+        page: page,
       };
       const res = await getPipelineLogs(params);
       setLogs(res);
@@ -99,7 +119,15 @@ const CeleryLogs = () => {
 
     loadLogs();
   }, []);
-  return <LogPanel title="Celery Logs" logsData={logs} isLoading={isLoading} />;
+  return (
+    <LogPanel
+      title="Celery Logs"
+      logsData={logs}
+      isLoading={isLoading}
+      nextPage={nextPage}
+      previousPage={previousPage}
+    />
+  );
 };
 
 const ApiLogs = (params: any) => {
@@ -107,6 +135,15 @@ const ApiLogs = (params: any) => {
   const [logs, setLogs] = useState<LogsConfig>();
   const [integration, setIntegration] = useState("-");
   const [isLoading, setIsloading] = useState(false);
+  const [page, setPage] = useState(1);
+
+  const nextPage = () => {
+    setPage(page + 1);
+  };
+
+  const previousPage = () => {
+    setPage(page - 1);
+  };
 
   useEffect(() => {
     const loadLogs = async () => {
@@ -114,8 +151,8 @@ const ApiLogs = (params: any) => {
       const params = {
         integration_id: integration,
         logs_type: "api",
-        per_page: 1000,
-        page: 1,
+        per_page: 20,
+        page: page,
       };
       const res = await getPipelineLogs(params);
       setLogs(res);
@@ -125,7 +162,7 @@ const ApiLogs = (params: any) => {
     if (integration !== "-") {
       loadLogs();
     }
-  }, [integration]);
+  }, [integration, page]);
 
   return (
     <div className="space-y-6">
@@ -149,6 +186,8 @@ const ApiLogs = (params: any) => {
         title="Integration Logs"
         logsData={logs}
         isLoading={isLoading}
+        nextPage={nextPage}
+        previousPage={previousPage}
       />
     </div>
   );

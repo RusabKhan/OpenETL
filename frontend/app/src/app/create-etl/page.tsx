@@ -104,13 +104,21 @@ const CreateEtl = () => {
 
   const handleCreateIntegration = () => {
     const create_etl = async () => {
-      await create_integration(integration);
-      showToast("Creating Integration!... ✅", "success");
-      router.push("/integrations");
+      try {
+        await create_integration(integration);
+        showToast("Creating Integration!... ✅", "success");
+        router.push("/integrations");
+      } catch (error: any) {
+        showToast(
+          error.message || "Failed to create integration. Please try again.",
+          "error"
+        );
+      }
     };
 
     create_etl();
   };
+
 
   return (
     <DefaultLayout>
