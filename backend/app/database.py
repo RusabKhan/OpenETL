@@ -13,7 +13,7 @@ router = APIRouter(prefix="/database", tags=["database"])
 
 @router.get("/get_dashboard_data")
 async def get_dashboard_data_api(request: Request):
-    return  DatabaseUtils(engine=os.getenv('OPENETL_DOCUMENT_ENGINE'),
+    return DatabaseUtils(engine=os.getenv('OPENETL_DOCUMENT_ENGINE'),
                 hostname=os.getenv('OPENETL_DOCUMENT_HOST'),
                 port=os.getenv('OPENETL_DOCUMENT_PORT'),
                 username=os.getenv('OPENETL_DOCUMENT_USER'),
