@@ -24,14 +24,8 @@ from datetime import datetime, timedelta
 import utils.spark_utils as sp_ut
 from utils.enums import *
 import utils.database_utils as database_utils
-
-import logging
-
-
-# Create a logger
-
-
-# Create a file handler and set the logging level to INFO
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
 
 
 def create_airflow_dag(config):
@@ -150,14 +144,15 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
         Exception: If no data is found in the source table.
         NotImplementedError: If the target connection type is API.
     """
+    global row_count
+    row_count = 0
     try:
 
         logger.info("RUNNING PIPELINE")
 
-        batch_id = str(uuid.uuid4())
-        logger.info(f"Batch ID: {batch_id}")
         target_credentials = target_connection_details['connection_credentials']
         source_credentials = source_connection_details['connection_credentials']
+
 
         if target_connection_details['connection_type'].lower() == ConnectionType.DATABASE.value:
 
@@ -174,16 +169,8 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                 engine=engine, **target_credentials)
             db.create_table_from_base(target_schema=target_schema, base=OpenETLBatch)
 
-            db.insert_openetl_batch(batch_id=batch_id, start_date=datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S"), batch_type="full", batch_status="in progress", integration_name=job_name)
 
-            # df = schema_ops.cast_columns(df)
-            # df = schema_ops.fill_na_based_on_dtype(df)
 
-            # created, message = schema_ops.create_table(
-            #     target_connection_config['table'], df)
-            # if not created:
-            #     raise Exception(message)
             logger.info("PRINTING OUT JARS")
             logger.info(jar)
             spark_class = sp_ut.SparkConnection(spark_configuration=spark_config,
@@ -191,17 +178,22 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                                                 connection_string=con_string)
             spark_session = spark_class.initializeSpark()
             spark_config["spark.app.name"] = spark_config[
-                                                 "spark.app.name"] + f"_{batch_id}_read_source_table{source_table}"
+                                                 "spark.app.name"] + f"_read_source_table{source_table}"
             if source_connection_details["connection_type"].lower() == ConnectionType.DATABASE.value:
 
                 connection_details_upper = {key.upper(): value for key, value in connection_details.items()}
                 spark_conn_url = {"url": jdbc_connection_strings[engine].format(**connection_details_upper),
                                   "dbtable": source_table,
                                   "driver": jdbc_engine_drivers[engine]}
-                df = spark_class.read_via_spark(spark_conn_url)
-                run_pipeline_target(df=df, spark_class=spark_class, con_string=con_string,
-                                    target_table=target_table, batch_id=batch_id, driver=driver,
-                                    spark_session=spark_session, db_class=db)
+
+                for df in spark_class.read_via_spark(spark_conn_url):
+
+                    if not df.empty:
+                        df_count = df.count()
+                        row_count = row_count + df_count
+                        run_pipeline_target(df=df, integration_id=job_id, spark_class=spark_class, con_string=con_string,
+                                            target_table=target_table, job_id=job_id, job_name=job_name, driver=driver,
+                                            spark_session=spark_session, db_class=db, logger=logger, batch_size=batch_size)
             else:
                 for df in read_data(connector_name=source_connection_details['connector_name'],
                                     auth_values=source_credentials,
@@ -214,12 +206,14 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
 
                     if not df.empty:
                         df = spark_session.createDataFrame(df)
-                        row_count = df.count()
-                        run_pipeline_target(df=df, row_count=row_count, spark_class=spark_class, con_string=con_string,
-                                            target_table=target_table, batch_id=batch_id, driver=driver,
-                                            spark_session=spark_session, db_class=db, logger=logger)
-                        update_db(job_id, job_id, None, RunStatus.SUCCESS, datetime.utcnow(), row_count=row_count
-                                  )
+                        df_count = df.count()
+                        row_count= row_count + df_count
+                        run_pipeline_target(df=df, integration_id=job_id, spark_class=spark_class, con_string=con_string,
+                                            target_table=target_table, job_id=job_id, job_name=job_name, driver=driver,
+                                            spark_session=spark_session, db_class=db, logger=logger, batch_size=batch_size)
+
+            update_db(job_id, job_id, None, RunStatus.SUCCESS, datetime.utcnow(), row_count=row_count
+                      )
 
             logger.info("FINISHED PIPELINE")
             logger.info("DISPOSING ENGINES")
@@ -240,25 +234,46 @@ def update_db(celery_task_id, integration, error_message, run_status, start_date
                                   end_date=start_date, row_count=row_count)
 
 
-def run_pipeline_target(df, spark_class, row_count, con_string, target_table, batch_id, driver, spark_session, db_class,
-                        logger):
+def run_pipeline_target(df, integration_id, spark_class, job_id, job_name, con_string, target_table, driver, spark_session, db_class,
+                        logger, batch_size=100000):
+
+    logger.info("Initializing writing to target")
     logger.info(df.limit(2))
-
-    # Display column data types
     logger.info(df.dtypes)
+    logger.exception(df.show())
 
-    # Count rows in Spark DataFrame
-    if row_count == 0:
-        logger.exception(df.show())
-        raise Exception("No data found in source table")
-
-    # Rename columns to replace '.' with '_'
+    logger.info("Removing '.' from columns")
     df = df.selectExpr(*[f"`{col}` as `{col.replace('.', '_')}`" for col in df.columns])
 
-    # Convert all columns to string type
-    df = df.select(*[df[col].cast("string").alias(col) for col in df.columns])
+    logger.info("Splitting into batches")
+    total_rows = df.count()
+    num_batches = (total_rows // batch_size) + (1 if total_rows % batch_size != 0 else 0)
+    logger.info(f"Total rows: {total_rows}")
+    logger.info(f"Number of batches: {num_batches}")
 
-    if spark_class.write_via_spark(
-            df, conn_string=con_string, table=target_table, driver=driver):
-        db_class.update_openetl_batch(batch_id=batch_id, batch_status="completed", end_date=datetime.now(
-        ).strftime("%Y-%m-%d %H:%M:%S"), rows_count=row_count)
+    # Adding row_number column for batch pagination
+    window_spec = Window.orderBy(F.lit(1))  # A simple ordering, could be changed for better performance
+    df_with_row_num = df.withColumn("row_number", F.row_number().over(window_spec))
+
+    for i in range(num_batches):
+        start = i * batch_size + 1  # start at 1 for row_number
+        end = min((i + 1) * batch_size, total_rows)
+
+        # Extract the batch by filtering on row_number
+        batch_df = df_with_row_num.filter((F.col("row_number") >= start) & (F.col("row_number") <= end)).drop("row_number")
+        batch_id = str(uuid.uuid4())
+        logger.info(f"Batch ID: {batch_id}")
+        db_class.insert_openetl_batch(batch_id=batch_id, integration_id=job_id, start_date=datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"), batch_type="full", batch_status="in progress", integration_name=job_name)
+
+        logger.info(f"Processing batch {i + 1}/{num_batches}")
+
+        if spark_class.write_via_spark(
+                batch_df, conn_string=con_string, table=target_table, driver=driver):
+            logger.info(f"Batch {i + 1}/{num_batches} processed successfully.")
+            logger.info(f"Updating batch status for batch {i + 1}/{num_batches}")
+            batch_df_size = batch_df.count()
+            db_class.update_openetl_batch(batch_id=batch_id, integration_id=integration_id, batch_status="completed", end_date=datetime.now(
+            ).strftime("%Y-%m-%d %H:%M:%S"), rows_count=batch_df_size)
+
+
