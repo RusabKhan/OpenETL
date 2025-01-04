@@ -72,8 +72,16 @@ const Connections = () => {
   }, []);
 
   const onDelete = async (id: number) => {
-    await delete_connection(id);
-    load();
+    try {
+      await delete_connection(id);
+    } catch (error: any) {
+      showToast(
+        error.message || "Failed to delete connections. Please try again.",
+        "error",
+      );
+    } finally {
+      load();
+    }
   };
 
   return (

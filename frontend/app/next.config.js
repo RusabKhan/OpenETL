@@ -4,7 +4,7 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "cdn.dataomnisolutions.com",
-        pathname: "/main/logos/**",
+        pathname: "/main/**",
       },
     ],
   },

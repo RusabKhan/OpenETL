@@ -29,15 +29,17 @@ const Toast: React.FC<ToastProps> = ({
     info: "bg-blue-500 text-white",
   };
 
-  return (
-    <div
-      className={`fixed bottom-4 right-4 transform rounded-lg px-6 py-3 shadow-lg transition-transform ${
-        visible ? "scale-100" : "scale-0"
-      } ${toastStyles[type]}`}
-    >
-      {message}
-    </div>
-  );
+  if (message !== "Request was canceled.") {
+    return (
+      <div
+        className={`fixed bottom-4 right-4 transform rounded-lg px-6 py-3 shadow-lg transition-transform ${
+          visible ? "scale-100" : "scale-0"
+        } ${toastStyles[type]}`}
+      >
+        {message}
+      </div>
+    );
+  }
 };
 
 export default Toast;

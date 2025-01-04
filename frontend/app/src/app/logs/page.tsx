@@ -16,7 +16,7 @@ const Logs = () => {
 
   useEffect(() => {
     const loadIntegrations = async () => {
-      const res = await getIntegrations();
+      const res = await getIntegrations(1);
       setIntegrations(res);
     };
     loadIntegrations();
