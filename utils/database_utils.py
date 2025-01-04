@@ -765,11 +765,12 @@ class DatabaseUtils():
         return True
 
 
-    def insert_openetl_batch(self, start_date, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None):
+    def insert_openetl_batch(self, start_date, integration_id, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None):
         """
         Inserts a new OpenETLBatch instance into the database.
 
         Args:
+            integration_id: The ID of the integration.
             start_date (datetime): The start date of the batch.
             batch_type (str): The type of the batch.
             batch_status (str): The status of the batch.
@@ -787,6 +788,7 @@ class DatabaseUtils():
         # Create new OpenETLBatch instance
         new_batch = OpenETLBatch(
             batch_id=batch_id,
+            integration_id=integration_id,
             start_date=start_date,
             end_date=end_date,
             batch_type=batch_type,
@@ -801,7 +803,7 @@ class DatabaseUtils():
         return new_batch
 
 
-    def update_openetl_batch(self, batch_id, **kwargs):
+    def update_openetl_batch(self, batch_id, integration_id, **kwargs):
         """
         Updates an OpenETLBatch object in the database with the specified batch_id.
 
@@ -819,7 +821,7 @@ class DatabaseUtils():
         session = self.session
         # Find the batch by batch_id
         batch = session.query(OpenETLBatch).filter(
-            OpenETLBatch.batch_id == batch_id).one_or_none()
+            OpenETLBatch.batch_id == batch_id, OpenETLBatch.integration_id == integration_id).one_or_none()
 
         if batch is not None:
             for key, value in kwargs.items():
@@ -1060,12 +1062,12 @@ class DatabaseUtils():
 
         for key, value in kwargs.items():
             if hasattr(batch, key):
-                if key == 'row_count':
-                    # Add the row_count value if it already exists in the database record
-                    current_row_count = getattr(batch, 'row_count', 0)
+                if key == 'row_count_trg':
+                    # Add the row_count_trg value if it already exists in the database record
+                    current_row_count = getattr(batch, 'row_count_trg', 0)
                     if current_row_count is None:
                         current_row_count = 0
-                    setattr(batch, 'row_count', current_row_count + value)
+                    setattr(batch, 'row_count_trg', current_row_count + value)
                 else:
                     setattr(batch, key, value)
 

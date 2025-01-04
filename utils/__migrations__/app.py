@@ -33,6 +33,7 @@ class OpenETLBatch(Base):
     batch_type = Column(String)
     batch_status = Column(String)
     integration_name = Column(String)
+    integration_id = Column(String)
     rows_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow,

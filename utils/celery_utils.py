@@ -36,7 +36,9 @@ console_handler.setFormatter(console_formatter)
 
 # Initialize Celery app
 url = get_open_etl_document_connection_details(url=True)
-app = Celery('openetl', broker=os.getenv("CELERY_BROKER_URL", f"redis://localhost:6379/0"))
+app = Celery('openetl', broker=os.getenv("CELERY_BROKER_URL", f"redis://localhost:6379/0"),
+             broker_connection_retry_on_startup=True
+             )
 
 # Celery configuration
 app.conf.task_routes = {'*.tasks.*': {'queue': 'default'}}
