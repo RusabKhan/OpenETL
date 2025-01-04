@@ -2,6 +2,8 @@ import os
 import sys
 import uuid
 
+from apscheduler.executors.pool import ThreadPoolExecutor
+
 sys.path.append(os.environ['OPENETL_HOME'])
 
 import logging
@@ -16,12 +18,19 @@ from utils.celery_utils import app, run_pipeline, retry
 from utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details
 from utils.enums import RunStatus
 
-# Global database and engine initialization
 db = DatabaseUtils(**get_open_etl_document_connection_details())
-engine = db.engine.url  # Using engine URL for jobstore
+engine = db.engine.url
 scheduler_job_id = f"check_and_schedule_openetl_"
-global scheduler
-scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=db.engine)})
+
+executors = {"threadpool": ThreadPoolExecutor(max_workers=5)}
+job_default = {
+    'coalesce': True,
+    'max_instances': 1,
+    'replace_existing': True
+}
+
+scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=db.engine)}, executors=executors,
+                                job_default=job_default)
 
 # Configure logging
 LOG_DIR = f"{os.environ['OPENETL_HOME']}/.logs"  # Ensure this is set to the correct log directory
@@ -33,7 +42,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler(LOG_FILE),  # Log to a file
-        logging.StreamHandler()          # Optionally, also log to console
+        logging.StreamHandler()  # Optionally, also log to console
     ]
 )
 
@@ -52,9 +61,12 @@ console_handler.setFormatter(console_formatter)
 # Add both handlers to the logger
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
+
+
 # Wrapper function for task execution
-def send_task_to_celery(job_id, job_name, job_type, source_connection, target_connection, source_table, target_table, source_schema,
-                          target_schema, spark_config, hadoop_config, batch_size, **kwargs):
+def send_task_to_celery(job_id, job_name, job_type, source_connection, target_connection, source_table, target_table,
+                        source_schema,
+                        target_schema, spark_config, hadoop_config, batch_size, **kwargs):
     """
     Wrapper function to send tasks to Celery dynamically using apply_async.
     """
@@ -62,7 +74,8 @@ def send_task_to_celery(job_id, job_name, job_type, source_connection, target_co
     try:
         app.send_task(name="utils.celery_utils.run_pipeline",
                       task_id=job_id,
-                      args=[job_id, job_name, job_type, source_connection, target_connection, source_table, target_table,
+                      args=[job_id, job_name, job_type, source_connection, target_connection, source_table,
+                            target_table,
                             source_schema, target_schema, spark_config, hadoop_config, batch_size],
                       kwargs=kwargs)
         logger.info(f"Task {job_id} sent successfully to Celery.")
@@ -159,6 +172,7 @@ def check_and_schedule_tasks():
         except Exception as e:
             logger.error(f"Error scheduling integration {job_id}: {e}", exc_info=True)
 
+
 def clean_up_old_logs():
     """
     Clean up log files older than LOG_TTL days in the log directory.
@@ -183,8 +197,6 @@ def clean_up_old_logs():
                     logger.info(f"Deleted old log file: {filename}")
     except Exception as e:
         logger.error(f"Error during log cleanup: {e}", exc_info=True)
-
-
 
 
 def start_scheduler():
@@ -214,13 +226,11 @@ def start_scheduler():
     # Gracefully handle shutdown
     try:
         while True:
+            jobs = scheduler.get_jobs()
             pass
     except (KeyboardInterrupt, SystemExit):
         scheduler.shutdown(wait=False)
         logger.info("Scheduler shut down gracefully.")
-
-
-
 
 
 if __name__ == '__main__':
