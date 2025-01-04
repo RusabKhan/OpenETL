@@ -15,13 +15,16 @@ class Connector(API):
 
     def __init__(self):
         super().__init__()
-        self.logo = "https://upload.wikimedia.org/wikipedia/commons/3/3f/HubSpot_Logo.svg"
+        self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/hubspot-icon.svg"
         self.base_url = "https://api.hubapi.com/crm/v3"
         self.tables = {
             "get_all_contacts": "objects/contacts",
             "get_all_companies": "objects/companies",
             "get_all_deals": "objects/deals",
-            "get_all_activities": "objects/engagements"
+            "get_all_activities": "objects/engagements",
+            "get_lists_associated_with_a_marketing_event": "/marketing/v3/marketing-events/associations/:marketingEventId/lists",
+            "find_marketing_events_by_externaleventid": "/marketing/v3/marketing-events/:externalEventId/identifiers",
+            "read_budget": "/marketing/v3/campaigns/:campaignGuid/budget/totals"
         }
         self.pagination = {
             "after": 0

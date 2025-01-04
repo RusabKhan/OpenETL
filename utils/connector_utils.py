@@ -140,6 +140,7 @@ def connector_test_connection(connector_name, connector_type=ConnectionType.DATA
             return result
     except Exception as e:
         print(f"Error: {str(e)}")
+        raise e
         
 def get_connector_metadata(connector_name, connector_type=ConnectionType.DATABASE.value):
     """
@@ -249,5 +250,4 @@ def install_libraries(libs):
             subprocess.call(['pip', 'install', lib])
         return True
     except Exception as e:
-        st.error(f"Error: {str(e)}")
-        return False
+        raise e

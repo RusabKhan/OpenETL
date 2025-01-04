@@ -26,7 +26,7 @@ from sqlalchemy.orm import sessionmaker
 
 from utils.cache import sqlalchemy_database_engines
 from utils.enums import ConnectionType
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, NoResultFound
 from utils.enums import ColumnActions
 import numpy as np
 from sqlalchemy.ext.declarative import declarative_base
@@ -118,12 +118,8 @@ class DatabaseUtils():
         Returns:
             Boolean: True if connected else False
         """
-        try:
-            self.engine.connect()
-            return True
-        except Exception as e:
-            print(str(e))
-            return False
+        self.engine.connect()
+        return True
 
     def get_metadata(self):
         """Get schema metadata from the connection
@@ -131,17 +127,14 @@ class DatabaseUtils():
         Returns:
             dict: {"tables": tables,"schema":[]}
         """
-        try:
-            inspector = sq.inspect(self.engine)
-            schemas = inspector.get_schema_names()
-            tables = None
+        inspector = sq.inspect(self.engine)
+        schemas = inspector.get_schema_names()
+        tables = None
 
-            for schema in schemas:
-                print(f"schema: {schema}")
-                tables = inspector.get_table_names(schema=schema)
-            return {schema: tables}
-        except Exception as e:
-            return {"tables": tables, "schema": []}
+        for schema in schemas:
+            print(f"schema: {schema}")
+            tables = inspector.get_table_names(schema=schema)
+        return {schema: tables}
 
     def execute_query(self, query):
         """Execute query against the connection
@@ -152,12 +145,9 @@ class DatabaseUtils():
         Returns:
             Dataframe: Pandas dataframe of your query results
         """
-        try:
-            con = self.engine.connect()
-            data = con.execute(text(query))
-            return pd.DataFrame(data)
-        except Exception as e:
-            return pd.DataFrame()
+        con = self.engine.connect()
+        data = con.execute(text(query))
+        return pd.DataFrame(data)
 
     def get_metadata_df(self):
         """Get your schema metadata in a dataframe
@@ -235,17 +225,14 @@ class DatabaseUtils():
         Returns:
             tuple: A tuple indicating the success status and a message.
         """
-        try:
-            schema_details = self.dataframe_details(df)
-            table = Table(table_name, self.metadata,
-                          *[Column(column_name, eval(column_type)) for column_name, column_type in schema_details.items()], schema=target_schema)
-            self.metadata.create_all(self.engine)
+        schema_details = self.dataframe_details(df)
+        table = Table(table_name, self.metadata,
+                      *[Column(column_name, eval(column_type)) for column_name, column_type in schema_details.items()], schema=target_schema)
+        self.metadata.create_all(self.engine)
 
-            self.schema_details = schema_details
+        self.schema_details = schema_details
 
-            return True, table_name
-        except Exception as e:
-            return False, str(e)
+        return True, table_name
 
     def fill_na_based_on_dtype(self, df):
         """
@@ -296,32 +283,27 @@ class DatabaseUtils():
             tuple: A tuple containing a boolean indicating success or failure and a message.
 
          """
-        try:
-            # Reflect the existing table from the database
-            table = Table(table_name, self.metadata,
-                          autoload_with=self.engine)
+        # Reflect the existing table from the database
+        table = Table(table_name, self.metadata,
+                      autoload_with=self.engine)
 
-            if action == ColumnActions.DROP:
-                table._columns.remove(table.c[column_name])
-                action = f"Dropped column '{column_name}' from table '{table_name}'."
+        if action == ColumnActions.DROP:
+            table._columns.remove(table.c[column_name])
+            action = f"Dropped column '{column_name}' from table '{table_name}'."
 
-            elif action == ColumnActions.ADD:
-                new_column = Column(column_name, column_details)
-                table.append_column(new_column)
-                action = f"Added column '{column_name}' to table '{table_name}'."
+        elif action == ColumnActions.ADD:
+            new_column = Column(column_name, column_details)
+            table.append_column(new_column)
+            action = f"Added column '{column_name}' to table '{table_name}'."
 
-            elif action == ColumnActions.MODIFY:
-                raise NotImplementedError
+        elif action == ColumnActions.MODIFY:
+            raise NotImplementedError
 
-            # Save changes to the database
-            self.metadata.drop_all(self.engine)
-            self.metadata.create_all(self.engine)
+        # Save changes to the database
+        self.metadata.drop_all(self.engine)
+        self.metadata.create_all(self.engine)
 
-            return True, action
-        except OperationalError as e:
-            return False, str(e)
-        except Exception as e:
-            return False, str(e)
+        return True, action
 
     def drop_table(self, table_name: str):
         """
@@ -333,14 +315,11 @@ class DatabaseUtils():
         Returns:
             tuple: A tuple indicating the success status and a message.
         """
-        try:
-            self.metadata.reflect(bind=self.engine, only=[table_name])
-            existing_table = self.metadata.tables[table_name]
-            existing_table.drop(self.engine)
+        self.metadata.reflect(bind=self.engine, only=[table_name])
+        existing_table = self.metadata.tables[table_name]
+        existing_table.drop(self.engine)
 
-            return True, f"Table '{table_name}' has been dropped."
-        except Exception as e:
-            return False, str(e)
+        return True, f"Table '{table_name}' has been dropped."
 
     def truncate_table(self, table_name):
         """
@@ -354,16 +333,13 @@ class DatabaseUtils():
                    The success status is True if truncation is successful, False otherwise.
                    The message provides information about the truncation result.
         """
-        try:
-            self.metadata.reflect(bind=self.engine, only=[table_name])
-            table = self.metadata.tables[table_name]
-            with self.engine.connect() as connection:
-                delete_statement = table.delete()
-                connection.execute(delete_statement)
+        self.metadata.reflect(bind=self.engine, only=[table_name])
+        table = self.metadata.tables[table_name]
+        with self.engine.connect() as connection:
+            delete_statement = table.delete()
+            connection.execute(delete_statement)
 
-            return True, f"Table '{table_name}' truncated."
-        except Exception as e:
-            return False, str(e)
+        return True, f"Table '{table_name}' truncated."
 
     def cast_columns(self, df):
         """
@@ -458,16 +434,12 @@ class DatabaseUtils():
             table_name (str): The name of the table to write to.
         """
 
-        try:
-            df = pd.DataFrame(data, index=[0])
-            print(df)
-            with self.engine.connect() as con:
-                df.to_sql(
-                    table_name, con=con, if_exists=if_exists, index=False, schema=schema)
-            return True
-        except Exception as e:
-            logging.error(e)
-            return False
+        df = pd.DataFrame(data, index=[0])
+        print(df)
+        with self.engine.connect() as con:
+            df.to_sql(
+                table_name, con=con, if_exists=if_exists, index=False, schema=schema)
+        return True
 
     def create_session(self):
         """
@@ -542,19 +514,15 @@ class DatabaseUtils():
             bool: True if the primary key addition is successful, False otherwise.
         """
 
-        try:
-            existing_table = Table(
-                table_name, self.metadata, autoload_with=self.engine, schema=schema_name)
+        existing_table = Table(
+            table_name, self.metadata, autoload_with=self.engine, schema=schema_name)
 
-            column = existing_table.columns[column_name]
-            primary_key_constraint = PrimaryKeyConstraint(column)
-            existing_table.append_constraint(primary_key_constraint)
-            self.metadata.create_all(self.engine)
+        column = existing_table.columns[column_name]
+        primary_key_constraint = PrimaryKeyConstraint(column)
+        existing_table.append_constraint(primary_key_constraint)
+        self.metadata.create_all(self.engine)
 
-            return True
-
-        except Exception as e:
-            return False
+        return True
 
 
 
@@ -655,7 +623,7 @@ class DatabaseUtils():
 
         return rows_with_column_names[0]
 
-    def write_document(self, document, table_name='openetl_documents', schema_name='open_etl') -> bool:
+    def write_document(self, document, table_name='openetl_documents', schema_name='open_etl') -> tuple[bool, str]:
         """
         Writes a document to the specified table in the database.
 
@@ -670,29 +638,24 @@ class DatabaseUtils():
         Raises:
             Exception: If an error occurs while writing the document. The error message is logged.
         """
-        try:
+        Session = sessionmaker(bind=self.engine)
+        session = Session()
 
-            Session = sessionmaker(bind=self.engine)
-            session = Session()
+        # Create an instance of OpenETLDocument
+        new_document = OpenETLDocument(
+            connection_credentials=document['connection_credentials'],
+            connection_name=document['connection_name'],
+            connection_type=document['connection_type'],
+            auth_type=document['auth_type'],
+            connector_name=document['connector_name'],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+        session.add(new_document)
+        session.commit()
 
-            # Create an instance of OpenETLDocument
-            new_document = OpenETLDocument(
-                connection_credentials=document['connection_credentials'],
-                connection_name=document['connection_name'],
-                connection_type=document['connection_type'],
-                auth_type=document['auth_type'],
-                connector_name=document['connector_name'],
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
-            )
-            session.add(new_document)
-            session.commit()
-
-            session.close()
-            return True, ""
-        except Exception as e:
-            logging.error(e)
-            return False, e
+        session.close()
+        return True, ""
 
 
     def delete_document(self,  document_id: int=None):
@@ -708,33 +671,29 @@ class DatabaseUtils():
         Raises:
             Exception: If an error occurs while deleting the document. The error message is logged.
         """
-        try:
-            Session = sessionmaker(bind=self.engine)
-            session = Session()
-            document = session.query(OpenETLDocument).filter_by(id=document_id).first()
-            integrations = (
-                session.query(OpenETLIntegrations)
-                .filter(or_(
-                    OpenETLIntegrations.source_connection == document_id,
-                    OpenETLIntegrations.target_connection == document_id
-                ))
-                .all()
-            )
-            if integrations:
-                for integration in integrations:
-                    session.delete(integration)
-                    session.commit()
-            if document:
-                session.delete(document)
+        Session = sessionmaker(bind=self.engine)
+        session = Session()
+        document = session.query(OpenETLDocument).filter_by(id=document_id).first()
+        integrations = (
+            session.query(OpenETLIntegrations)
+            .filter(or_(
+                OpenETLIntegrations.source_connection == document_id,
+                OpenETLIntegrations.target_connection == document_id
+            ))
+            .all()
+        )
+        if integrations:
+            for integration in integrations:
+                session.delete(integration)
                 session.commit()
-                session.close()
-                return True, ""
-            else:
-                session.close()
-                return False, "Document not found."
-        except Exception as e:
-            logging.error(e)
-            return False, e
+        if document:
+            session.delete(document)
+            session.commit()
+            session.close()
+            return True, ""
+        else:
+            session.close()
+            raise NoResultFound
 
 
 
@@ -806,11 +765,12 @@ class DatabaseUtils():
         return True
 
 
-    def insert_openetl_batch(self, start_date, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None):
+    def insert_openetl_batch(self, start_date, integration_id, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None):
         """
         Inserts a new OpenETLBatch instance into the database.
 
         Args:
+            integration_id: The ID of the integration.
             start_date (datetime): The start date of the batch.
             batch_type (str): The type of the batch.
             batch_status (str): The status of the batch.
@@ -828,6 +788,7 @@ class DatabaseUtils():
         # Create new OpenETLBatch instance
         new_batch = OpenETLBatch(
             batch_id=batch_id,
+            integration_id=integration_id,
             start_date=start_date,
             end_date=end_date,
             batch_type=batch_type,
@@ -842,7 +803,7 @@ class DatabaseUtils():
         return new_batch
 
 
-    def update_openetl_batch(self, batch_id, **kwargs):
+    def update_openetl_batch(self, batch_id, integration_id, **kwargs):
         """
         Updates an OpenETLBatch object in the database with the specified batch_id.
 
@@ -860,7 +821,7 @@ class DatabaseUtils():
         session = self.session
         # Find the batch by batch_id
         batch = session.query(OpenETLBatch).filter(
-            OpenETLBatch.batch_id == batch_id).one_or_none()
+            OpenETLBatch.batch_id == batch_id, OpenETLBatch.integration_id == integration_id).one_or_none()
 
         if batch is not None:
             for key, value in kwargs.items():
@@ -873,7 +834,7 @@ class DatabaseUtils():
             session.commit()
             return batch
         else:
-            raise Exception(f"Batch with id {batch_id} not found.")
+            raise NoResultFound
 
 
     def update_openetl_document(self, document_id, **kwargs):
@@ -904,7 +865,7 @@ class DatabaseUtils():
             session.commit()
             return batch
         else:
-            raise Exception(f"Document with id {document_id} not found.")
+            raise NoResultFound
 
 
     def get_dashboard_data(self):
@@ -944,7 +905,7 @@ class DatabaseUtils():
             latest_runs_subquery,
             (OpenETLIntegrationsRuntimes.integration == latest_runs_subquery.c.integration) &
             (OpenETLIntegrationsRuntimes.start_date == latest_runs_subquery.c.latest_start_date)
-        ).all()
+        ).order_by(OpenETLIntegrationsRuntimes.created_at.desc()).all()
 
         # Retrieve run counts by integration
         run_counts = session.query(
@@ -990,21 +951,22 @@ class DatabaseUtils():
         """
         offset = (page - 1) * per_page
         schedulers = None
-        total_items = self.session.query(OpenETLIntegrations).count()
+        total_items = 0
 
         if integration_id:
             schedulers = self.session.query(OpenETLIntegrations) \
                 .filter(OpenETLIntegrations.id == integration_id) \
-                .order_by(OpenETLIntegrations.created_at.desc()) \
-                .offset(offset) \
-                .limit(per_page) \
-                .all()
+                .order_by(OpenETLIntegrations.created_at.desc())
+
+            total_items = schedulers.count()
+            schedulers = schedulers.offset(offset).limit(per_page).all()
         else:
             schedulers = self.session.query(OpenETLIntegrations) \
                 .order_by(OpenETLIntegrations.created_at.desc()) \
                 .offset(offset) \
-                .limit(per_page) \
-                .all()
+                .limit(per_page)
+            total_items = self.session.query(OpenETLIntegrations).count()
+            schedulers = schedulers.all()
 
         results = [
             {
@@ -1032,15 +994,17 @@ class DatabaseUtils():
     def get_integration_history(self, integration_id, page: int = 1, per_page: int = 30):
 
         offset = (page - 1) * per_page
-        total_items = self.session.query(OpenETLIntegrationsRuntimes).count()
-        total_pages = (total_items + per_page - 1) // per_page
 
         history = self.session.query(OpenETLIntegrationsRuntimes) \
             .filter(OpenETLIntegrationsRuntimes.integration == integration_id) \
-            .order_by(OpenETLIntegrationsRuntimes.created_at.desc()) \
+            .order_by(OpenETLIntegrationsRuntimes.created_at.desc())
+
+        total_items = history.count()
+        total_pages = (total_items + per_page - 1) // per_page
+        history = history \
             .offset(offset) \
-            .limit(per_page) \
-            .all()
+            .limit(per_page).all()
+
 
         return {
             "page": page,
@@ -1080,7 +1044,7 @@ class DatabaseUtils():
         batch = self.session.query(OpenETLIntegrations).filter(OpenETLIntegrations.id == record_id).first()
 
         if not batch:
-            return ValueError(f"Record with id {record_id} not found.")
+            return NoResultFound
         for key, value in kwargs.items():
             if hasattr(batch, key):
                 setattr(batch, key, value)
@@ -1094,16 +1058,16 @@ class DatabaseUtils():
         ).order_by(OpenETLIntegrationsRuntimes.created_at.desc()).first()
 
         if not batch:
-            raise ValueError(f"Record with id {job_id} not found.")
+            raise NoResultFound
 
         for key, value in kwargs.items():
             if hasattr(batch, key):
-                if key == 'row_count':
-                    # Add the row_count value if it already exists in the database record
-                    current_row_count = getattr(batch, 'row_count', 0)
+                if key == 'row_count_trg':
+                    # Add the row_count_trg value if it already exists in the database record
+                    current_row_count = getattr(batch, 'row_count_trg', 0)
                     if current_row_count is None:
                         current_row_count = 0
-                    setattr(batch, 'row_count', current_row_count + value)
+                    setattr(batch, 'row_count_trg', current_row_count + value)
                 else:
                     setattr(batch, key, value)
 
@@ -1229,33 +1193,49 @@ def parse_cron_expression(cron_expr):
 
     # Get the next execution date based on the cron expression
     def get_next_execution(minute, hour, day_of_month, month, day_of_week):
+        # Convert cron parts into sets for easier comparison
+        def parse_cron_part(part, valid_range):
+            if part == "*":
+                return set(valid_range)
+            elif "-" in part:
+                start, end = map(int, part.split("-"))
+                return set(range(start, end + 1))
+            elif "," in part:
+                return set(map(int, part.split(",")))
+            else:
+                return {int(part)}
+
+        # Parse each part of the cron expression
+        valid_minutes = parse_cron_part(minute, range(60))
+        valid_hours = parse_cron_part(hour, range(24))
+        valid_days = parse_cron_part(day_of_month, range(1, 32))
+        valid_months = parse_cron_part(month, range(1, 13))
+        valid_weekdays = parse_cron_part(day_of_week, range(7))
+
+        # Start searching from the next minute
         now = datetime.now()
+        next_execution = now + timedelta(minutes=1)
 
-        # Expand wildcard components into possible values
-        possible_minutes = expand_wildcard(minute, "minute")
-        possible_hours = expand_wildcard(hour, "hour")
-        possible_days_of_month = expand_wildcard(day_of_month, "day_of_month")
-        possible_months = expand_wildcard(month, "month")
-        possible_days_of_week = expand_wildcard(day_of_week, "day_of_week")
+        while next_execution < now + timedelta(days=3650):
+            if (
+                    next_execution.minute in valid_minutes and
+                    next_execution.hour in valid_hours and
+                    next_execution.day in valid_days and
+                    next_execution.month in valid_months and
+                    next_execution.weekday() in valid_weekdays
+            ):
+                return next_execution
 
-        # Get the next possible execution date
-        next_execution = now
-        while True:
-            if str(next_execution.minute) in possible_minutes and str(next_execution.hour) in possible_hours:
-                if str(next_execution.month) in possible_months:
-                    if str(next_execution.day) in possible_days_of_month:
-                        if str(calendar.weekday(next_execution.year, next_execution.month, next_execution.day)) in possible_days_of_week:
-                            break
             next_execution += timedelta(minutes=1)
 
-        return next_execution
+        raise ValueError("No valid execution time found within 10 years.")
 
     # Format the cron expression components
     minute_detail = format_component(minute, "minute")
     hour_detail = format_component(hour, "hour")
-    day_of_month_detail = format_component(day_of_month, "day_of_month")
+    day_of_month_detail = format_component(day_of_month, "date of month")
     month_detail = format_component(month, "month")
-    day_of_week_detail = format_component(day_of_week, "day_of_week")
+    day_of_week_detail = format_component(day_of_week, "date of week")
 
     # Get the next execution date
     next_execution = get_next_execution(minute, hour, day_of_month, month, day_of_week)
@@ -1265,9 +1245,9 @@ def parse_cron_expression(cron_expr):
 
     # Construct the explanation in plain sentences
     explanation = (
-        f"This job expression runs at {hour}:{minute} on {day_of_month_detail} in {month_detail}. "
-        f"It occurs on {day_of_week_detail}. The next execution will be at {next_execution_12hr} "
-        f"on {next_execution.strftime('%Y-%m-%d')}."
+        f"This schedule runs at {hour}:{minute} on {day_of_month_detail} during {month_detail}. "
+        f"It happens on {day_of_week_detail}. The next time it will run is at {next_execution_12hr} "
+        f"on {next_execution.strftime('%B %d, %Y')}."
     )
 
     return {
