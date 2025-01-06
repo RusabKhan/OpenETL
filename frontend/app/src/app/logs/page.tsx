@@ -24,7 +24,7 @@ const Logs = () => {
 
   return (
     <DefaultLayout>
-      <Breadcrumb pageName="Logging" />
+      {/* <Breadcrumb pageName="Logging" /> */}
 
       {/* Tabs */}
       <div className="mb-6 flex gap-4 border-b border-gray-300">

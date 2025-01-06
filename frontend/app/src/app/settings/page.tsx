@@ -37,7 +37,7 @@ const links = [
 const Settings = () => {
   return (
     <DefaultLayout>
-      <Breadcrumb pageName="Settings" />
+      {/* <Breadcrumb pageName="Settings" /> */}
 
       <div className="grid grid-cols-4 gap-8">
         {links.map((url, i) => (

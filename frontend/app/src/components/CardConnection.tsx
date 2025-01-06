@@ -34,11 +34,11 @@ const CardConnections: React.FC<DatabaseConnectionListProps> = ({
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="mb-4 text-2xl font-bold">{name}</h1>
+      <h1 className="mb-4 text-xl font-bold">{name}</h1>
       {connections.length === 0 ? (
         <p className="text-gray-500">No connections available.</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {connections.map((connection) => (
             <div
               key={connection.id}
@@ -90,14 +90,14 @@ const CardConnections: React.FC<DatabaseConnectionListProps> = ({
                 </button>
               </div>
               {/* Card Content */}
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col md:flex-row items-center space-x-2">
                 <img
                   src={connection.logo}
                   alt="Connector logo"
                   className="h-12 w-12 object-contain"
                 />
                 <div>
-                  <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                  <h2 className="text-lg font-bold text-gray-800 dark:text-white">
                     {connection.connection_name}
                   </h2>
                   <p className="text-sm text-gray-500 dark:text-whiten">
@@ -237,7 +237,7 @@ const CardConnections: React.FC<DatabaseConnectionListProps> = ({
           </div>
         </div>
       )}
-      <Spinner visible={isLoading} message="Loading connection..." />
+      {/* <Spinner visible={isLoading} message="Loading connection..." /> */}
     </div>
   );
 };
