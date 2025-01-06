@@ -1,24 +1,11 @@
 "use client";
-import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
-import ChartOne from "../Charts/ChartOne";
-import ChartTwo from "../Charts/ChartTwo";
-import ChatCard from "../Chat/ChatCard";
-import TableOne from "../Tables/TableOne";
 import CardDataStats from "../CardDataStats";
 import { fetchDashboardData } from "@/utils/api";
 import { formatDateTime, formatNumber } from "@/utils/func";
 import { DashboardConfig } from "@/types/integration";
 import Breadcrumb from "../Breadcrumbs/Breadcrumb";
 import Toast from "../common/Toast";
-
-const MapOne = dynamic(() => import("@/components/Maps/MapOne"), {
-  ssr: false,
-});
-
-const ChartThree = dynamic(() => import("@/components/Charts/ChartThree"), {
-  ssr: false,
-});
 
 const Home: React.FC = () => {
   const [toastVisible, setToastVisible] = useState(false);
@@ -42,7 +29,7 @@ const Home: React.FC = () => {
     setToastType(type);
     setToastVisible(true);
   };
-  
+
   useEffect(() => {
     const loadData = async () => {
       try {
