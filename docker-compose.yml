@@ -22,17 +22,15 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://openetl-backend:5009
     container_name: openetl-frontend
     networks:
       - openetl-network
     ports:
       - "3000:3000"
     environment:
-      - BACKEND_HOST=http://openetl-backend:5009
-      - OPENETL_HOME=/app
-#      - SPARK_UI_URL=http://spark-proxy:8081  # Spark UI through reverse proxy
-#    depends_on:
-#      - backend
+      - NEXT_PUBLIC_API_URL=http://openetl-backend:5009
     restart: always
 
   spark-master:
