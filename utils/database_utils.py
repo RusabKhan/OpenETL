@@ -19,7 +19,8 @@ from typing import List, Type
 import sqlalchemy as sq
 import pandas as pd
 
-from utils.__migrations__.app import OpenETLDocument, OpenETLBatch, OpenETLOAuthToken
+from utils.__migrations__.app import OpenETLDocument, OpenETLOAuthToken
+from utils.__migrations__.batch import OpenETLBatch
 from utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
 from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect, or_
 from sqlalchemy.orm import sessionmaker

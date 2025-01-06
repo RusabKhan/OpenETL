@@ -24,7 +24,7 @@ scheduler_job_id = f"check_and_schedule_openetl_"
 
 executors = {"threadpool": ThreadPoolExecutor(max_workers=5)}
 job_default = {
-    'coalesce': True,
+    'coalesce': False,
     'max_instances': 1,
     'replace_existing': True
 }
