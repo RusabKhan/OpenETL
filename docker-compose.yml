@@ -26,12 +26,13 @@ services:
     networks:
       - openetl-network
     ports:
-      - "8500:8500"
+      - "3000:3000"
     environment:
       - BACKEND_HOST=http://openetl-backend:5009
       - OPENETL_HOME=/app
-    depends_on:
-      - backend
+#      - SPARK_UI_URL=http://spark-proxy:8081  # Spark UI through reverse proxy
+#    depends_on:
+#      - backend
     restart: always
 
   spark-master:
