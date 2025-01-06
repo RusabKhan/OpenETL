@@ -18,7 +18,7 @@ import uuid
 import pandas as pd
 
 import utils.connector_utils as con_utils
-from utils.__migrations__.app import OpenETLBatch
+from utils.__migrations__.batch import OpenETLBatch
 from utils.cache import *
 from datetime import datetime, timedelta
 import utils.spark_utils as sp_ut
@@ -145,6 +145,8 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
         NotImplementedError: If the target connection type is API.
     """
     global row_count
+    exception = None
+    run_status = None
     row_count = 0
     try:
 
@@ -168,8 +170,6 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
             db = database_utils.DatabaseUtils(
                 engine=engine, **target_credentials)
             db.create_table_from_base(target_schema=target_schema, base=OpenETLBatch)
-
-
 
             logger.info("PRINTING OUT JARS")
             logger.info(jar)
@@ -212,8 +212,7 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                                             target_table=target_table, job_id=job_id, job_name=job_name, driver=driver,
                                             spark_session=spark_session, db_class=db, logger=logger, batch_size=batch_size)
 
-            update_db(job_id, job_id, None, RunStatus.SUCCESS, datetime.utcnow(), row_count=row_count
-                      )
+            run_status = RunStatus.SUCCESS
 
             logger.info("FINISHED PIPELINE")
             logger.info("DISPOSING ENGINES")
@@ -223,11 +222,15 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
         elif target_connection_details['connection_type'].lower() == ConnectionType.API.value:
             raise NotImplementedError("API target connection not implemented")
     except Exception as e:
+        exception = str(e)
         logger.error(e)
-        update_db(job_id, job_id, str(e), RunStatus.FAILED, datetime.utcnow(), row_count=0)
+        run_status = RunStatus.FAILED
+        row_count = 0
+    finally:
+        update_integration_in_db(job_id, job_id, exception, run_status, datetime.utcnow(), row_count=row_count)
 
 
-def update_db(celery_task_id, integration, error_message, run_status, start_date, row_count=0):
+def update_integration_in_db(celery_task_id, integration, error_message, run_status, start_date, row_count=0):
     db = database_utils.DatabaseUtils(**database_utils.get_open_etl_document_connection_details())
     db.update_integration(record_id=integration, is_running=False)
     db.update_integration_runtime(job_id=celery_task_id, error_message=error_message, run_status=run_status,
