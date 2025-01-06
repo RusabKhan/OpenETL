@@ -20,7 +20,6 @@ const Celery = () => {
   useEffect(() => {
     const loadTasks = async () => {
       const res = await getCeleryTasks();
-      console.log(res);
       setTasks(res);
     };
     loadTasks();
