@@ -22,7 +22,7 @@ const LogPanel = (params: LogPanelInterface) => {
             {logsData.logs.map((log, index) => (
               <div
                 key={index}
-                className="mb-2 break-all rounded-md bg-gray-100 p-2 text-sm dark:bg-gray-700"
+                className="mb-2 break-all rounded-md bg-gray-100 p-2 text-xs dark:bg-gray-700"
               >
                 {log}
               </div>

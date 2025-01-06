@@ -123,7 +123,7 @@ const CreateEtl = () => {
   return (
     <DefaultLayout>
       <div>
-        <Breadcrumb pageName="Create ETL" />
+        {/* <Breadcrumb pageName="Create ETL" /> */}
 
         {/* Tabs */}
         <div className="mb-6 flex gap-4 border-b border-gray-300">

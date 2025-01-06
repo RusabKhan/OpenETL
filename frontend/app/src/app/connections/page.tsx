@@ -12,6 +12,7 @@ import Head from "next/head";
 import axios from "axios";
 import { Connection } from "@/types/connectors";
 import Toast from "@/components/common/Toast";
+import Spinner from "@/components/common/Spinner";
 
 const Connections = () => {
   const [toastVisible, setToastVisible] = useState(false);
@@ -33,8 +34,8 @@ const Connections = () => {
   };
 
   const load = async () => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
       let data_res = await fetchCreatedConnections("database");
       let api_res = await fetchCreatedConnections("api");
       data_res = await updateConnections(data_res);
@@ -85,9 +86,9 @@ const Connections = () => {
   };
 
   return (
-    <DefaultLayout title="Connections | OpenETL">
+    <DefaultLayout>
       <div>
-        <Breadcrumb pageName="Connections" />
+        {/* <Breadcrumb pageName="Connections" /> */}
 
         <CardConnections
           connections={databases}
@@ -109,6 +110,8 @@ const Connections = () => {
           visible={toastVisible}
           onClose={() => setToastVisible(false)}
         />
+
+        <Spinner visible={isLoading} message="Loading connections..." />
       </div>
     </DefaultLayout>
   );
