@@ -147,7 +147,7 @@ const CreateConnection = () => {
   return (
     <DefaultLayout>
       <div>
-        <Breadcrumb pageName="Create Connection" />
+        {/* <Breadcrumb pageName="Create Connection" /> */}
 
         <form
           className="space-y-4 rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark"

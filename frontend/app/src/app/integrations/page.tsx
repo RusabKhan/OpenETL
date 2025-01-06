@@ -50,8 +50,8 @@ const Integrations = () => {
   return (
     <>
       <DefaultLayout>
-        <Breadcrumb pageName="List Integrations" />
-        {integrations?.data && integrations?.data?.length > 0 ? (
+        {/* <Breadcrumb pageName="List Integrations" /> */}
+        {integrations?.data && integrations?.data?.length > 0  ? (
           <ETLTable
             columns={columns}
             data={integrations}

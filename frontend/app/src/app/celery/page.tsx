@@ -27,7 +27,7 @@ const Celery = () => {
 
   return (
     <DefaultLayout>
-      <Breadcrumb pageName="Celery" />
+      {/* <Breadcrumb pageName="Celery" /> */}
 
       <div id="accordion" data-accordion="open">
         {/* Section 1 */}

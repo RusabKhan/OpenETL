@@ -23,14 +23,14 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://openetl-backend:5009
+        NEXT_PUBLIC_API_URL: http://localhost:5009
     container_name: openetl-frontend
     networks:
       - openetl-network
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://openetl-backend:5009
+      - NEXT_PUBLIC_API_URL=http://localhost:5009
     restart: always
 
   spark-master:
