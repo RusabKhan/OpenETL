@@ -868,13 +868,16 @@ class DatabaseUtils():
         else:
             raise NoResultFound
 
-
-    def get_dashboard_data(self):
+    def get_dashboard_data(self, page: int = 1, per_page: int = 30):
         """
-        Retrieves dashboard data including total counts and integration details.
+        Retrieves dashboard data including total counts and paginated integration details.
+
+        Args:
+            page (int, optional): The page number for integrations. Defaults to 1.
+            per_page (int, optional): The number of items per page for integrations. Defaults to 30.
 
         Returns:
-            dict: A dictionary containing total counts and integration details.
+            dict: A dictionary containing total counts and paginated integration details.
         """
 
         session = self.session
@@ -884,19 +887,19 @@ class DatabaseUtils():
             OpenETLDocument.connection_type == ConnectionType.API.value).count()
         total_db_connections = session.query(OpenETLDocument).filter(
             OpenETLDocument.connection_type == ConnectionType.DATABASE.value).count()
-        total_pipelines = session.query(OpenETLIntegrations).count()  # Assuming this table holds pipeline data
+        total_pipelines = session.query(OpenETLIntegrations).count()
         total_rows_migrated = session.query(
-            func.sum(OpenETLIntegrationsRuntimes.row_count)).scalar()  # Assuming rows_count is moved here or another table
+            func.sum(OpenETLIntegrationsRuntimes.row_count)).scalar()
 
-        # Retrieve integration details
-        # Subquery to get the latest start_date for each integration
+        # Retrieve integration details with pagination
+        offset = (page - 1) * per_page
+
         latest_runs_subquery = session.query(
             OpenETLIntegrationsRuntimes.integration,
             func.max(OpenETLIntegrationsRuntimes.start_date).label('latest_start_date')
         ).group_by(OpenETLIntegrationsRuntimes.integration).subquery()
 
-        # Main query to get the integration details by the latest start_date
-        integrations = session.query(
+        integrations_query = session.query(
             OpenETLIntegrationsRuntimes.integration,
             OpenETLIntegrationsRuntimes.run_status,
             OpenETLIntegrationsRuntimes.start_date,
@@ -906,7 +909,14 @@ class DatabaseUtils():
             latest_runs_subquery,
             (OpenETLIntegrationsRuntimes.integration == latest_runs_subquery.c.integration) &
             (OpenETLIntegrationsRuntimes.start_date == latest_runs_subquery.c.latest_start_date)
-        ).order_by(OpenETLIntegrationsRuntimes.created_at.desc()).all()
+        ).order_by(
+            OpenETLIntegrationsRuntimes.created_at.desc()
+        ).offset(offset).limit(per_page)
+
+        integrations = integrations_query.all()
+
+        # Total integration count for pagination
+        total_integrations = session.query(latest_runs_subquery.c.integration).count()
 
         # Retrieve run counts by integration
         run_counts = session.query(
@@ -914,10 +924,8 @@ class DatabaseUtils():
             func.count(OpenETLIntegrationsRuntimes.id).label('run_count')
         ).group_by(OpenETLIntegrationsRuntimes.integration).all()
 
-        # Create a dictionary to map run counts by integration
         run_count_dict = {run.integration: run.run_count for run in run_counts}
 
-        # Convert the query results to a list of dictionaries and add run_count
         integrations_dict = [
             {
                 "integration_name": integration.integration,
@@ -930,13 +938,21 @@ class DatabaseUtils():
             for integration in integrations
         ] if integrations else []
 
-        # Return the dashboard data
+        total_pages = (total_integrations + per_page - 1) // per_page
+
+        # Return the dashboard data with pagination
         return {
+            "page": page,
+            "per_page": per_page,
+            "total_items": total_integrations,
+            "total_pages": total_pages,
             'total_api_connections': total_api_connections or 0,
             'total_db_connections': total_db_connections or 0,
             'total_pipelines': total_pipelines or 0,
             'total_rows_migrated': total_rows_migrated or 0,
-            'integrations': integrations_dict
+            'integrations': {
+                "data": integrations_dict
+            }
         }
 
     def get_all_integration(self, page: int = 1, per_page: int = 30, integration_id=None):
