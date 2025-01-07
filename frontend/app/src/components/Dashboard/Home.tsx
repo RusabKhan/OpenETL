@@ -21,6 +21,7 @@ const Home: React.FC = () => {
     total_rows_migrated: 0,
     integrations: [],
   });
+
   const showToast = (
     message: string,
     type: "success" | "error" | "warning" | "info" = "success",
@@ -57,7 +58,7 @@ const Home: React.FC = () => {
 
   return (
     <>
-      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+      <div className="sticky top-15 z-99 bg-whtie dark:bg-boxdark-2 p-4 mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
         <CardDataStats
           title="Total API Connections"
           total={`${dashData.total_api_connections}`}
