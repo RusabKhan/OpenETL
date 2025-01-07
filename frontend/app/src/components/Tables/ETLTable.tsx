@@ -72,8 +72,8 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                 ))}
               </td>
               <td className="px-6 py-4">
-                {integration.cron_expression.map((cron) => (
-                  <span>{cron.explanation}</span>
+                {integration.cron_expression.map((cron, i) => (
+                  <span key={i}>{cron.explanation}</span>
                 ))}
               </td>
               <td className="px-6 py-4">
