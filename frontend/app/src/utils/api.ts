@@ -10,22 +10,32 @@ import {
   ParamUpdateIntegration,
 } from "@/types/integration";
 import axios, { AxiosRequestConfig, Canceler } from "axios";
+import cacheData from "memory-cache";
 
 // Define the base URL globally for reuse
 export const base_url = process.env.NEXT_PUBLIC_API_URL;
 
-// Generic API handler
+// Map to track pending requests
 const pendingRequests = new Map<string, Canceler>();
 
+// Generic API handler with memory cache
 const apiRequest = async (
   method: "get" | "post" | "put" | "delete",
   endpoint: string,
   data?: object,
+  cacheDurationInMs?: number, // Optional cache duration in milliseconds
 ) => {
   const url = `${base_url}${endpoint}`;
-
-  // Create a unique key for each request
   const requestKey = `${method.toUpperCase()}::${url}`;
+
+  // Handle cached data
+  if (method === "get" && cacheDurationInMs) {
+    const cachedResponse = cacheData.get(requestKey);
+    if (cachedResponse) {
+      console.log(`Cache hit for: ${requestKey}`);
+      return cachedResponse;
+    }
+  }
 
   // Cancel any previous request with the same key
   if (pendingRequests.has(requestKey)) {
@@ -52,6 +62,12 @@ const apiRequest = async (
     // Remove the request key after a successful response
     pendingRequests.delete(requestKey);
 
+    // Cache the response for GET requests if caching is enabled
+    if (method === "get" && cacheDurationInMs) {
+      console.log(`Caching response for: ${requestKey}`);
+      cacheData.put(requestKey, response.data, cacheDurationInMs);
+    }
+
     return response.data;
   } catch (error: any) {
     // Remove the request key on error
@@ -75,34 +91,56 @@ const apiRequest = async (
 
 // GET
 export const fetchDashboardData = async () => {
-  return apiRequest("get", "/database/get_dashboard_data");
+  return apiRequest(
+    "get",
+    "/database/get_dashboard_data",
+    undefined,
+    5 * 60 * 1000,
+  );
 };
 export const fetchInstalledConnectors = async () => {
-  return apiRequest("get", "/connector/get_installed_connectors");
+  return apiRequest(
+    "get",
+    "/connector/get_installed_connectors",
+    undefined,
+    5 * 60 * 1000,
+  );
 };
 export const getConnectorAuthDetails = async (name: string, type: string) => {
   return apiRequest(
     "get",
     `/connector/get_connector_auth_details/${name}/${type}`,
+    undefined,
+    5 * 60 * 1000,
   );
 };
 export const getIntegrations = async (page?: number) => {
-  return apiRequest("get", `/pipeline/get_integrations?page=${page}`);
+  return apiRequest(
+    "get",
+    `/pipeline/get_integrations?page=${page}`,
+    undefined,
+    5 * 60 * 1000,
+  );
 };
 export const getIntegrationHistory = async (id: string, page: number) => {
-  return apiRequest("get", `/pipeline/get_integration_history/${id}?page=${page}`);
+  return apiRequest(
+    "get",
+    `/pipeline/get_integration_history/${id}?page=${page}`,
+  );
 };
 export const getPipelineLogs = async (params: LogsParam) => {
   return apiRequest(
     "get",
     `/pipeline/get_logs?${params.integration_id ? `integration_id=${params.integration_id}&logs_type=${params.logs_type}` : `logs_type=${params.logs_type}`}&page=${params.page}&per_page=${params.per_page}`,
+    undefined,
+    5 * 60 * 1000,
   );
 };
 export const getSchedulerListJobs = async () => {
-  return apiRequest("get", "/scheduler/list-jobs");
+  return apiRequest("get", "/scheduler/list-jobs", undefined, 5 * 60 * 1000);
 };
 export const getCeleryTasks = async () => {
-  return apiRequest("get", "/worker/tasks");
+  return apiRequest("get", "/worker/tasks", undefined, 5 * 60 * 1000);
 };
 
 // POST
