@@ -119,7 +119,7 @@ services:
   celery_worker:
     container_name: openetl-celery-worker
     image: openetl-backend  # Use the backend image
-    command: celery -A utils.celery_utils worker --loglevel=info
+    command: celery -A utils.celery_utils worker --loglevel=info --concurrency=4
     networks:
       - openetl-network
     env_file:
