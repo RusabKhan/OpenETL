@@ -85,7 +85,7 @@ at [http://localhost:3001](http://localhost:3001).
 4. Fill in the required fields:
 5. Save the connection, and it will appear in your **Connections** list.
 
-**Tutorial:** ![Watch How to Create a Connection](https://cdn.dataomnisolutions.com/main/app/create-connection.mp4)
+**Tutorial:** ![Watch How to Create a Connection](https://cdn.dataomnisolutions.com/main/app/create-connection.gif)
 
 ---
 
@@ -99,7 +99,7 @@ at [http://localhost:3001](http://localhost:3001).
 6. Select the target connection to load the data.
 7. Save and **Create** the pipeline.
 
-**Tutorial:** ![Watch How to Create a ETL Pipeline](https://cdn.dataomnisolutions.com/main/app/create-etl.mp4)
+**Tutorial:** ![Watch How to Create a ETL Pipeline](https://cdn.dataomnisolutions.com/main/app/create-etl.gif)
 
 
 ## Need More?
