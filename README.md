@@ -4,8 +4,8 @@ _By [DataOmni Solutions](https://dataomnisolutions.com)_
 
 ![dashboard](https://cdn.dataomnisolutions.com/main/app/dashboard.png)
 
-OpenETL is a robust and scalable ETL (Extract, Transform, Load) application built with modern technologies like *
-*FastAPI**, **Next.js**, and **Apache Spark**. The application offers an intuitive, user-friendly interface that
+OpenETL is a robust and scalable ETL (Extract, Transform, Load) application built with modern technologies like
+**FastAPI**, **Next.js**, and **Apache Spark**. The application offers an intuitive, user-friendly interface that
 simplifies the ETL process, empowering users to effortlessly extract data from various sources, apply transformations,
 and load it into your desired target destinations.
 
@@ -85,7 +85,7 @@ at [http://localhost:3001](http://localhost:3001).
 4. Fill in the required fields:
 5. Save the connection, and it will appear in your **Connections** list.
 
-**Tutorial:** ![Watch How to Create a Connection](https://cdn.dataomnisolutions.com/main/app/create-connection.gif)
+**Tutorial:** ![Watch How to Create a Connection](https://github.com/RusabKhan/OpenETL/blob/master/create-connection.mp4)
 
 ---
 
@@ -99,7 +99,7 @@ at [http://localhost:3001](http://localhost:3001).
 6. Select the target connection to load the data.
 7. Save and **Create** the pipeline.
 
-**Tutorial:** ![Watch How to Create a ETL Pipeline](https://cdn.dataomnisolutions.com/main/app/create-etl.gif)
+**Tutorial:** ![Watch How to Create a ETL Pipeline](https://github.com/RusabKhan/OpenETL/blob/master/create-etl.mp4)
 
 
 ## Need More?
