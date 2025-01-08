@@ -257,7 +257,13 @@ const CreateConnection = () => {
                     {capitalizeFirstLetter(key)}
                   </label>
                   <input
-                    type={typeof value === "number" ? "number" : "text"}
+                    type={
+                      key === "password"
+                        ? "password"
+                        : typeof value === "number"
+                          ? "number"
+                          : "text"
+                    }
                     name={key}
                     value={value}
                     onChange={handleFieldsChange}

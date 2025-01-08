@@ -91,11 +91,17 @@ export type DashboardIntegrationConfig = {
 };
 
 export type DashboardConfig = {
+  page: number;
+  per_page: number;
+  total_items: number;
+  total_pages: number;
   total_api_connections: number;
   total_db_connections: number;
   total_pipelines: number;
   total_rows_migrated: number;
-  integrations: DashboardIntegrationConfig[];
+  integrations: {
+    data: DashboardIntegrationConfig[];
+  };
 };
 
 export type LogsParam = {
