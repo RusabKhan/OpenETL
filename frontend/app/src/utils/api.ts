@@ -90,10 +90,10 @@ const apiRequest = async (
 };
 
 // GET
-export const fetchDashboardData = async () => {
+export const fetchDashboardData = async (page: number) => {
   return apiRequest(
     "get",
-    "/database/get_dashboard_data",
+    `/database/get_dashboard_data?page=${page}`,
     undefined,
     5 * 60 * 1000,
   );
