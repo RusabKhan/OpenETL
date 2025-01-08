@@ -75,33 +75,6 @@ After running successfully, the API documentation can be found
 at [http://localhost:5009/docs](http://localhost:5009/docs), and the UI can be accessed
 at [http://localhost:3001](http://localhost:3001).
 
-## How To
-
-### Create a Connection
-
-1. Navigate to the **Connections** tab on the left-hand menu.
-2. Click the **"Add Connection"** button.
-3. Select the connection type (e.g., PostgreSQL, MySQL, AWS S3, etc.) from the dropdown menu.
-4. Fill in the required fields:
-5. Save the connection, and it will appear in your **Connections** list.
-
-**Tutorial:** ![Watch How to Create a Connection](https://github.com/RusabKhan/OpenETL/blob/master/tuts/create-connection.mp4)
-
----
-
-#### Create a Pipeline
-
-1. Navigate to the **Create ETL** tab.
-2. Click the **"Create ETL"** button.
-3. Define the pipeline name and description.
-4. Select your source connection from the available list.
-5. Configure the computation steps using the spark/hadoop table interface.
-6. Select the target connection to load the data.
-7. Save and **Create** the pipeline.
-
-**Tutorial:** ![Watch How to Create a ETL Pipeline](https://github.com/RusabKhan/OpenETL/blob/master/tuts/create-etl.mp4)
-
-
 ## Need More?
 
 OpenETL is a free application that offers a range of powerful features. However, if you're looking for advanced
