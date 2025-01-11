@@ -1,0 +1,45 @@
+# Use an official Node.js runtime as the base image
+FROM node:18-alpine AS build
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json to install dependencies
+COPY ./frontend/app/package.json ./frontend/app/package-lock.json* ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code
+COPY ./frontend/app ./
+
+# Set the NEXT_PUBLIC_API_URL environment variable during the build process
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
+# Build the Next.js application
+RUN npm run build
+
+# Use a lightweight Node.js image for the production stage
+FROM node:18-alpine
+
+# Set the working directory
+WORKDIR /app
+
+# Copy necessary build artifacts from the previous stage
+COPY --from=build /app/.next ./.next
+COPY --from=build /app/package.json ./
+COPY --from=build /app/public ./public
+COPY --from=build /app/node_modules ./node_modules
+
+# Expose the port Next.js will run on
+EXPOSE 3000
+
+# Set the environment variable to production
+ENV NODE_ENV=production
+
+# Pass the NEXT_PUBLIC_API_URL environment variable to the runtime
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
+# Start the Next.js application
+CMD ["npm", "run", "start"]

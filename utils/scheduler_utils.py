@@ -2,6 +2,8 @@ import os
 import sys
 import uuid
 
+from apscheduler.executors.pool import ThreadPoolExecutor
+
 sys.path.append(os.environ['OPENETL_HOME'])
 
 import logging
@@ -16,12 +18,19 @@ from utils.celery_utils import app, run_pipeline, retry
 from utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details
 from utils.enums import RunStatus
 
-# Global database and engine initialization
 db = DatabaseUtils(**get_open_etl_document_connection_details())
-engine = db.engine.url  # Using engine URL for jobstore
+engine = db.engine.url
 scheduler_job_id = f"check_and_schedule_openetl_"
-global scheduler
-scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=db.engine)})
+
+executors = {"threadpool": ThreadPoolExecutor(max_workers=5)}
+job_default = {
+    'coalesce': False,
+    'max_instances': 1,
+    'replace_existing': True
+}
+
+scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=db.engine)}, executors=executors,
+                                job_default=job_default)
 
 # Configure logging
 LOG_DIR = f"{os.environ['OPENETL_HOME']}/.logs"  # Ensure this is set to the correct log directory
@@ -33,7 +42,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler(LOG_FILE),  # Log to a file
-        logging.StreamHandler()          # Optionally, also log to console
+        logging.StreamHandler()  # Optionally, also log to console
     ]
 )
 
@@ -52,9 +61,12 @@ console_handler.setFormatter(console_formatter)
 # Add both handlers to the logger
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
+
+
 # Wrapper function for task execution
-def send_task_to_celery(job_id, job_name, job_type, source_connection, target_connection, source_table, target_table, source_schema,
-                          target_schema, spark_config, hadoop_config, batch_size, **kwargs):
+def send_task_to_celery(job_id, job_name, job_type, source_connection, target_connection, source_table, target_table,
+                        source_schema,
+                        target_schema, spark_config, hadoop_config, batch_size, **kwargs):
     """
     Wrapper function to send tasks to Celery dynamically using apply_async.
     """
@@ -62,7 +74,8 @@ def send_task_to_celery(job_id, job_name, job_type, source_connection, target_co
     try:
         app.send_task(name="utils.celery_utils.run_pipeline",
                       task_id=job_id,
-                      args=[job_id, job_name, job_type, source_connection, target_connection, source_table, target_table,
+                      args=[job_id, job_name, job_type, source_connection, target_connection, source_table,
+                            target_table,
                             source_schema, target_schema, spark_config, hadoop_config, batch_size],
                       kwargs=kwargs)
         logger.info(f"Task {job_id} sent successfully to Celery.")
@@ -87,31 +100,35 @@ def send_task_to_celery(job_id, job_name, job_type, source_connection, target_co
 
     update_db()
 
+
 def check_and_schedule_tasks():
     """
     Check database for integrations and schedule tasks if needed.
     """
     logger.info("Checking and scheduling tasks.")
+
+    # Force a fresh query from the database
     integrations = db.get_integrations_to_schedule()
+
+    # Ensure the session is fresh and not using cached data
+    db.session.expire_all()  # Expire all objects in the session to avoid stale data
+
     current_jobs = scheduler.get_jobs()
-    current_job_ids = {job.id for job in current_jobs}
-    current_job_ids.remove(scheduler_job_id)  # Avoid removing the scheduler job itself
+    current_job_ids = {job.id for job in current_jobs if job.id != scheduler_job_id}  # Exclude scheduler job
     integration_ids = {integration.id.__str__() for integration in integrations}
     disabled_integrations = {integration.id.__str__() for integration in integrations if not integration.is_enabled}
 
-    # Remove jobs no longer in the database
+    # Remove jobs not in database
     for job_id in current_job_ids - integration_ids:
         try:
-            # Check if the job_id is a valid UUID
-            uuid.UUID(job_id)  # This will raise an exception if it's not a valid UUID
+            uuid.UUID(job_id)  # Ensure job_id is a valid UUID
             scheduler.remove_job(job_id)
             app.control.revoke(job_id, terminate=True)
-            logger.info(f"Removed job: {job_id}. Not found in DB")
+            logger.info(f"Removed old job: {job_id}. Not found in DB.")
         except ValueError:
-            # If job_id is not a valid UUID, do not remove it
-            logger.info(f"Skipped removing job: {job_id}. Not a valid UUID.")
+            logger.warning(f"Job ID {job_id} is not a valid UUID. Skipping removal.")
 
-    # Remove disabled integrations
+    # Remove jobs for disabled integrations
     for job_id in disabled_integrations:
         if job_id in current_job_ids:
             scheduler.remove_job(job_id)
@@ -120,31 +137,32 @@ def check_and_schedule_tasks():
 
     # Schedule new integrations
     for integration in integrations:
-        job_id = integration.id.__str__()
-        job_name = integration.integration_name.__str__()
-        job_type = integration.integration_type.__str__()
+        job_id = str(integration.id)  # Safely convert to string
+        job_name = str(integration.integration_name)
+        job_type = str(integration.integration_type)
         cron_time = integration.cron_expression
         source_connection = integration.source_connection
         target_connection = integration.target_connection
-        source_table = integration.source_table.__str__()
-        target_table = integration.target_table.__str__()
-        source_schema = integration.source_schema.__str__()
-        target_schema = integration.target_schema.__str__()
+        source_table = str(integration.source_table)
+        target_table = str(integration.target_table)
+        source_schema = str(integration.source_schema)
+        target_schema = str(integration.target_schema)
         spark_config = integration.spark_config
         hadoop_config = integration.hadoop_config
         batch_size = integration.batch_size
 
-        source_detials = db.get_created_connections(id=source_connection)[0]
-        target_detials = db.get_created_connections(id=target_connection)[0]
-        source_detials['auth_type'] = source_detials['auth_type'].value
-        target_detials['auth_type'] = target_detials['auth_type'].value
+        source_details = db.get_created_connections(id=source_connection)[0]
+        target_details = db.get_created_connections(id=target_connection)[0]
+        source_details['auth_type'] = source_details['auth_type'].value
+        target_details['auth_type'] = target_details['auth_type'].value
 
         try:
             for cron in cron_time:
                 scheduler.add_job(
                     func=send_task_to_celery,
                     trigger=CronTrigger.from_crontab(cron),
-                    args=[job_id, job_name, job_type, source_detials, target_detials, source_table, target_table, source_schema, target_schema ,spark_config, hadoop_config, batch_size],
+                    args=[job_id, job_name, job_type, source_details, target_details, source_table, target_table,
+                          source_schema, target_schema, spark_config, hadoop_config, batch_size],
                     kwargs={},
                     id=job_id,
                     replace_existing=True,
@@ -153,7 +171,6 @@ def check_and_schedule_tasks():
 
         except Exception as e:
             logger.error(f"Error scheduling integration {job_id}: {e}", exc_info=True)
-            pass
 
 
 def clean_up_old_logs():
@@ -180,8 +197,6 @@ def clean_up_old_logs():
                     logger.info(f"Deleted old log file: {filename}")
     except Exception as e:
         logger.error(f"Error during log cleanup: {e}", exc_info=True)
-
-
 
 
 def start_scheduler():
@@ -211,13 +226,11 @@ def start_scheduler():
     # Gracefully handle shutdown
     try:
         while True:
+            jobs = scheduler.get_jobs()
             pass
     except (KeyboardInterrupt, SystemExit):
         scheduler.shutdown(wait=False)
         logger.info("Scheduler shut down gracefully.")
-
-
-
 
 
 if __name__ == '__main__':

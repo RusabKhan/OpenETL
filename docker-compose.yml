@@ -22,16 +22,15 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:5009
     container_name: openetl-frontend
     networks:
       - openetl-network
     ports:
-      - "8500:8500"
+      - "3000:3000"
     environment:
-      - BACKEND_HOST=http://openetl-backend:5009
-      - OPENETL_HOME=/app
-    depends_on:
-      - backend
+      - NEXT_PUBLIC_API_URL=http://localhost:5009
     restart: always
 
   spark-master:
@@ -120,7 +119,7 @@ services:
   celery_worker:
     container_name: openetl-celery-worker
     image: openetl-backend  # Use the backend image
-    command: celery -A utils.celery_utils worker --loglevel=info
+    command: celery -A utils.celery_utils worker --loglevel=info --concurrency=4
     networks:
       - openetl-network
     env_file:

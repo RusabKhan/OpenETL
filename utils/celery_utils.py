@@ -33,18 +33,23 @@ console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setLevel(logging.INFO)
 console_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 console_handler.setFormatter(console_formatter)
-
 # Initialize Celery app
 url = get_open_etl_document_connection_details(url=True)
-app = Celery('openetl', broker=os.getenv("CELERY_BROKER_URL", f"redis://localhost:6379/0"))
+
+app = Celery('openetl',
+             broker=os.getenv("CELERY_BROKER_URL", f"redis://localhost:6379/0"),
+             broker_connection_retry_on_startup=True,
+             backend=f"db+{url}")  # Correct backend URL for task results
 
 # Celery configuration
 app.conf.task_routes = {'*.tasks.*': {'queue': 'default'}}
-app.conf.result_backend = f"db+{url}"
+app.conf.result_backend = f"db+{url}"  # Ensure this is a valid result backend URL
 app.conf.update(
     timezone='UTC',
+    task_track_started=True,  # Track task start time
     enable_utc=True,
 )
+
 
 # Dynamically set log file for each job using `task_prerun`
 @task_prerun.connect
@@ -132,6 +137,7 @@ def run_pipeline(self, job_id, job_name, job_type, source_connection, target_con
 def get_task_details(task_id):
     logger.info(f"Fetching task details for Task ID: {task_id}")
     return app.AsyncResult(task_id)
+
 
 # Retry decorator
 def retry(tries, delay):

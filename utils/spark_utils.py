@@ -10,6 +10,8 @@ Functions:
 - other_function_name(): Description of what this function does.
 - another_function_name(): Description of what this function does.
 """
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
 from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 import os
@@ -106,29 +108,36 @@ class SparkConnection():
         except Exception as e:
             raise Exception(str(e))
 
-    def read_via_spark(self, spark_connection_details, source_format="jdbc"):
+    def read_via_spark(self, spark_connection_details, source_format="jdbc", batch_size=10000):
         """
-        This method is used to read data using Spark based on the specified connection format and credentials.
-        It utilizes the SparkSession and connection details to load data into a DataFrame. 
-        The resulting DataFrame is stored in the sparkDataframe attribute of the SparkConnection object.
-        Returns:
-            pyspark.sql.DataFrame: The loaded DataFrame.
+        Reads data from a Spark DataFrame using limit/offset pagination, yielding batches of data until all rows are read.
+        Stops if all rows in a batch are null.
+
+        Args:
+            spark_connection_details (dict): The connection details.
+            source_format (str): The source format (e.g., "jdbc").
+            batch_size (int): The number of rows per batch.
+
+        Yields:
+            pyspark.sql.DataFrame: A Spark DataFrame containing a batch of rows.
 
         Raises:
             Exception: If an error occurs during the data reading process.
         """
+        start = 0
+        while True:
+            # Create the pagination filter with row_number and limit/offset
+            paginated_df = self.spark_session.read.format(source_format).options(**spark_connection_details).load() \
+                .withColumn("row_number", F.row_number().over(Window.orderBy(F.lit(1)))) \
+                .filter((F.col("row_number") > start) & (F.col("row_number") <= start + batch_size)) \
+                .drop("row_number")
 
+            if paginated_df.count() == 0:
+                break
 
-        try:
-            sparkDataframe = self.spark_session.read.format(source_format
-                                                              ).options(**spark_connection_details
-                                                                        ).load()
+            yield paginated_df
 
-            self.sparkDataframe = sparkDataframe
-            return sparkDataframe
-
-        except Exception as e:
-            raise Exception(str(e))
+            start += batch_size
 
     def write_via_spark(self, dataframe, conn_string, table,driver, mode="append",format="jdbc"):
         """

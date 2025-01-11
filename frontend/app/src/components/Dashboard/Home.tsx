@@ -1,46 +1,75 @@
 "use client";
-import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
-import ChartOne from "../Charts/ChartOne";
-import ChartTwo from "../Charts/ChartTwo";
-import ChatCard from "../Chat/ChatCard";
-import TableOne from "../Tables/TableOne";
 import CardDataStats from "../CardDataStats";
 import { fetchDashboardData } from "@/utils/api";
-
-const MapOne = dynamic(() => import("@/components/Maps/MapOne"), {
-  ssr: false,
-});
-
-const ChartThree = dynamic(() => import("@/components/Charts/ChartThree"), {
-  ssr: false,
-});
+import { formatDateTime, formatNumber } from "@/utils/func";
+import { DashboardConfig } from "@/types/integration";
+import Breadcrumb from "../Breadcrumbs/Breadcrumb";
+import Toast from "../common/Toast";
 
 const Home: React.FC = () => {
-  const [dashData, setDashData] = useState({
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<
+    "success" | "error" | "warning" | "info"
+  >("success");
+  const [page, setPage] = useState(1);
+
+  const [dashData, setDashData] = useState<DashboardConfig>({
+    page: 1,
+    per_page: 10,
+    total_items: 0,
+    total_pages: 1,
     total_api_connections: 0,
     total_db_connections: 0,
     total_pipelines: 0,
     total_rows_migrated: 0,
-    integrations: [],
+    integrations: {
+      data: [],
+    },
   });
-  
+
+  const showToast = (
+    message: string,
+    type: "success" | "error" | "warning" | "info" = "success",
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
+
   useEffect(() => {
     const loadData = async () => {
       try {
-        const result = await fetchDashboardData();
+        const result = await fetchDashboardData(page);
         setDashData(result);
       } catch (err: any) {
-        console.log(err.message);
+        showToast(
+          err.message || "Failed to load data. Please try again.",
+          "error",
+        );
       }
     };
 
     loadData();
   }, []);
 
+  const columns = [
+    "Integration Name",
+    "Run Count",
+    "Latest Run Status",
+    "Error Message",
+    "Start Date",
+    "End Date",
+  ];
+
+  const changePage = (pg: number) => {
+    setPage(pg);
+  };
+
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+      <div className="bg-whtie sticky top-15 z-99 mb-6 grid grid-cols-1 gap-4 p-4 dark:bg-boxdark-2 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
         <CardDataStats
           title="Total API Connections"
           total={`${dashData.total_api_connections}`}
@@ -100,7 +129,7 @@ const Home: React.FC = () => {
         </CardDataStats>
         <CardDataStats
           title="Total Rows Migrated"
-          total={`${dashData.total_rows_migrated}`}
+          total={formatNumber(dashData.total_rows_migrated)}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -119,16 +148,111 @@ const Home: React.FC = () => {
         </CardDataStats>
       </div>
 
-      <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
-        <ChartOne />
-        <ChartTwo />
-        <ChartThree />
-        <MapOne />
-        <div className="col-span-12 xl:col-span-8">
-          <TableOne />
+      {dashData.integrations.data.length > 0 && (
+        <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+          <h2 className="mb-4 text-title-md2 font-semibold text-black dark:text-white">
+            Integration Stats
+          </h2>
+          <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400 rtl:text-right">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
+              <tr>
+                {columns.map((column, i) => (
+                  <th key={i} scope="col" className="px-6 py-3">
+                    {column}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {dashData.integrations.data.map((integration, key) => (
+                <tr
+                  key={key}
+                  className="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600"
+                >
+                  <td className="px-6 py-4">{integration.integration_name}</td>
+                  <td className="px-6 py-4">{integration.run_count}</td>
+                  <td className="px-6 py-4">
+                    <p
+                      className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
+                        integration.latest_run_status === "success"
+                          ? "bg-success text-success"
+                          : integration.latest_run_status === "running"
+                            ? "bg-danger text-warning"
+                            : "bg-danger text-danger"
+                      }`}
+                    >
+                      {integration.latest_run_status}
+                    </p>
+                  </td>
+                  <td className="px-6 py-4">
+                    {integration.error_message || "None"}
+                  </td>
+                  <td className="px-6 py-4">
+                    {formatDateTime(integration.start_date)}
+                  </td>
+                  <td className="px-6 py-4">
+                    {formatDateTime(integration.end_date)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <nav
+            className="flex-column flex flex-wrap items-center justify-between pt-4 md:flex-row"
+            aria-label="Table navigation"
+          >
+            <span className="mb-4 block w-full text-sm font-normal text-gray-500 dark:text-gray-400 md:mb-0 md:inline md:w-auto">
+              Total Pages:{" "}
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {dashData.total_pages}
+              </span>
+            </span>
+            <span className="mb-4 block w-full text-sm font-normal text-gray-500 dark:text-gray-400 md:mb-0 md:inline md:w-auto">
+              Total Items:{" "}
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {dashData.total_items}
+              </span>
+            </span>
+            <ul className="inline-flex h-8 -space-x-px text-sm rtl:space-x-reverse">
+              {dashData.page !== 1 && (
+                <li>
+                  <button
+                    onClick={() => changePage(dashData.page - 1)}
+                    className="ms-0 flex h-8 items-center justify-center rounded-s-lg border border-gray-300 bg-white px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  >
+                    Previous
+                  </button>
+                </li>
+              )}
+              <li>
+                <button
+                  aria-current="page"
+                  className="flex h-8 items-center justify-center border border-gray-300 bg-blue-50 px-3 text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white"
+                >
+                  {dashData.page}
+                </button>
+              </li>
+              {dashData.total_pages !== dashData.page && (
+                <li>
+                  <button
+                    onClick={() => changePage(dashData.page + 1)}
+                    className="flex h-8 items-center justify-center rounded-e-lg border border-gray-300 bg-white px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  >
+                    Next
+                  </button>
+                </li>
+              )}
+            </ul>
+          </nav>
         </div>
-        <ChatCard />
-      </div>
+      )}
+
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        visible={toastVisible}
+        onClose={() => setToastVisible(false)}
+      />
     </>
   );
 };

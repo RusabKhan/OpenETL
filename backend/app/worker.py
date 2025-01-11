@@ -98,11 +98,13 @@ async def get_all_tasks():
     active = inspect.active() or {}
     scheduled = inspect.scheduled() or {}
     reserved = inspect.reserved() or {}
+    registered = inspect.registered() or {}
 
     return {
         "active_tasks": active,
         "scheduled_tasks": scheduled,
         "reserved_tasks": reserved,
+        'registered': registered
     }
 
 
