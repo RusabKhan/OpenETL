@@ -13,7 +13,6 @@ sys.path.append(os.getenv('OPENETL_HOME'))
 class Connector(API):
 
     def __init__(self):
-        super().__init__()
         self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/639decbfa51e772ab2070c32_salesforce.svg"
         self.base_url = "https://your_instance.salesforce.com/services/data/vXX.X"  # Replace 'your_instance' and 'vXX.X' with your specific Salesforce instance and API version
         self.tables = {
@@ -39,6 +38,8 @@ class Connector(API):
 
         self.main_response_key = "records"
         self.required_libs = []
+        super().__init__()
+
 
     def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params) -> bool:
         return super().connect_to_api(auth_type, **auth_params)
