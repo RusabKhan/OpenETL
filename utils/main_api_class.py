@@ -25,27 +25,7 @@ class API:
     }
 
     def __init__(self):
-
-        self.logo = ""
-        self.base_url = ""
-        self.tables = {
-        }
-        self.pagination = {
-        }
-        self.limit = {"limit": 100}
-        self.connection_type = ConnectionType.API
-        self.api = ""
-        self.connection_name = ""
-        self.supported_auths = [AuthType.BEARER,
-                                AuthType.OAUTH2, AuthType.BASIC]
-        self.schema = "public"
-        self.database = "public"
-        self.authentication_details = {
-        }
-        self.main_response_key = ""
-        self.required_libs = [""]
-        self.auth_url = ""
-        self.token_url = ""
+        self.install_missing_libraries()
 
     def connect_to_api(self, auth_type=AuthType.BASIC, **auth_params) -> requests.Session | str:
         """

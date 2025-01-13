@@ -12,7 +12,6 @@ sys.path.append(os.getenv('OPENETL_HOME'))
 class Connector(API):
 
     def __init__(self):
-        super().__init__()
         self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/freshdesk.png"
         self.base_url = "https://{domain}.freshdesk.com/api/v2"  # To be set dynamically using domain from auth_details
         self.tables = {
@@ -40,6 +39,8 @@ class Connector(API):
 
         self.main_response_key = None  # Freshdesk doesn't require this explicitly
         self.required_libs = []
+        super().__init__()
+
 
     def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params) -> bool:
         # Retrieve the domain and token from authentication_details

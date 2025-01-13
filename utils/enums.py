@@ -1,6 +1,7 @@
 from enum import Enum
 
 class AuthType(Enum):
+    SERVICE_ACCOUNT = "service_account"
     BASIC = 'basic'
     BEARER = 'bearer'
     OAUTH2 = 'oauth2'

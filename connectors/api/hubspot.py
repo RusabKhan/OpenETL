@@ -14,7 +14,6 @@ sys.path.append(os.getenv('OPENETL_HOME'))
 class Connector(API):
 
     def __init__(self):
-        super().__init__()
         self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/hubspot-icon.svg"
         self.base_url = "https://api.hubapi.com/crm/v3"
         self.tables = {
@@ -43,6 +42,8 @@ class Connector(API):
 
         self.main_response_key = "results"
         self.required_libs = []
+        super().__init__()
+
 
     def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params) -> bool:
         return super().connect_to_api(auth_type, **auth_params)
