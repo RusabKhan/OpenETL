@@ -2,7 +2,7 @@ import os
 import sys
 import uuid
 
-from apscheduler.executors.pool import ThreadPoolExecutor
+from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 
 sys.path.append(os.environ['OPENETL_HOME'])
 
@@ -22,15 +22,12 @@ db = DatabaseUtils(**get_open_etl_document_connection_details())
 engine = db.engine.url
 scheduler_job_id = f"check_and_schedule_openetl_"
 
-executors = {"threadpool": ThreadPoolExecutor(max_workers=5)}
-job_default = {
-    'coalesce': False,
+executors = {'default': ThreadPoolExecutor(max_workers=2), 'processpool': ProcessPoolExecutor(max_workers=2)}
+job_defaults = {
     'max_instances': 1,
-    'replace_existing': True
+    'misfire_grace_time': 60 * 60,
+    'coalesce': True,  # Prevent jobs being run being run in parallel if the server was down for a while.
 }
-
-scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=db.engine)}, executors=executors,
-                                job_default=job_default)
 
 # Configure logging
 LOG_DIR = f"{os.environ['OPENETL_HOME']}/.logs"  # Ensure this is set to the correct log directory
@@ -42,7 +39,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler(LOG_FILE),  # Log to a file
-        logging.StreamHandler()  # Optionally, also log to console
+        logging.StreamHandler(sys.stdout)  # Optionally, also log to console
     ]
 )
 
@@ -62,6 +59,9 @@ console_handler.setFormatter(console_formatter)
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
+scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=db.engine)}, executors=executors,
+                                job_defaults=job_defaults,
+                                logger=logger)
 
 # Wrapper function for task execution
 def send_task_to_celery(job_id, job_name, job_type, source_connection, target_connection, source_table, target_table,
@@ -208,7 +208,7 @@ def start_scheduler():
     # Add a periodic job to check and schedule tasks every 30 seconds
     scheduler.add_job(
         func=check_and_schedule_tasks,
-        trigger=IntervalTrigger(seconds=30),
+        trigger=IntervalTrigger(seconds=60),
         id=scheduler_job_id,
         replace_existing=True,
     )
