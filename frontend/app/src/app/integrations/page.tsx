@@ -34,6 +34,7 @@ const Integrations = () => {
   };
 
   useEffect(() => {
+    document.title = "Integrations | OpenETL";
     load_integrations();
   }, [page]);
 

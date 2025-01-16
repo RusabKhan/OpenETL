@@ -16,9 +16,10 @@ const Scheduler = () => {
   });
 
   useEffect(() => {
+    document.title = "Scheduler | OpenETL";
+
     const loadJobs = async () => {
       const res = await getSchedulerListJobs();
-      console.log(res);
       setJobs(res);
     };
     loadJobs();
