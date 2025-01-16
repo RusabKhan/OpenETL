@@ -2,11 +2,9 @@
 import json
 import os
 import xml.etree.ElementTree as ET
-import streamlit as st
 import requests
 from requests import Timeout, ConnectionError, TooManyRedirects, HTTPError, RequestException
 from requests.auth import HTTPBasicAuth
-from streamlit_oauth import OAuth2Component
 
 from utils.enums import APIMethod
 from utils.local_connection_utils import api_directory
@@ -23,7 +21,7 @@ def parse_json(json_content):
         data["auth_keys"] = data["authentication_details"].keys()
         return data
     except json.JSONDecodeError:
-        st.error("Invalid JSON format")
+        print("ERROR: Invalid JSON format")
         return None
 
 
@@ -37,7 +35,7 @@ def parse_xml(xml_content):
         }
         return data
     except ET.ParseError:
-        st.error("Invalid XML format")
+        print("ERROR: Invalid XML format")
         return None
 
 
@@ -63,75 +61,6 @@ def check_basic_auth(data):
     except Exception as e:
         return f'An error occurred: {e}'
 
-
-def check_bearer_token(data, table=None):
-    bearer_token = list(datas())[0]
-
-    # Headers with Bearer token
-    headers = {
-        'Authorization': f'Bearer {bearer_token}'
-    }
-
-    try:
-        # Make a GET request to the API endpoint with Bearer token
-        response = requests.get(f"{table}", headers=headers)
-
-        # Check if the request was successful (status code 200)
-        if response.status_code == 200:
-            print('API request successful!')
-            print('Response:')
-            # Assuming the response is in JSON format
-            return {"data": response.json(), "status_code": response.status_code}
-        else:
-            print(
-                f'API request failed with status code {response.status_code}')
-            print('Response:')
-            return {"data": response.text, "status_code": response.status_code}
-            # Print response content for debugging
-    except Exception as e:
-        print(f'An error occurred: {e}')
-
-
-def check_oauth2(data):
-    oauth2 = OAuth2Component(CLIENT_ID, CLIENT_SECRET, AUTHORIZE_URL,
-                             TOKEN_URL, REFRESH_TOKEN_URL, REVOKE_TOKEN_URL)
-    # Check if token exists in session state
-    if 'token' not in st.session_state:
-        # If not, show authorize button
-        result = oauth2.authorize_button("Authorize", REDIRECT_URI, SCOPE)
-        if result and 'token' in result:
-            # If authorization successful, save token in session state
-            st.session_state.token = result.get('token')
-            st.experimental_rerun()
-    else:
-        # If token exists in session state, show the token
-        token = st.session_state['token']
-        st.json(token)
-        if st.button("Refresh Token"):
-            # If refresh token button is clicked, refresh the token
-            token = oauth2.refresh_token(token)
-            st.session_state.token = token
-            st.experimental_rerun()
-
-
-def test_api(con_type, data, creating=False):
-    st.write(f"{con_type} connection: Testing against 1st table.")
-
-    if creating:
-        api = data['api']
-        table = read_api_tables(api)
-        table = read_api_tables_url(api, table[0]).format(records=1)
-    else:
-        table = list(st.session_state.api_tab_datas())[0]
-        base_url = data['base_url']
-        table = f"{base_url}/{table}"
-
-    if con_type.lower() == AuthType.BASIC:
-        return check_basic_auth(data=data)
-    elif con_type.lower() == AuthType.OAUTH2:
-        return check_oauth2(data=data)
-    elif con_type.lower() == AuthType.BEARER:
-        return check_bearer_token(data=data, table=table)
 
 
 def read_api_tables(api_name):
@@ -265,59 +194,20 @@ def flatten_dict_to_rows(d, sep='_'):
     return rows
 
 
-def flatten_data(y):
-    output = []
-    out = {}
-
-    def flatten(x, name=''):
-        if type(x) is dict:
-            for a in x:
-                flatten(x[a], name + a + '_')
-        elif type(x) is list:
-            for a in x:
-                flatten(a, name + '_')
+def flatten_data(d, parent_key='', sep='_'):
+    items = []
+    nested_respones = {}
+    for k, v in d.items():
+        k = k.replace('.', '_')
+        new_key = parent_key + sep + k if parent_key else k
+        if isinstance(v, abc.MutableMapping):
+            items.extend(flatten_data(v, new_key, sep=sep).items())
+        elif isinstance(v, abc.MutableSequence):
+            # Handling list values as a string
+            items.append((new_key, str(v)))  # Convert list to string or you can iterate over items
         else:
-            output.append((name[:-1], x))
-
-    flatten(y)
-    return output
-
-
-def flatten_data_rest(y):
-    output = {}
-    index = 0
-
-    def flatten(x, name='', record_index=None):
-        nonlocal index
-        if record_index is None:
-            record_index = index
-        if isinstance(x, dict):
-            for key, value in x.items():
-                if isinstance(x, list):
-                    # Name the list as '_list'
-                    new_name = name + '_list_' + str(i)
-                    flatten(item, new_name, record_index)
-                elif name:
-                    new_name = name + '_' + key
-                else:
-                    new_name = key
-                flatten(value, new_name, record_index)
-        elif isinstance(x, list):
-            for i, item in enumerate(x):
-                new_name = name + '_list_'  # Name the list as '_list'
-                flatten(item, new_name, record_index)
-        else:
-            if name in output:
-                output[name].append(x)
-            else:
-                output[name] = [x]
-            index += 1
-
-    for k, v in y.items():
-        flatten(v)
-
-    return output
-
+            items.append((new_key, v))
+    return dict(items)
 
 def get_data(table, api, auth_type, token=None, username=None, password=None):
     table = read_api_tables_url(api, table)
@@ -368,49 +258,49 @@ def send_request(endpoint, method=APIMethod.GET, headers=None, params=None, data
     Returns:
     - dict or str: The response content, either as a JSON or string.
     """
-    with st.spinner(text="Please wait..."):
-        try:
-            backend_host = os.environ.get("BACKEND_HOST", os.environ.get("BACKEND_HOST", "http://localhost:5009"))
-            url = f"{backend_host}/{endpoint}"
-            #data = json.dumps(data)
-         #Make the request based on the method type
-            if method == APIMethod.GET:
-                response = requests.get(url, headers=headers, params=params, timeout=timeout)
-            elif method == APIMethod.POST:
-                response = requests.post(url, headers=headers, data=data, json=json, timeout=timeout)
-            elif method == APIMethod.PUT:
-                response = requests.put(url, headers=headers, data=data, json=json, timeout=timeout)
-            elif method == APIMethod.DELETE:
-                response = requests.delete(url, headers=headers, timeout=timeout)
-            else:
-                raise ValueError(f"Unsupported HTTP method: {method}")
+    # with st.spinner(text="Please wait..."):
+    try:
+        backend_host = os.environ.get("BACKEND_HOST", os.environ.get("BACKEND_HOST", "http://localhost:5009"))
+        url = f"{backend_host}/{endpoint}"
+        #data = json.dumps(data)
+     #Make the request based on the method type
+        if method == APIMethod.GET:
+            response = requests.get(url, headers=headers, params=params, timeout=timeout)
+        elif method == APIMethod.POST:
+            response = requests.post(url, headers=headers, data=data, json=json, timeout=timeout)
+        elif method == APIMethod.PUT:
+            response = requests.put(url, headers=headers, data=data, json=json, timeout=timeout)
+        elif method == APIMethod.DELETE:
+            response = requests.delete(url, headers=headers, timeout=timeout)
+        else:
+            raise ValueError(f"Unsupported HTTP method: {method}")
 
-            # Check for HTTP errors (non-2xx status codes)
-            response.raise_for_status()
+        # Check for HTTP errors (non-2xx status codes)
+        response.raise_for_status()
 
-            # If response is JSON, return the parsed data, otherwise return the raw text
-            if response.headers.get('Content-Type') == 'application/json':
-                return response.json()
-            else:
-                return response.text
+        # If response is JSON, return the parsed data, otherwise return the raw text
+        if response.headers.get('Content-Type') == 'application/json':
+            return response.json()
+        else:
+            return response.text
 
-        except Timeout:
-            raise Exception("error message: The request timed out.")
+    except Timeout:
+        raise Exception("error message: The request timed out.")
 
-        except ConnectionError:
-            raise Exception("error : Network problem occurred, check your internet connection.")
+    except ConnectionError:
+        raise Exception("error : Network problem occurred, check your internet connection.")
 
-        except TooManyRedirects:
-            raise  Exception("error : Too many redirects, the URL might be incorrect.")
+    except TooManyRedirects:
+        raise  Exception("error : Too many redirects, the URL might be incorrect.")
 
-        except HTTPError as http_err:
-            raise Exception(f"error : HTTP error occurred: {http_err}")
+    except HTTPError as http_err:
+        raise Exception(f"error : HTTP error occurred: {http_err}")
 
-        except RequestException as req_err:
-            return Exception(f"error : A general error occurred: {req_err}")
+    except RequestException as req_err:
+        return Exception(f"error : A general error occurred: {req_err}")
 
-        except ValueError as val_err:
-            return Exception(f"error : Invalid method or data: {val_err}")
+    except ValueError as val_err:
+        return Exception(f"error : Invalid method or data: {val_err}")
 
-        except Exception as err:
-            raise Exception(f"error : An unexpected error occurred: {err}")
+    except Exception as err:
+        raise Exception(f"error : An unexpected error occurred: {err}")

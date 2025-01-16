@@ -54,8 +54,8 @@ class Connector(API):
             pagination_query = urlencode(self.pagination)
             limit_query = urlencode(self.limit)
             paginated_endpoint = f"{endpoint}?{pagination_query}&{limit_query}"
-            resp = super().fetch_data(api_session, paginated_endpoint)
-            yield resp[self.main_response_key]
+            resp = super().fetch_data(api_session, paginated_endpoint, self.main_response_key)
+            yield resp
 
             if "paging" in resp and "next" in resp["paging"]:
                 self.pagination["after"] = resp["paging"]["next"]["after"]

@@ -205,6 +205,8 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                                     logger=logger):
 
                     if not df.empty:
+                        df = db.fill_na_based_on_dtype(df)
+                        logger.info(df)
                         df = spark_session.createDataFrame(df)
                         df_count = df.count()
                         row_count= row_count + df_count
