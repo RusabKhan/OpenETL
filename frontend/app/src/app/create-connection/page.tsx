@@ -48,6 +48,8 @@ const CreateConnection = () => {
   };
 
   useEffect(() => {
+    document.title = "Create Connection | OpenETL";
+
     const fetchConnectors = async () => {
       const response = await fetchInstalledConnectors();
       setConnectors(response);
