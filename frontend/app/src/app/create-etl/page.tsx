@@ -111,7 +111,7 @@ const CreateEtl = () => {
       } catch (error: any) {
         showToast(
           error.message || "Failed to create integration. Please try again.",
-          "error"
+          "error",
         );
       }
     };
@@ -119,6 +119,9 @@ const CreateEtl = () => {
     create_etl();
   };
 
+  useEffect(() => {
+    document.title = "Create ETL | OpenETL";
+  }, []);
 
   return (
     <DefaultLayout>

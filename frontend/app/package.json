@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "apexcharts": "^4.0.0",
+    "apexcharts": "^4.3.0",
     "axios": "^1.7.9",
     "flatpickr": "^4.6.13",
     "heroicons": "^2.2.0",
