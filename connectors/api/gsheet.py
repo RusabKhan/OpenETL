@@ -1,7 +1,7 @@
 from utils.database_utils import DatabaseUtils
 from utils.main_api_class import API
 from utils.enums import *
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 import sys
 import os
 import pandas as pd
@@ -30,7 +30,7 @@ class Connector(API):
         self.schema = "public"
         self.database = "public"
         self.authentication_details = {AuthType.SERVICE_ACCOUNT: {
-            "spreadsheet_id": "",
+            "spreadsheet_link": "",
             "credentials_json": ""}
         }
         self.auth_url = "https://accounts.google.com/o/oauth2/auth"
@@ -44,11 +44,13 @@ class Connector(API):
         import googleapiclient.discovery
         from google.oauth2 import service_account
         credentials_json = auth_params.get("credentials_json")
-        self.spreadsheet_id = auth_params.get("spreadsheet_id")
+        self.spreadsheet_id = self.extract_spreadsheet_id(auth_params.get("spreadsheet_link"))
         if not credentials_json:
             raise ValueError("No credentials JSON provided.")
         credentials = service_account.Credentials.from_service_account_info(
-            credentials_json, scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+            credentials_json, scopes=["https://www.googleapis.com/auth/spreadsheets",
+                                      "https://www.googleapis.com/auth/spreadsheets.readonly",
+                                      "https://www.googleapis.com/auth/drive"]
         )
         return googleapiclient.discovery.build('sheets', 'v4', credentials=credentials)
 
@@ -96,6 +98,26 @@ class Connector(API):
         except Exception as e:
             print(f"Connection test failed: {e}")
             return False
+
+
+    def extract_spreadsheet_id(self, sheet_url):
+        """
+        Extract the spreadsheet ID from a Google Sheets URL.
+
+        Args:
+            sheet_url (str): The full URL of the Google Sheet.
+
+        Returns:
+            str: The extracted spreadsheet ID.
+        """
+        try:
+            path = urlparse(sheet_url).path
+            # Split the path and get the ID part (4th segment in the path)
+            spreadsheet_id = path.split('/')[3]
+            return spreadsheet_id
+        except Exception as e:
+            print(f"Error extracting spreadsheet ID: {e}")
+            return None
 
     def get_metadata(self, *args, **kwargs) -> dict:
         return super().get_metadata()
