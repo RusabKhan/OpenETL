@@ -46,7 +46,7 @@ const ExecutionTimeChart: React.FC<ExecutionTimeChartProps> = ({ data }) => {
     },
     dataLabels: {
       enabled: true,
-      formatter: (val) => `${val.toFixed(2)}s`, // Display seconds with 2 decimals
+      formatter: (val) => `${val}s`, // Display seconds with 2 decimals
     },
     tooltip: {
       y: {
