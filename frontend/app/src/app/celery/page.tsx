@@ -18,6 +18,7 @@ const Celery = () => {
   };
 
   useEffect(() => {
+    document.title = "Celery | OpenETL";
     const loadTasks = async () => {
       const res = await getCeleryTasks();
       setTasks(res);

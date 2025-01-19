@@ -3,7 +3,7 @@
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import LogPanel from "@/components/LogPanel";
-import { LogsConfig } from "@/types/integration";
+import { LogsConfig, LogsParam } from "@/types/integration";
 import { getIntegrations, getPipelineLogs } from "@/utils/api";
 import { capitalizeFirstLetter } from "@/utils/func";
 import { useEffect, useState } from "react";
@@ -146,22 +146,26 @@ const ApiLogs = (params: any) => {
   };
 
   useEffect(() => {
+    document.title = "Logs | OpenETL";
+  }, []);
+
+  useEffect(() => {
     const loadLogs = async () => {
       setIsloading(true);
-      const params = {
-        integration_id: integration,
+      const params: LogsParam = {
         logs_type: "api",
         per_page: 20,
         page: page,
       };
+      if (integration !== "-") {
+        params["integration_id"] = integration;
+      }
       const res = await getPipelineLogs(params);
       setLogs(res);
       setIsloading(false);
     };
 
-    if (integration !== "-") {
-      loadLogs();
-    }
+    loadLogs();
   }, [integration, page]);
 
   return (

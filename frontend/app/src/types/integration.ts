@@ -84,7 +84,7 @@ export type ParamUpdateIntegration = {
 export type DashboardIntegrationConfig = {
   integration_name: string;
   run_count: string;
-  latest_run_status: string;
+  latest_run_status: "success" | "failed" | "running";
   error_message?: string;
   start_date: string;
   end_date: string;

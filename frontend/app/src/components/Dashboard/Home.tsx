@@ -6,6 +6,8 @@ import { formatDateTime, formatNumber } from "@/utils/func";
 import { DashboardConfig } from "@/types/integration";
 import Breadcrumb from "../Breadcrumbs/Breadcrumb";
 import Toast from "../common/Toast";
+import DonutChart from "../Charts/Donut";
+import ExecutionTimeChart from "../Charts/ExecutionTimeChart";
 
 const Home: React.FC = () => {
   const [toastVisible, setToastVisible] = useState(false);
@@ -69,7 +71,7 @@ const Home: React.FC = () => {
 
   return (
     <>
-      <div className="bg-whtie sticky top-15 z-99 mb-6 grid grid-cols-1 gap-4 p-4 dark:bg-boxdark-2 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+      <div className="bg-whiten sticky top-15 z-99 mb-6 grid grid-cols-1 gap-4 my-4 dark:bg-boxdark-2 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
         <CardDataStats
           title="Total API Connections"
           total={`${dashData.total_api_connections}`}
@@ -150,6 +152,16 @@ const Home: React.FC = () => {
 
       {dashData.integrations.data.length > 0 && (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+          <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 ">
+            <div className="rounded-sm border border-stroke bg-white px-6 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <h1>Integration Statuses</h1>
+              <DonutChart data={dashData.integrations.data} />
+            </div>
+            <div className="rounded-sm border border-stroke bg-white px-6 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <h1>Execution Time per Integration</h1>
+              <ExecutionTimeChart data={dashData.integrations.data} />
+            </div>
+          </div>
           <h2 className="mb-4 text-title-md2 font-semibold text-black dark:text-white">
             Integration Stats
           </h2>
