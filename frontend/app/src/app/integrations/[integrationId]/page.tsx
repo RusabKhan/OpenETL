@@ -28,6 +28,8 @@ const IntegrationHistory = () => {
   };
 
   useEffect(() => {
+    document.title = "Integration History | OpenETL";
+
     load();
   }, [page]);
 

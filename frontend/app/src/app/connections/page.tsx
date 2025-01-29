@@ -69,6 +69,8 @@ const Connections = () => {
   };
 
   useEffect(() => {
+    document.title = "Celery | OpenETL";
+
     load();
   }, []);
 

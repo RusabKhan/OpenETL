@@ -45,7 +45,7 @@ const Settings = () => {
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <Link href={url.link} target="_blank">
                 <div className="flex flex-col items-center justify-center h-40 border-b border-stroke px-7 py-10 dark:border-strokedark">
-                  <Image src={url.image} width={80} height={100} alt="logo" />
+                  <img src={url.image} width={80} height={100} alt="logo" />
                   <h3 className="text-center font-medium text-black dark:text-white">
                     {url.title}
                   </h3>

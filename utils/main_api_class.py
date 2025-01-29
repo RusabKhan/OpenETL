@@ -2,8 +2,9 @@ from urllib.parse import urlencode
 
 import requests
 import pandas as pd
-from . enums import *
-from .connector_utils import install_libraries
+import flatten_json
+from utils.enums import *
+from utils.connector_utils import install_libraries
 
 
 class API:
@@ -58,20 +59,45 @@ class API:
 
         return session
 
-    def fetch_data(self, api_session, table) -> dict:
+    def fetch_data(self, api_session, table, main_response_key=None) -> dict:
         """
         Fetches data from the API using the provided session object.
 
         Args:
         - api_session (requests.Session): The session object with authentication configured.
-        - endpoint (str): The endpoint to fetch data from.
+        - table (str): The table endpoint to fetch data from.
+        - main_response_key (str, optional): The key to use for nested structure. Defaults to None.
 
         Returns:
         - dict: The JSON response containing the fetched data.
         """
+        flattened = None
         response = api_session.get(table)
         response.raise_for_status()  # Raise an exception for any HTTP errors
-        return response.json()
+
+        # Flatten JSON response
+        if main_response_key:
+            flattened = flatten_json.flatten(response.json())
+        else:
+            flattened = flatten_json.flatten(response.json())
+
+        # Process the flattened result
+        cleaned_dict = {}
+        for key, value in flattened.items():
+            # Remove numeric parts and avoid main_response_key if present
+            new_key = "_".join(
+                [part for part in key.split("_") if not part.isdigit() and not part == main_response_key])
+
+            # If key already exists in cleaned_dict, append value to list
+            if new_key in cleaned_dict:
+                if isinstance(cleaned_dict[new_key], list):
+                    cleaned_dict[new_key].append(value)
+                else:
+                    cleaned_dict[new_key] = [cleaned_dict[new_key], value]
+            else:
+                cleaned_dict[new_key] = value
+
+        return cleaned_dict
 
     def return_final_df(self, responses) -> pd.DataFrame:
         """
@@ -84,11 +110,10 @@ class API:
             pd.DataFrame: The concatenated DataFrame containing the normalized JSON responses.
         """
         final_arr = []
-        for resp in responses:
-            if isinstance(resp, list):
-                final_arr.append(pd.json_normalize(resp))
-            else:
-                final_arr.append(self.create_df(resp))
+        if isinstance(responses, list):
+            final_arr.append(pd.json_normalize(responses))
+        else:
+            return pd.DataFrame(responses)
         df = pd.concat(final_arr)
         return df
 
