@@ -87,31 +87,38 @@ class DatabaseUtils():
     - get_dashboard_data: Retrieves dashboard data including total counts and integration details.
     """
 
-    def __init__(self, engine=None, hostname=None, username=None, password=None, port=None, database=None, connection_name=None, connection_type=None):
+    _connections = {}  # Class-level dictionary to store connections
+
+    def __init__(self, engine=None, hostname=None, username=None, password=None, port=None, database=None,
+                 connection_name=None, connection_type=None):
         """Initialize class
 
         Args:
             engine (string): Sqlalchemy dialect
-            hostname (string): You database hostname
+            hostname (string): Your database hostname
             username (string): Your database username
             password (string): Your database password
             port (string): Your database port
             database (string): Your database
-            connection_name (string, optional): _description_. Defaults to None.
-            connection_type (string, optional): _description_. Defaults to None.
+            connection_name (string, optional): Custom connection name. Defaults to None.
+            connection_type (string, optional): Connection type. Defaults to None.
         """
         if engine is None:
-            pass
+            self.engine = None
+            return
 
+        self.connection_key = f"{engine}_{hostname}_{port}_{database}_{username}"
+
+        if self.connection_key in DatabaseUtils._connections:
+            self.engine = DatabaseUtils._connections[self.connection_key]
         else:
-            engine = sqlalchemy_database_engines[engine]
-            url = f"{engine}://{username}:{password}@{hostname}:{port}/{database}"
+            engine_dialect = sqlalchemy_database_engines[engine]
+            url = f"{engine_dialect}://{username}:{password}@{hostname}:{port}/{database}"
+            self.engine = sq.create_engine(url=url)
 
-            self.engine = sq.create_engine(
-                url=url
-            )
+            DatabaseUtils._connections[self.connection_key] = self.engine
 
-            session = self.create_session()
+        self.create_session()
 
     def test(self):
         """Test connection to database
