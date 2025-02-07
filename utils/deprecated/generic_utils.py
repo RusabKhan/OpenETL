@@ -3,7 +3,7 @@
 from utils.database_utils import DatabaseUtils
 from utils.local_connection_utils import read_connection_config
 import streamlit as st
-from utils.jdbc_engine_utils import JDBCEngine
+from utils.deprecated.jdbc_engine_utils import JDBCEngine
 from utils import connector_utils
 
 

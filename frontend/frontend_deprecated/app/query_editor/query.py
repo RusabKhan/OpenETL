@@ -1,6 +1,6 @@
 import streamlit as st
 from utils.local_connection_utils import read_connection_configs
-from utils.generic_utils import (
+from utils.deprecated.generic_utils import (
     extract_connections_db_or_api,
     fetch_metadata,
     execute,
