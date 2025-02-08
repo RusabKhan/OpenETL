@@ -3,7 +3,7 @@ import jaydebeapi
 import zipfile
 import requests
 import sys
-from .local_connection_utils import check_jar_exists
+from utils.local_connection_utils import check_jar_exists
 import os
 import pandas as pd
 
@@ -11,7 +11,7 @@ import pandas as pd
 
 class JDBCEngine():
 
-    sys.path.append('../')
+    sys.path.append('../../')
     conn = None
 
     def __init__(self, engine, hostname, username, password, port, connection_name=None, database=None,connection_type=None):

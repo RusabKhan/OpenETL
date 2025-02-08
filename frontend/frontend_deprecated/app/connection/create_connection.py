@@ -1,8 +1,8 @@
 # sourcery skip: avoid-builtin-shadow
 import streamlit as st
 
-from utils.api_utils import send_request
-from utils.form_utils import GenerateForm
+from utils.deprecated.api_utils import send_request
+from utils.deprecated.form_utils import GenerateForm
 from utils.enums import ConnectionType, APIMethod
 
 global type_, engine, gen

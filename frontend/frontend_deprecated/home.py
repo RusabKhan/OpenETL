@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-from utils.api_utils import send_request
+from utils.deprecated.api_utils import send_request
 from streamlit_autorefresh import st_autorefresh
 
 from utils.enums import APIMethod

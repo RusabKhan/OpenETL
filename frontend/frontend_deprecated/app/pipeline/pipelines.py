@@ -1,9 +1,9 @@
 import streamlit as st
 
-from utils.api_utils import send_request
+from utils.deprecated.api_utils import send_request
 from utils.enums import APIMethod
-from utils.local_connection_utils import read_all_pipeline_configs, read_pipeline_detals
-from utils.form_utils import create_button_columns
+from utils.local_connection_utils import read_pipeline_detals
+from utils.deprecated.form_utils import create_button_columns
 
 
 
