@@ -26,19 +26,37 @@ class API:
     }
 
     def __init__(self):
+        """
+        Initialize an API instance and install any required libraries.
+        
+        This constructor calls the install_missing_libraries method to ensure that all necessary
+        libraries are present before any API operations are performed.
+        """
         self.install_missing_libraries()
 
     def connect_to_api(self, auth_type=AuthType.BASIC, **auth_params) -> requests.Session | str:
         """
         Connects to a REST API using the specified authentication mechanism.
-
-        Args:
-        - url (str): The URL of the REST API.
-        - auth_type (str): The type of authentication mechanism to use ('oauth', 'bearer', 'basic', etc.).
-        - **auth_params: Additional parameters required for authentication (e.g., username, password, token).
-
+        
+        This method creates and configures a requests.Session object based on the provided 
+        authentication type and credentials. Supported authentication methods are Basic and Bearer.
+        If OAuth2 authentication is requested, a NotImplementedError is raised.
+        
+        Parameters:
+            auth_type (str): The authentication mechanism to use. Expected values include:
+                - AuthType.BASIC.value for Basic authentication
+                - AuthType.BEARER.value for Bearer token authentication
+                - AuthType.OAUTH2.value for OAuth2 authentication (not implemented)
+            **auth_params: Additional keyword arguments needed for authentication. For example:
+                - For Basic authentication: 'username' (str) and 'password' (str)
+                - For Bearer authentication: 'token' (str)
+        
         Returns:
-        - requests.Session: A session object with the authentication configured.
+            requests.Session: A session object configured with the authentication credentials.
+                If an unrecognized auth_type is provided, the session is returned without extra authentication.
+        
+        Raises:
+            NotImplementedError: If OAuth2 authentication (AuthType.OAUTH2.value) is specified.
         """
         url = self.base_url
         session = requests.Session()

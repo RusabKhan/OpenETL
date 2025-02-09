@@ -9,18 +9,33 @@ from utils import connector_utils
 
 def set_page_config(page_title="OpenETL", menu_items={}, initial_sidebar_state="expanded", page_icon=None, layout="wide", page_style_state_variable=None):
     """
-    Sets the page configuration for a Streamlit application.
-
+    Configures the Streamlit application page settings if they have not been previously set.
+    
+    This function sets up various page parameters such as title, icon, layout, sidebar state, and custom menu items for a Streamlit app.
+    If a session state variable is provided via page_style_state_variable and is already set in st.session_state, the configuration is not reapplied,
+    ensuring that the setup occurs only once per session.
+    
     Parameters:
-        page_title (str): The title of the page. Defaults to "OpenETL".
-        menu_items (dict): A dictionary representing the menu items. Defaults to an empty dictionary.
-        initial_sidebar_state (str): The initial state of the sidebar. Can be "expanded" or "collapsed". Defaults to "expanded".
-        page_icon (str): The URL of the page icon. Defaults to None.
-        layout (str): The layout of the page. Can be "wide" or "centered". Defaults to "wide".
-        page_style_state_variable (str): The state variable used to check if the page style is already set. Defaults to None.
-
+        page_title (str): The title displayed on the browser tab. Defaults to "OpenETL".
+        menu_items (dict): A dictionary of custom menu items for the app's menu. Defaults to an empty dictionary.
+        initial_sidebar_state (str): The initial state of the sidebar; either "expanded" or "collapsed". Defaults to "expanded".
+        page_icon (str): The URL or emoji representing the page icon. Defaults to None.
+        layout (str): The layout mode of the page; either "wide" or "centered". Defaults to "wide".
+        page_style_state_variable (str, optional): A key for a session state variable used to track whether the page configuration has already been applied.
+                                                   If this variable exists and is truthy in st.session_state, the configuration will not be set again.
+    
     Returns:
         None
+    
+    Example:
+        set_page_config(
+            page_title="MyApp",
+            menu_items={"Get Help": "https://example.com/help"},
+            initial_sidebar_state="collapsed",
+            page_icon=":smile:",
+            layout="centered",
+            page_style_state_variable="page_configured"
+        )
     """
     is_set = bool(st.session_state.get(page_style_state_variable)) 
     if not is_set:

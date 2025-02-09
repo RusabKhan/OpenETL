@@ -13,6 +13,26 @@ sys.path.append(os.getenv('OPENETL_HOME'))
 class Connector(API):
 
     def __init__(self):
+        """
+        Initialize a Connector instance for Salesforce API interactions.
+        
+        This constructor sets up the necessary attributes required for connecting to and interacting with the Salesforce API. It configures:
+          - logo (str): URL for the Salesforce logo.
+          - base_url (str): Base endpoint URL template for Salesforce API requests. Replace 'your_instance' and 'vXX.X' with specific values.
+          - tables (dict): Mapping of table names to their respective Salesforce API endpoints for contacts, accounts, opportunities, and leads.
+          - pagination (dict): Dictionary to handle pagination using the 'nextRecordsUrl' key.
+          - limit (dict): Record limit settings (defaulting to 2000 records per query).
+          - connection_type (ConnectionType): Indicator of the connection type used (API).
+          - api (str): Identifier for the connected API ('salesforce').
+          - connection_name (str): Name identifier for this API connection.
+          - schema (str) and database (str): Database and schema names (defaulted to 'public').
+          - authentication_details (dict): Dictionary holding authentication information using bearer tokens.
+          - auth_url (str) and token_url (str): URLs for OAuth2 authorization and token requests.
+          - main_response_key (str): Key indicating where the main response records are located.
+          - required_libs (list): List to hold any additional required libraries.
+        
+        Finally, the constructor calls super().__init__() to ensure that any initialization logic in the parent API class is executed.
+        """
         self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/639decbfa51e772ab2070c32_salesforce.svg"
         self.base_url = "https://your_instance.salesforce.com/services/data/vXX.X"  # Replace 'your_instance' and 'vXX.X' with your specific Salesforce instance and API version
         self.tables = {
@@ -42,6 +62,18 @@ class Connector(API):
 
 
     def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params) -> bool:
+        """
+        Connects to the API using the provided authentication type and additional parameters.
+        
+        This method delegates the connection process to the parent API class's connect_to_api method.
+        
+        Parameters:
+            auth_type (AuthType): The authentication type to use. Defaults to AuthType.BEARER.
+            **auth_params: Additional keyword arguments containing authentication details, such as tokens or credentials.
+        
+        Returns:
+            bool: True if the connection is established successfully; otherwise, False.
+        """
         return super().connect_to_api(auth_type, **auth_params)
 
     def fetch_data(self, api_session, table) -> pd.DataFrame:

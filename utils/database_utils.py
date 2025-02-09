@@ -91,18 +91,23 @@ class DatabaseUtils():
 
     def __init__(self, engine=None, hostname=None, username=None, password=None, port=None, database=None,
                  connection_name=None, connection_type=None):
-        """Initialize class
-
-        Args:
-            engine (string): Sqlalchemy dialect
-            hostname (string): Your database hostname
-            username (string): Your database username
-            password (string): Your database password
-            port (string): Your database port
-            database (string): Your database
-            connection_name (string, optional): Custom connection name. Defaults to None.
-            connection_type (string, optional): Connection type. Defaults to None.
         """
+                 Initialize a DatabaseUtils instance with the specified database connection parameters.
+                 
+                 If an engine is provided, this method generates a unique connection key based on the engine, hostname, port, database, and username. It then checks the class-level _connections dictionary for an existing engine corresponding to this key. If found, the existing engine is reused; otherwise, a new SQLAlchemy engine is created using a URL constructed from the provided details and the dialect mapping from sqlalchemy_database_engines, and it is stored in _connections. Finally, a SQLAlchemy session is created by calling self.create_session().
+                 
+                 If engine is None, the instance’s engine is set to None and session creation is skipped.
+                 
+                 Parameters:
+                     engine (str, optional): Identifier for the SQLAlchemy database dialect (e.g., 'postgresql', 'mysql'). If None, no database connection will be established.
+                     hostname (str, optional): The hostname of the database server.
+                     username (str, optional): The username for authentication with the database.
+                     password (str, optional): The password for authentication with the database.
+                     port (str, optional): The port number on which the database server is listening.
+                     database (str, optional): The name of the target database.
+                     connection_name (str, optional): A custom name for the connection. Defaults to None.
+                     connection_type (str, optional): A description of the connection type. Defaults to None.
+                 """
         if engine is None:
             self.engine = None
             return
@@ -121,10 +126,13 @@ class DatabaseUtils():
         self.create_session()
 
     def test(self):
-        """Test connection to database
-
+        """
+        Tests the database connection by attempting to establish a connection using the configured SQLAlchemy engine.
+        
+        This method calls self.engine.connect() to verify that a connection to the database can be opened. If the connection attempt fails, an exception raised by the SQLAlchemy engine will propagate. On success, it returns True.
+        
         Returns:
-            Boolean: True if connected else False
+            bool: True if the connection was successfully established.
         """
         self.engine.connect()
         return True
