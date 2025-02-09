@@ -31,6 +31,7 @@ docker==7.1.0
 docutils==0.21.2
 exceptiongroup==1.2.2
 fastapi==0.115.5
+flatten-json==0.1.14
 fsspec==2024.10.0
 flatten-json==0.1.14
 graphviz==0.20.3

@@ -6,9 +6,9 @@ if "OPENETL_HOME" not in os.environ:
     os.environ["OPENETL_HOME"] = script_directory
 
 import streamlit as st
-from st_pages import Page, Section, show_pages, add_page_title, hide_pages
+from st_pages import Page, show_pages
 
-from utils import generic_utils as gu
+from utils.deprecated import generic_utils as gu
 from utils.local_connection_utils import create_con_directory
 from dotenv import load_dotenv
 import pandas as pd

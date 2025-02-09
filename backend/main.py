@@ -4,6 +4,7 @@ import sys
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.middlewares.exception_handler import ExceptionHandlingMiddleware
+from app.middlewares.response_status import StatusAdjustMiddleware
 from utils.database_utils import DatabaseUtils
 
 sys.path.append(os.environ['OPENETL_HOME'])
@@ -38,8 +39,7 @@ origins = [
     "*"
 ]
 
-app.add_middleware(LoggingMiddleware)
-app.add_middleware(ExceptionHandlingMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -47,6 +47,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(StatusAdjustMiddleware)
+app.add_middleware(ExceptionHandlingMiddleware)
+app.add_middleware(LoggingMiddleware)
+
 
 app.include_router(db_router)
 app.include_router(connector_router)

@@ -10,7 +10,7 @@ Functions:
 """
 import streamlit as st
 
-from utils.api_utils import send_request
+from utils.deprecated.api_utils import send_request
 from utils.enums import *
 
 """This module contains functions related to form generation and card generation.

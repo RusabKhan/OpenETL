@@ -1,6 +1,6 @@
 import streamlit as st
-from utils.api_utils import send_request
-from utils.form_utils import create_button_columns
+from utils.deprecated.api_utils import send_request
+from utils.deprecated.form_utils import create_button_columns
 from utils.enums import *
 
 Database = st.container()
