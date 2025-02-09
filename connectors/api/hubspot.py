@@ -1,4 +1,3 @@
-
 from utils.database_utils import DatabaseUtils
 from utils.main_api_class import API
 from utils.enums import *
@@ -14,6 +13,35 @@ sys.path.append(os.getenv('OPENETL_HOME'))
 class Connector(API):
 
     def __init__(self):
+        """
+        Initialize a Connector instance for interacting with the HubSpot API.
+        
+        This constructor sets up the configuration required to connect to HubSpot by initializing various
+        attributes such as the API logo, base URL, endpoint mappings for numerous HubSpot objects (e.g.,
+        contacts, companies, deals, tickets, products, campaigns, and many CRM-related resources), pagination
+        settings, and OAuth authentication details. The OAuth endpoints for authorization and token retrieval
+        are also defined.
+        
+        Attributes:
+            logo (str): URL of the HubSpot connector logo.
+            base_url (str): Base URL for API requests.
+            tables (dict): Dictionary mapping operation keys to relative endpoint paths for HubSpot resources.
+            pagination (dict): Dictionary containing pagination parameters (e.g., 'after' key for cursor-based paging).
+            limit (dict): Dictionary specifying the default record limit per API call.
+            connection_type (ConnectionType): Indicator of the connection type (set to API).
+            api (str): Identifier for the API ("hubspot").
+            connection_name (str): Name of the connection ("hubspot").
+            schema (str): Database schema used ("public").
+            database (str): Database name used ("public").
+            authentication_details (dict): Authentication configuration for Bearer token (initialized with an empty token).
+            auth_url (str): URL for initiating OAuth authorization.
+            token_url (str): URL for obtaining OAuth tokens.
+            main_response_key (str): Key used to extract the main response data from API responses.
+            required_libs (list): List of additional required libraries (empty by default).
+        
+        Note:
+            The parent class initializer is called at the end of this method to complete the initialization.
+        """
         self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/hubspot-icon.svg"
         self.base_url = "https://api.hubapi.com/"
         self.tables = self.tables = {
@@ -120,6 +148,19 @@ class Connector(API):
 
 
     def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params) -> bool:
+        """
+        Establish a connection to the API using the specified authentication type and parameters.
+        
+        This method delegates the connection process to the parent class's implementation of connect_to_api,
+        passing the authentication type and any additional authentication parameters provided.
+        
+        Parameters:
+            auth_type (AuthType, optional): The authentication type to use (default is AuthType.BEARER).
+            **auth_params: Arbitrary keyword arguments containing additional credentials or parameters required for authentication.
+        
+        Returns:
+            bool: True if the connection was successfully established, False otherwise.
+        """
         return super().connect_to_api(auth_type, **auth_params)
 
     def fetch_data(self, api_session, table) -> pd.DataFrame:

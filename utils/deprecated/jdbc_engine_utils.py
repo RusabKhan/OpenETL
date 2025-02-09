@@ -16,6 +16,31 @@ class JDBCEngine():
 
     def __init__(self, engine, hostname, username, password, port, connection_name=None, database=None,connection_type=None):
 
+        """
+        Initialize a JDBCEngine instance and establish a JDBC database connection.
+        
+        This constructor parses the provided engine identifier to extract Maven artifact details,
+        ensures that the corresponding JDBC driver JAR exists locally (downloading it if necessary),
+        retrieves the JDBC driver class from the JAR, constructs a proper connection string, and
+        attempts to connect to the target database using jaydebeapi. Any exceptions during connection
+        establishment are caught and logged via streamlit's error display.
+        
+        Parameters:
+            engine (str): Identifier for the JDBC engine. Must correspond to a key in the jdbc_database_engines
+                mapping, with a value formatted as "artifact_group:artifact_name:artifact_version".
+            hostname (str): Host address of the database server.
+            username (str): Username for database authentication.
+            password (str): Password for database authentication.
+            port (int or str): Port number on which the database server listens.
+            connection_name (Optional[str]): Optional name for the connection (unused in connection string). Defaults to None.
+            database (Optional[str]): Name of the database to connect to; used in constructing the JDBC URL. Defaults to None.
+            connection_type (Optional[Any]): Optional parameter to specify additional connection options. Defaults to None.
+        
+        Side Effects:
+            - Downloads the JDBC driver JAR from Maven if it does not exist in the local ".local/jars" directory.
+            - Sets the instance attribute 'conn' to a live database connection if successful.
+            - Displays an error message using streamlit if the connection attempt fails.
+        """
         artifact_group, artifact_name, artifact_version  = jdbc_database_engines[engine].split(":")
         save_as = f"{artifact_name}-{artifact_version}.jar"
         jar_loc = f"{os.getcwd()}/.local/jars/{save_as}"
