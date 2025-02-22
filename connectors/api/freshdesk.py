@@ -12,6 +12,28 @@ sys.path.append(os.getenv('OPENETL_HOME'))
 class Connector(API):
 
     def __init__(self):
+        """
+        Initialize a Freshdesk Connector instance.
+        
+        This constructor sets up the connector with default configuration values required for interacting with the Freshdesk API. It initializes the base URL template (which will be dynamically updated using the domain from authentication details), a comprehensive dictionary of API endpoints for various Freshdesk resources (such as contacts, companies, agents, tickets, discussions, solutions, canned responses, and SLAs), pagination settings, and default query limits. Additionally, it configures connection metadata including the connection type, API name, connection name, schema, database, and OAuth URLs for authorization and token retrieval. The required libraries placeholder is also initialized before invoking the parent class's constructor.
+        
+        Attributes:
+            logo (str): URL of the connector's logo.
+            base_url (str): Base URL template for the Freshdesk API, to be formatted with the domain.
+            tables (dict): Dictionary mapping Freshdesk API operations to their respective endpoints.
+            pagination (dict): Dictionary to manage pagination details (e.g., nextPage).
+            limit (dict): Default query limit, set to Freshdesk's limit of 100 records per query.
+            connection_type (ConnectionType): Specifies the connection type (set to API).
+            api (str): Identifier for the Freshdesk API.
+            connection_name (str): Name of the connection.
+            schema (str): Database schema used.
+            database (str): Database name in use.
+            authentication_details (dict): Contains authentication configuration for Basic authentication, including placeholders for username, password, and domain.
+            auth_url (str): OAuth authorization URL template.
+            token_url (str): OAuth token retrieval URL template.
+            main_response_key: Placeholder for main response key (not explicitly used in Freshdesk integration).
+            required_libs (list): List of additional libraries required (empty by default).
+        """
         self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/freshdesk.png"
         self.base_url = "https://{domain}.freshdesk.com/"  # To be set dynamically using domain from auth_details
         self.tables = {
@@ -129,6 +151,23 @@ class Connector(API):
 
     def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params) -> bool:
         # Retrieve the domain and token from authentication_details
+        """
+        Connects to the Freshdesk API using the provided authentication details.
+        
+        This method retrieves the domain and token from the authentication parameters and updates the API URLs dynamically. It requires that the 'domain' and 'username' keys be present in auth_params, where 'username' represents the API token. After updating the base, authentication, and token URLs using the provided domain, it delegates the connection process to the parent class's connect_to_api method.
+        
+        Parameters:
+            auth_type (AuthType, optional): The authentication method to use. Defaults to AuthType.BEARER.
+            **auth_params: Arbitrary keyword arguments containing authentication details. Must include:
+                domain (str): The Freshdesk domain used to construct API endpoints.
+                username (str): The API token for authentication.
+        
+        Returns:
+            bool: True if the API connection is successfully established; otherwise, False.
+        
+        Raises:
+            ValueError: If either the 'domain' or 'username' is not provided in auth_params.
+        """
         domain = auth_params.get('domain')
         token = auth_params.get('username')
 
