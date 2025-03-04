@@ -31,6 +31,24 @@ logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
 class LoggingMiddleware(BaseHTTPMiddleware):
+    """
+    Middleware to log incoming HTTP requests and their corresponding responses.
+
+    Parameters:
+        request (Request): The incoming HTTP request.
+        call_next (Callable[[Request], Awaitable[Response]]): A callable that processes the request through the next middleware or endpoint and returns a Response.
+
+    Logs:
+        - The HTTP method and URL of the request.
+        - The headers and body of the request.
+        - The status code and body of the response.
+
+    Exceptions:
+        Logs any exceptions that occur during request processing and re-raises them.
+
+    Returns:
+        Response: The HTTP response after logging and potential modifications to its body.
+    """
     async def dispatch(self, request: Request, call_next):
         try:
             logger.info("LoggingMiddleware: Processing request")
