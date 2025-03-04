@@ -17,6 +17,69 @@ import re
 
 
 class ExceptionHandlingMiddleware(BaseHTTPMiddleware):
+    """
+        Handle incoming HTTP requests and manage exceptions.
+
+        This method processes the incoming HTTP request by invoking the next middleware
+        or endpoint in the chain. It wraps the call in a try-except block to manage
+        various exceptions that may occur during request processing, returning an appropriate
+        HTTP response with a relevant status code and error message.
+
+        Parameters:
+            request (Request): The incoming HTTP request object.
+            call_next (Callable[[Request], Awaitable[Response]]): A callable that processes
+                the request through the next middleware or endpoint and returns a Response.
+
+        Returns:
+            Response: An HTTP response object, potentially modified based on exception handling.
+
+        Exceptions Handled:
+            - NoResultFound: Returns 404 if no result is found for a query.
+            - MultipleResultsFound: Returns 400 if multiple results are found where one was expected.
+            - IntegrityError: Handles specific database integrity errors like duplicate keys (409) and
+              foreign key violations (409), along with a generic integrity error (409).
+            - OperationalError: Returns 500 for operational database errors.
+            - ProgrammingError: Returns 400 for programming issues with the database.
+            - TimeoutError: Returns 504 for database timeouts.
+            - SerializationFailure: Returns 500 for transaction serialization failures.
+            - DeadlockDetected: Returns 409 if a deadlock is detected.
+            - DBAPIError: Returns 500 for general database API errors.
+            - SQLAlchemyError: Returns 500 for general SQLAlchemy errors.
+            - ValueError: Returns 400 for value errors.
+            - HTTPException: Returns the exception's status code.
+            - Exception: Returns 500 for unexpected errors.
+        """"""
+    Handle incoming HTTP requests and manage exceptions.
+
+    This method processes the incoming HTTP request by invoking the next middleware
+    or endpoint in the chain. It wraps the call in a try-except block to manage
+    various exceptions that may occur during request processing, returning an appropriate
+    HTTP response with a relevant status code and error message.
+
+    Parameters:
+        request (Request): The incoming HTTP request object.
+        call_next (Callable[[Request], Awaitable[Response]]): A callable that processes
+            the request through the next middleware or endpoint and returns a Response.
+
+    Returns:
+        Response: An HTTP response object, potentially modified based on exception handling.
+
+    Exceptions Handled:
+        - NoResultFound: Returns 404 if no result is found for a query.
+        - MultipleResultsFound: Returns 400 if multiple results are found where one was expected.
+        - IntegrityError: Handles specific database integrity errors like duplicate keys (409) and
+          foreign key violations (409), along with a generic integrity error (409).
+        - OperationalError: Returns 500 for operational database errors.
+        - ProgrammingError: Returns 400 for programming issues with the database.
+        - TimeoutError: Returns 504 for database timeouts.
+        - SerializationFailure: Returns 500 for transaction serialization failures.
+        - DeadlockDetected: Returns 409 if a deadlock is detected.
+        - DBAPIError: Returns 500 for general database API errors.
+        - SQLAlchemyError: Returns 500 for general SQLAlchemy errors.
+        - ValueError: Returns 400 for value errors.
+        - HTTPException: Returns the exception's status code.
+        - Exception: Returns 500 for unexpected errors.
+    """
     async def dispatch(self, request: Request, call_next):
         try:
             return await call_next(request)
