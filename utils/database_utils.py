@@ -35,7 +35,7 @@ from pyspark.sql.types import StringType, IntegerType, FloatType, BooleanType, T
 from datetime import datetime, timedelta
 from sqlalchemy.schema import CreateSchema
 import logging
-
+from croniter import croniter
 
 class DatabaseUtils():
     
@@ -1137,7 +1137,6 @@ def get_open_etl_document_connection_details(url=False):
         "database": os.getenv("OPENETL_DOCUMENT_DB","airflow")
     }
 
-
 def generate_cron_expression(schedule_time, schedule_dates=None, frequency=None):
     """
     Generates a cron expression based on provided scheduling details.
@@ -1151,13 +1150,19 @@ def generate_cron_expression(schedule_time, schedule_dates=None, frequency=None)
     minute = time_parts[1]
     hour = time_parts[0]
 
-    if frequency == 'hourly':
-        return [f"0 * * * *"]
-    elif frequency == 'daily':
-        return [f"{minute} {hour} * * *"]
-    elif frequency == 'weekly':
-        return [f"{minute} {hour} * * 0"]
-    elif schedule_dates:
+    if frequency:
+        frequency = frequency.lower()
+
+        if frequency == 'hourly':
+            return [f"0 * * * *"]
+        elif frequency == 'daily':
+            return [f"{minute} {hour} * * *"]
+        elif frequency == 'weekly':
+            return [f"{minute} {hour} * * 0"]
+        else:
+            raise ValueError("Unsupported frequency value. Use 'hourly', 'daily', or 'weekly'.")
+
+    if schedule_dates:
         cron_expressions = []
         for date_str in schedule_dates:
             date_obj = datetime.strptime(date_str, "%Y-%m-%d")
@@ -1165,133 +1170,67 @@ def generate_cron_expression(schedule_time, schedule_dates=None, frequency=None)
             month = date_obj.month
             cron_expressions.append(f"{minute} {hour} {day} {month} *")
         return cron_expressions
-    else:
-        raise ValueError("Unsupported scheduling details provided.")
+
+    raise ValueError("Either frequency or schedule_dates must be provided.")
+
 
 
 def parse_cron_expression(cron_expr):
     """
-    Reverse-engineers a cron expression into its individual components with detailed explanations,
-    the next execution date in 12-hour format, months in numerical format, and the exact cron expression.
+    Parses a cron expression into its components, determines the next execution time,
+    and provides a human-readable explanation.
 
     Args:
-    - cron_expr: A cron expression in the format 'minute hour day_of_month month day_of_week'
+    - cron_expr (str): A standard 5-part cron expression.
 
     Returns:
-    - A dictionary with components of the cron expression, with explanations, next execution date, and the exact cron expression.
+    - dict: Parsed cron details and next execution time.
     """
     cron_parts = cron_expr.split()
-
     if len(cron_parts) != 5:
         raise ValueError("Invalid cron expression. It should have exactly 5 parts.")
 
     minute, hour, day_of_month, month, day_of_week = cron_parts
 
-    # Helper function to format the components
-    def format_component(component, component_name):
+    # Component formatting function
+    def format_component(component, name):
         if component == "*":
-            if component_name == "minute":
-                return "Every minute (0-59)"
-            elif component_name == "hour":
-                return "Every hour (0-23)"
-            elif component_name == "day_of_month":
-                return "Every day of the month (1-31)"
-            elif component_name == "month":
-                return "Every month (1-12)"
-            elif component_name == "day_of_week":
-                return "Every day of the week (0-6)"
+            return f"Every {name}"
         elif "," in component:
-            return f"A list of {component_name}s: {component.split(',')}"
+            return f"Multiple {name}s: {component}"
         elif "-" in component:
-            return f"A range of {component_name}s: {component}"
-        else:
-            return f"Specific {component_name}: {component}"
+            return f"Range of {name}s: {component}"
+        elif "*/" in component:
+            return f"Every {component[2:]} {name}s"
+        return f"Specific {name}: {component}"
 
-    # Helper function to expand a wildcard cron expression (i.e. *) into a list of all possible values
-    def expand_wildcard(component, component_name):
-        if component == "*":
-            if component_name == "minute":
-                return [str(i) for i in range(60)]
-            elif component_name == "hour":
-                return [str(i) for i in range(24)]
-            elif component_name == "day_of_month":
-                return [str(i) for i in range(1, 32)]
-            elif component_name == "month":
-                return [str(i) for i in range(1, 13)]
-            elif component_name == "day_of_week":
-                return [str(i) for i in range(7)]
-        else:
-            return component.split(",")
+    # Convert cron values to detailed text
+    details = {
+        "minute": format_component(minute, "minute"),
+        "hour": format_component(hour, "hour"),
+        "day_of_month": format_component(day_of_month, "day of month"),
+        "month": format_component(month, "month"),
+        "day_of_week": format_component(day_of_week, "day of week"),
+    }
 
-    # Get the next execution date based on the cron expression
-    def get_next_execution(minute, hour, day_of_month, month, day_of_week):
-        # Convert cron parts into sets for easier comparison
-        def parse_cron_part(part, valid_range):
-            if part == "*":
-                return set(valid_range)
-            elif "-" in part:
-                start, end = map(int, part.split("-"))
-                return set(range(start, end + 1))
-            elif "," in part:
-                return set(map(int, part.split(",")))
-            else:
-                return {int(part)}
+    # Compute next execution using croniter (prevents infinite loops)
+    now = datetime.now()
+    cron = croniter(cron_expr, now)
+    next_execution = cron.get_next(datetime)
 
-        # Parse each part of the cron expression
-        valid_minutes = parse_cron_part(minute, range(60))
-        valid_hours = parse_cron_part(hour, range(24))
-        valid_days = parse_cron_part(day_of_month, range(1, 32))
-        valid_months = parse_cron_part(month, range(1, 13))
-        valid_weekdays = parse_cron_part(day_of_week, range(7))
-
-        # Start searching from the next minute
-        now = datetime.now()
-        next_execution = now + timedelta(minutes=1)
-
-        while next_execution < now + timedelta(days=3650):
-            if (
-                    next_execution.minute in valid_minutes and
-                    next_execution.hour in valid_hours and
-                    next_execution.day in valid_days and
-                    next_execution.month in valid_months and
-                    next_execution.weekday() in valid_weekdays
-            ):
-                return next_execution
-
-            next_execution += timedelta(minutes=1)
-
-        raise ValueError("No valid execution time found within 10 years.")
-
-    # Format the cron expression components
-    minute_detail = format_component(minute, "minute")
-    hour_detail = format_component(hour, "hour")
-    day_of_month_detail = format_component(day_of_month, "date of month")
-    month_detail = format_component(month, "month")
-    day_of_week_detail = format_component(day_of_week, "date of week")
-
-    # Get the next execution date
-    next_execution = get_next_execution(minute, hour, day_of_month, month, day_of_week)
-
-    # Convert to 12-hour format
     next_execution_12hr = next_execution.strftime('%I:%M %p')
 
-    # Construct the explanation in plain sentences
+    # Explanation
     explanation = (
-        f"This schedule runs at {hour}:{minute} on {day_of_month_detail} during {month_detail}. "
-        f"It happens on {day_of_week_detail}. The next time it will run is at {next_execution_12hr} "
-        f"on {next_execution.strftime('%B %d, %Y')}."
+        f"This schedule runs at {details['hour']}:{details['minute']} on {details['day_of_month']} "
+        f"during {details['month']}. It happens on {details['day_of_week']}. "
+        f"The next execution will be at {next_execution_12hr} on {next_execution.strftime('%B %d, %Y')}."
     )
 
     return {
-        "minute": minute_detail,
-        "hour": hour_detail,
-        "day_of_month": day_of_month_detail,
-        "month": month_detail,
-        "day_of_week": day_of_week_detail,
+        **details,
         "next_execution": next_execution_12hr,
         "next_execution_full": next_execution.strftime('%Y-%m-%d %I:%M %p'),
         "cron_expression": cron_expr,
         "explanation": explanation
     }
-
-
