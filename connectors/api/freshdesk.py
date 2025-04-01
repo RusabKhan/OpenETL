@@ -148,26 +148,7 @@ class Connector(API):
         self.required_libs = []
         super().__init__()
 
-
-    def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params) -> bool:
-        # Retrieve the domain and token from authentication_details
-        """
-        Connects to the Freshdesk API using the provided authentication details.
-        
-        This method retrieves the domain and token from the authentication parameters and updates the API URLs dynamically. It requires that the 'domain' and 'username' keys be present in auth_params, where 'username' represents the API token. After updating the base, authentication, and token URLs using the provided domain, it delegates the connection process to the parent class's connect_to_api method.
-        
-        Parameters:
-            auth_type (AuthType, optional): The authentication method to use. Defaults to AuthType.BEARER.
-            **auth_params: Arbitrary keyword arguments containing authentication details. Must include:
-                domain (str): The Freshdesk domain used to construct API endpoints.
-                username (str): The API token for authentication.
-        
-        Returns:
-            bool: True if the API connection is successfully established; otherwise, False.
-        
-        Raises:
-            ValueError: If either the 'domain' or 'username' is not provided in auth_params.
-        """
+    def connect_to_api(self, auth_type=None, **auth_params) -> bool:
         domain = auth_params.get('domain')
         token = auth_params.get('username')
 
@@ -179,23 +160,26 @@ class Connector(API):
         self.auth_url = self.auth_url.format(domain=domain)
         self.token_url = self.token_url.format(domain=domain)
 
-        return super().connect_to_api(auth_type, **auth_params)
+        return super().connect_to_api(auth_type or AuthType.BASIC, **auth_params)
 
     def fetch_data(self, api_session, table) -> pd.DataFrame:
         arr = []
         endpoint = self.construct_endpoint(table)
-        while True:
-            paginated_endpoint = endpoint
-            if self.pagination["nextPage"]:
-                paginated_endpoint = self.pagination["nextPage"]
-            resp = super().fetch_data(api_session, paginated_endpoint)
-            yield resp
 
-            # Pagination logic for Freshdesk
-            if "next_page" in resp:
+        while True:
+            paginated_endpoint = self.pagination["nextPage"] or endpoint
+            resp = super().fetch_data(api_session, paginated_endpoint)
+
+            if resp:
+                arr.append(resp)
+
+            # Check for pagination
+            if resp.get("next_page"):
                 self.pagination["nextPage"] = resp["next_page"]
             else:
                 break
+
+        return self.return_final_df(arr)
 
     def return_final_df(self, responses) -> pd.DataFrame:
         return super().return_final_df(responses)
@@ -204,11 +188,19 @@ class Connector(API):
         return super().construct_endpoint(endpoint)
 
     def get_table_schema(self, api_session, table) -> dict:
-        # Freshdesk API doesn't return schema info like Salesforce does. This method can be customized further
-        # to fetch schema-related details if needed.
         table_data = super().get_table_schema(api_session, table)
+
         if not table_data:
-            return {"message": ["Table is empty. Connection Successful."]}
+            return {"error": "No data retrieved. Verify API credentials and endpoint."}
+
+        return DatabaseUtils().dataframe_details(self.return_final_df(table_data))
+
+    def get_table_schema(self, api_session, table) -> dict:
+        table_data = super().get_table_schema(api_session, table)
+
+        if not table_data:
+            return {"error": "No data retrieved. Verify API credentials and endpoint."}
+
         return DatabaseUtils().dataframe_details(self.return_final_df(table_data))
 
     def install_missing_libraries(self) -> bool:
