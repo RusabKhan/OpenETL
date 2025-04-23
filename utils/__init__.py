@@ -7,3 +7,18 @@ from .enums import *
 from .main_api_class import *
 from .cache import *
 from .celery_utils import *
+
+
+def _print_logo():
+    print("""
+ ██████  ██████  ███████ ███    ██ ███████ ████████ ██      
+██    ██ ██   ██ ██      ████   ██ ██         ██    ██      
+██    ██ ██████  █████   ██ ██  ██ █████      ██    ██      
+██    ██ ██      ██      ██  ██ ██ ██         ██    ██      
+ ██████  ██      ███████ ██   ████ ███████    ██    ███████ 
+                                                            
+""")
+    print("Authored by DOS")
+    print("Follow us on Github: https://github.com/RusabKhan/OpenETL")
+
+_print_logo()
