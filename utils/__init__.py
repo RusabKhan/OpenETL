@@ -18,7 +18,7 @@ def _print_logo():
  ██████  ██      ███████ ██   ████ ███████    ██    ███████ 
                                                             
 """)
-    print("Authored by DOS")
+    print("Authored by DataOmni Solutions")
     print("Follow us on Github: https://github.com/RusabKhan/OpenETL")
 
 _print_logo()
