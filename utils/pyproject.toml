@@ -1,0 +1,31 @@
+[project]
+name = "openetl-utils"
+version = "0.1.0"
+description = "OpenETL utilities"
+authors = [
+  { name = "RusabKhan" }
+]
+dependencies = [
+  "pandas==2.2.3",
+  "numpy==2.1.3",
+  "SQLAlchemy==2.0.36",
+  "pyspark==3.5.3",
+  "croniter==5.0.1",
+  "regex==2024.11.6",
+  "requests==2.32.3",
+  "flatten-json==0.1.14"
+]
+
+[tool.setuptools.packages.find]
+where = ["utils"]
+exclude = [
+  "deprecated/*",
+  "celery_utils",
+  "scheduler_utils",
+  "enums",
+  "__migrations__/*",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
