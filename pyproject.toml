@@ -8,7 +8,7 @@ authors = [
     {name = "Muhammad Ahmed", email = "mahmed743454@gmail.com"},
     {name = "Talha Khan", email = "talha.k2625@gmail.com"},
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 
 dependencies = [
   "aiosqlite==0.20.0",
