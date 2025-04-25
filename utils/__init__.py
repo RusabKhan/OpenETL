@@ -7,3 +7,19 @@ from .enums import *
 from .main_api_class import *
 from .cache import *
 from .celery_utils import *
+
+
+def _print_logo():
+    print("""
+ ██████  ██████  ███████ ███    ██ ███████ ████████ ██      
+██    ██ ██   ██ ██      ████   ██ ██         ██    ██      
+██    ██ ██████  █████   ██ ██  ██ █████      ██    ██      
+██    ██ ██      ██      ██  ██ ██ ██         ██    ██      
+ ██████  ██      ███████ ██   ████ ███████    ██    ███████ 
+                                                            
+""")
+    print("Authored by DataOmni Solutions")
+    print("Follow us on Github: https://github.com/RusabKhan/OpenETL")
+    print("Visit our website: https://dataomnisolutions.com")
+
+_print_logo()
