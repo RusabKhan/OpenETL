@@ -1,0 +1,40 @@
+name: Publish OpenETL utils distribution to PyPI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-publish:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        run: |
+          pip install poetry
+
+      - name: Configure Poetry
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Comment line 9 in openetl_utils/__init__.py
+        run: |
+          sed -i '9s/^/# /' openetl_utils/__init__.py
+
+      - name: Build package
+        run: |
+          poetry build
+
+      - name: Publish package
+        run: |
+          poetry publish
