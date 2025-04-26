@@ -1,6 +1,6 @@
 from apscheduler.jobstores.base import JobLookupError
 from fastapi import APIRouter, HTTPException
-from utils.scheduler_utils import scheduler
+from openetl_utils.scheduler_utils import scheduler
 
 router = APIRouter(prefix="/scheduler", tags=["scheduler"])
 

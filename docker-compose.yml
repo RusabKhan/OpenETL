@@ -107,7 +107,7 @@ services:
   scheduler:
     container_name: openetl-scheduler
     image: openetl-backend  # Use the backend image
-    command: python3 utils/scheduler_utils.py
+    command: python3 openetl_utils/scheduler_utils.py
     env_file:
       - .env
     networks:
@@ -119,7 +119,7 @@ services:
   celery_worker:
     container_name: openetl-celery-worker
     image: openetl-backend  # Use the backend image
-    command: celery -A utils.celery_utils worker --loglevel=info --concurrency=4
+    command: celery -A openetl_utils.celery_utils worker --loglevel=info --concurrency=4
     networks:
       - openetl-network
     env_file:

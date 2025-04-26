@@ -5,8 +5,8 @@ import sys
 home = os.environ['OPENETL_HOME']
 sys.path.append(home)
 import json
-from utils.database_utils import DatabaseUtils
-from utils.enums import *
+from openetl_utils.database_utils import DatabaseUtils
+from openetl_utils.enums import *
 
 
 #connectors_directory = f"{os.getcwd()}/{home}/connectors"

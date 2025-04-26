@@ -3,7 +3,7 @@ import jaydebeapi
 import zipfile
 import requests
 import sys
-from utils.local_connection_utils import check_jar_exists
+from openetl_utils.local_connection_utils import check_jar_exists
 import os
 import pandas as pd
 

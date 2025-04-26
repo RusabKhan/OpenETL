@@ -19,16 +19,16 @@ from typing import List, Type
 import sqlalchemy as sq
 import pandas as pd
 
-from utils.__migrations__.app import OpenETLDocument, OpenETLOAuthToken
-from utils.__migrations__.batch import OpenETLBatch
-from utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
+from openetl_utils.__migrations__.app import OpenETLDocument, OpenETLOAuthToken
+from openetl_utils.__migrations__.batch import OpenETLBatch
+from openetl_utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
 from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect, or_
 from sqlalchemy.orm import sessionmaker
 
-from utils.cache import sqlalchemy_database_engines
-from utils.enums import ConnectionType
+from openetl_utils.cache import sqlalchemy_database_engines
+from openetl_utils.enums import ConnectionType
 from sqlalchemy.exc import OperationalError, NoResultFound
-from utils.enums import ColumnActions
+from openetl_utils.enums import ColumnActions
 import numpy as np
 from sqlalchemy.ext.declarative import declarative_base
 from pyspark.sql.types import StringType, IntegerType, FloatType, BooleanType, TimestampType, ArrayType, MapType

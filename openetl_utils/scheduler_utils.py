@@ -14,9 +14,9 @@ from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 
-from utils.celery_utils import app, run_pipeline, retry
-from utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details
-from utils.enums import RunStatus
+from openetl_utils.celery_utils import app, run_pipeline, retry
+from openetl_utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details
+from openetl_utils.enums import RunStatus
 
 db = DatabaseUtils(**get_open_etl_document_connection_details())
 engine = db.engine.url
@@ -72,7 +72,7 @@ def send_task_to_celery(job_id, job_name, job_type, source_connection, target_co
     """
     logger.info(f"Sending task to Celery for job_id: {job_id}, job_name: {job_name}")
     try:
-        app.send_task(name="utils.celery_utils.run_pipeline",
+        app.send_task(name="openetl_utils.celery_utils.run_pipeline",
                       task_id=job_id,
                       args=[job_id, job_name, job_type, source_connection, target_connection, source_table,
                             target_table,

@@ -17,13 +17,13 @@ import uuid
 
 import pandas as pd
 
-import utils.connector_utils as con_utils
-from utils.__migrations__.batch import OpenETLBatch
-from utils.cache import *
+import openetl_utils.connector_utils as con_utils
+from openetl_utils.__migrations__.batch import OpenETLBatch
+from openetl_utils.cache import *
 from datetime import datetime, timedelta
-import utils.spark_utils as sp_ut
-from utils.enums import *
-import utils.database_utils as database_utils
+import openetl_utils.spark_utils as sp_ut
+from openetl_utils.enums import *
+import openetl_utils.database_utils as database_utils
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 

@@ -5,7 +5,7 @@ import json
 from typing import List, Tuple
 import regex as re
 
-from utils.enums import LogsType
+from openetl_utils.enums import LogsType
 
 directory = f'{os.getcwd()}/.local'
 pipelines_directory = f"{directory}/pipelines"
