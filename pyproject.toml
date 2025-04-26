@@ -8,9 +8,18 @@ version = "0.1.0"
 description = "Simple ETL utilities used by OpenETL"
 authors = ["Rusab Khan <rusabkhan7@gmail.com>"]
 packages = [
-    {include = "utils", from = "utils"}  # Key change
+    {include = "openetl_utils", from = "."}  # Key change
 ]
-
+exclude = [
+  "openetl_utils/deprecated/*",
+  "openetl_utils/scheduler_utils/*",
+  "openetl_utils/celery_utils/*",
+  ".mypy_cache/*",
+  ".pytest_cache/*",
+  "*.pyc",
+  "*.pyo",
+  "*.pyd"
+]
 [tool.poetry.dependencies]
 python = ">=3.12"
 pandas = "2.2.3"
@@ -22,13 +31,3 @@ regex = "2024.11.6"
 requests = "2.32.3"
 flatten-json = "0.1.14"
 
-exclude = [
-    "utils/deprecated/",      # Excludes entire directory
-    "utils/scheduler_utils/", # No ** needed
-    "utils/celery_utils/",
-    ".mypy_cache/",
-    ".pytest_cache/",
-    "*.pyc",
-    "*.pyo",
-    "*.pyd"
-]
