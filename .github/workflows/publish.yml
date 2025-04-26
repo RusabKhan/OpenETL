@@ -13,52 +13,57 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      # 1. CHECKOUT AND SETUP ----------------------------------------
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Required for proper version detection
+          fetch-depth: 0
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: 'poetry'
 
-      - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential
-
+      # 2. NUCLEAR-PROOF POETRY INSTALL -----------------------------
       - name: Install Poetry (official method)
         run: |
-          pipx install poetry || pip install --user poetry
+          # Install using the official installer
+          curl -sSL https://install.python-poetry.org | python3 -
+          # Force PATH updates
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-          source ~/.profile
-          poetry --version
+          echo "export PATH=$HOME/.local/bin:$PATH" >> $HOME/.bashrc
+          source $HOME/.bashrc
+          # Verify installation
+          poetry --version || { echo "Poetry installation failed!"; exit 1; }
 
-      - name: Configure Poetry
+      # 3. AUTHENTICATION FIXES (INCLUDES USERNAME) -----------------
+      - name: Configure Poetry auth
         run: |
+          # Set both token and http-basic auth
           poetry config pypi-token.pypi "$PYPI_TOKEN"
           poetry config http-basic.pypi __token__ "$PYPI_TOKEN"
           poetry config virtualenvs.create false
-          poetry config virtualenvs.in-project false
+          # Verify config
           poetry config --list
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
+      # 4. LINE COMMENTING ------------------------------------------
       - name: Comment line 9 in __init__.py
         run: |
           if [ -f "openetl_utils/__init__.py" ]; then
             sed -i.bak '9s/^/# /' openetl_utils/__init__.py
             echo "✅ Successfully commented line 9"
+            # Show diff for verification
             diff -u openetl_utils/__init__.py.bak openetl_utils/__init__.py || true
           else
-            echo "❌ Critical: openetl_utils/__init__.py not found!"
+            echo "❌ Critical: __init__.py not found!"
             exit 1
           fi
 
+      # 5. BUILD AND PUBLISH ----------------------------------------
       - name: Install dependencies
-        run: |
-          poetry install --no-interaction --no-root
-          poetry show --tree
+        run: poetry install --no-interaction
 
       - name: Build package
         run: |
@@ -66,27 +71,20 @@ jobs:
           ls -la dist/
           twine check dist/*
 
-      - name: Verify PyPI access
+      - name: Publish to PyPI (with explicit auth)
         run: |
-          echo "Testing PyPI authentication..."
-          curl -s -H "Authorization: token ${PYPI_TOKEN:0:4}...${PYPI_TOKEN: -4}" \
-            https://pypi.org/pypi/$(poetry version -s)/json | jq .info.version || true
+          echo "Publishing with token: ${PYPI_TOKEN:0:4}...${PYPI_TOKEN: -4}"
+          poetry publish \
+            --no-interaction \
+            --username=__token__ \
+            --password="$PYPI_TOKEN"
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
-      - name: Publish to PyPI
-        run: |
-          echo "Publishing version $(poetry version -s) to PyPI..."
-          poetry publish --no-interaction \
-            --username __token__ \
-            --password $PYPI_TOKEN
-          echo "✅ Successfully published!"
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-
+      # 6. VERIFICATION ---------------------------------------------
       - name: Verify published package
         if: always()
         run: |
           sleep 10  # Wait for PyPI propagation
           pip install --no-cache-dir --upgrade openetl-utils==$(poetry version -s)
-          python -c "import openetl_utils; print(f'Successfully imported {openetl_utils.__version__}')"
+          python -c "import openetl_utils; print(f'Imported version {openetl_utils.__version__}')"
