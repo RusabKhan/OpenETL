@@ -24,46 +24,44 @@ jobs:
         with:
           python-version: '3.12'
 
-      # 2. NUCLEAR-PROOF POETRY INSTALL -----------------------------
+      # 2. INSTALL ESSENTIAL TOOLS -----------------------------------
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install twine build  # Explicitly install twine and build
+
+      # 3. NUCLEAR-PROOF POETRY INSTALL -----------------------------
       - name: Install Poetry (official method)
         run: |
-          # Install using the official installer
           curl -sSL https://install.python-poetry.org | python3 -
-          # Force PATH updates
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           echo "export PATH=$HOME/.local/bin:$PATH" >> $HOME/.bashrc
           source $HOME/.bashrc
-          # Verify installation
           poetry --version || { echo "Poetry installation failed!"; exit 1; }
 
-      # 3. AUTHENTICATION FIXES (INCLUDES USERNAME) -----------------
+      # 4. AUTHENTICATION FIXES -------------------------------------
       - name: Configure Poetry auth
         run: |
-          # Set both token and http-basic auth
           poetry config pypi-token.pypi "$PYPI_TOKEN"
           poetry config http-basic.pypi __token__ "$PYPI_TOKEN"
           poetry config virtualenvs.create false
-          # Verify config
           poetry config --list
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
-      # 4. LINE COMMENTING ------------------------------------------
-      - name: Comment line 9 in __init__.py
+      # 5. LINE COMMENTING ------------------------------------------
+      - name: Comment lines in __init__.py
         run: |
           if [ -f "openetl_utils/__init__.py" ]; then
-            sed -i.bak '9s/^/# /' openetl_utils/__init__.py
-            sed -i.bak '3s/^/# /' openetl_utils/__init__.py
-            sed -i.bak '4s/^/# /' openetl_utils/__init__.py
-            echo "✅ Successfully commented line 9, 3 ,4"
-            # Show diff for verification
+            sed -i.bak -e '3s/^/# /' -e '4s/^/# /' -e '9s/^/# /' openetl_utils/__init__.py
+            echo "✅ Successfully commented lines 3, 4, and 9"
             diff -u openetl_utils/__init__.py.bak openetl_utils/__init__.py || true
           else
             echo "❌ Critical: __init__.py not found!"
             exit 1
           fi
 
-      # 5. BUILD AND PUBLISH ----------------------------------------
+      # 6. BUILD AND PUBLISH ----------------------------------------
       - name: Install dependencies
         run: poetry install --no-interaction
 
@@ -71,22 +69,24 @@ jobs:
         run: |
           poetry build --no-interaction
           ls -la dist/
-          twine check dist/*
+          twine check dist/*  # Now twine is guaranteed available
 
-      - name: Publish to PyPI (with explicit auth)
+      - name: Publish to PyPI
         run: |
           echo "Publishing with token: ${PYPI_TOKEN:0:4}...${PYPI_TOKEN: -4}"
           poetry publish \
             --no-interaction \
             --username=__token__ \
             --password="$PYPI_TOKEN"
+          # Alternative using twine directly:
+          # twine upload --username __token__ --password "$PYPI_TOKEN" dist/*
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
-      # 6. VERIFICATION ---------------------------------------------
+      # 7. VERIFICATION ---------------------------------------------
       - name: Verify published package
         if: always()
         run: |
-          sleep 10  # Wait for PyPI propagation
+          sleep 10
           pip install --no-cache-dir --upgrade openetl-utils==$(poetry version -s)
           python -c "import openetl_utils; print(f'Imported version {openetl_utils.__version__}')"
