@@ -6,13 +6,13 @@ import requests
 from requests import Timeout, ConnectionError, TooManyRedirects, HTTPError, RequestException
 from requests.auth import HTTPBasicAuth
 
-from utils.enums import APIMethod
-from utils.local_connection_utils import api_directory
+from openetl_utils.enums import APIMethod
+from openetl_utils.local_connection_utils import api_directory
 import pandas as pd
-from utils.enums import *
+from openetl_utils.enums import *
 import re
 from collections import abc
-from utils.local_connection_utils import read_connection_config
+from openetl_utils.local_connection_utils import read_connection_config
 
 import logging
 def parse_json(json_content):

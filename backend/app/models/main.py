@@ -3,7 +3,7 @@ from uuid import UUID
 from typing import List, Optional
 import datetime
 
-from utils.enums import IntegrationType, AuthType
+from openetl_utils.enums import IntegrationType, AuthType
 
 
 class CreatePipelineModel(BaseModel):

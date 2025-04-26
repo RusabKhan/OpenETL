@@ -3,7 +3,7 @@ import os
 
 sys.path.append(os.environ['OPENETL_HOME'])
 
-from utils.main_db_class import DB
+from openetl_utils.main_db_class import DB
 
 
 

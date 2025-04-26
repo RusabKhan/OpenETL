@@ -3,8 +3,8 @@ from urllib.parse import urlencode
 import requests
 import pandas as pd
 import flatten_json
-from utils.enums import *
-from utils.connector_utils import install_libraries
+from openetl_utils.enums import *
+from openetl_utils.connector_utils import install_libraries
 
 
 class API:

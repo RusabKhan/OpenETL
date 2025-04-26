@@ -1,10 +1,10 @@
 """This module contains utilitiy functions which can be used in particular case and are not relevant to any one scenario.
 """
-from utils.database_utils import DatabaseUtils
-from utils.local_connection_utils import read_connection_config
+from openetl_utils.database_utils import DatabaseUtils
+from openetl_utils.local_connection_utils import read_connection_config
 import streamlit as st
-from utils.deprecated.jdbc_engine_utils import JDBCEngine
-from utils import connector_utils
+from openetl_utils.deprecated.jdbc_engine_utils import JDBCEngine
+from openetl_utils import connector_utils
 
 
 def set_page_config(page_title="OpenETL", menu_items={}, initial_sidebar_state="expanded", page_icon=None, layout="wide", page_style_state_variable=None):

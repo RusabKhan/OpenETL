@@ -10,8 +10,8 @@ Functions:
 """
 import streamlit as st
 
-from utils.deprecated.api_utils import send_request
-from utils.enums import *
+from openetl_utils.deprecated.api_utils import send_request
+from openetl_utils.enums import *
 
 """This module contains functions related to form generation and card generation.
 """

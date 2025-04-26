@@ -6,8 +6,8 @@ from datetime import datetime
 
 from celery import Celery
 from celery.signals import after_setup_logger, task_prerun
-from utils.database_utils import get_open_etl_document_connection_details, DatabaseUtils
-import utils.pipeline_utils as pipeline
+from openetl_utils.database_utils import get_open_etl_document_connection_details, DatabaseUtils
+import openetl_utils.pipeline_utils as pipeline
 
 # Environment setup
 LOG_DIR = f"{os.environ['OPENETL_HOME']}/.logs"
@@ -58,7 +58,7 @@ def configure_task_logger(task_id=None, task=None, args=None, **kwargs):
     Dynamically configure logging for each task based on job_id.
     This appends Celery worker logs to the job-specific log file and includes console logs.
     """
-    if task.name == "utils.celery_utils.run_pipeline":
+    if task.name == "openetl_utils.celery_utils.run_pipeline":
         # Extract job_id and job_name from args
         job_id = args[0] if args else "unknown_job"
         job_name = args[1] if len(args) > 1 else "unknown_name"

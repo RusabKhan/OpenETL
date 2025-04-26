@@ -1,6 +1,6 @@
-from utils.database_utils import DatabaseUtils
-from utils.main_api_class import API
-from utils.enums import *
+from openetl_utils.database_utils import DatabaseUtils
+from openetl_utils.main_api_class import API
+from openetl_utils.enums import *
 from urllib.parse import urlencode
 import sys
 import os
