@@ -24,6 +24,18 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Verify PyPI token
+        run: |
+          echo "Verifying PyPI token..."
+          echo "Token starts with: ${PYPI_TOKEN:0:4}"
+          echo "Token length: ${#PYPI_TOKEN} chars"
+          if [[ ! "$PYPI_TOKEN" =~ ^pypi- ]]; then
+            echo "❌ Invalid token format - must start with 'pypi-'"
+            exit 1
+          fi
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+
       # 2. INSTALL ESSENTIAL TOOLS -----------------------------------
       - name: Install build tools
         run: |
