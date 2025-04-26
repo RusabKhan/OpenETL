@@ -2,10 +2,10 @@ from fastapi import APIRouter, Request, Body
 import os
 import sys
 
-from utils.local_connection_utils import read_all_pipeline_configs
+from openetl_utils.local_connection_utils import read_all_pipeline_configs
 
 sys.path.append(os.environ['OPENETL_HOME'])
-from utils.database_utils import DatabaseUtils
+from openetl_utils.database_utils import DatabaseUtils
 
 
 router = APIRouter(prefix="/database", tags=["database"])

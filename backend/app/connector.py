@@ -7,11 +7,11 @@ from app.models.main import ConnectionBody
 sys.path.append(os.environ['OPENETL_HOME'])
 
 from app.models.main import IntegrationBody
-from utils.connector_utils import get_installed_connectors
-from utils.enums import AuthType, ConnectionType
+from openetl_utils.connector_utils import get_installed_connectors
+from openetl_utils.enums import AuthType, ConnectionType
 
-from utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details
-import utils.connector_utils as con_utils
+from openetl_utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details
+import openetl_utils.connector_utils as con_utils
 
 router = APIRouter(prefix="/connector", tags=["connector"])
 

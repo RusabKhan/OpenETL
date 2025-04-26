@@ -1,4 +1,4 @@
-from utils.main_db_class import DB
+from openetl_utils.main_db_class import DB
 
 
 class Connector(DB):

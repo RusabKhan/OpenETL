@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import Column, Integer, JSON, String, Enum, DateTime, Text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from utils.enums import AuthType
+from openetl_utils.enums import AuthType
 
 Base = declarative_base()
 

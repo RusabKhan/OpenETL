@@ -13,9 +13,9 @@ Methods:
 """
 import pandas as pd
 from sqlalchemy import MetaData, Table
-from utils.database_utils import DatabaseUtils
-from utils.connector_utils import install_libraries
-from utils.enums import ConnectionType, AuthType
+from openetl_utils.database_utils import DatabaseUtils
+from openetl_utils.connector_utils import install_libraries
+from openetl_utils.enums import ConnectionType, AuthType
 import logging
 
 class DB(DatabaseUtils):

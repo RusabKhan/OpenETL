@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from .app import OpenETLDocument
 from sqlalchemy.ext.declarative import declarative_base
 
-from utils.enums import RunStatus, IntegrationType
+from openetl_utils.enums import RunStatus, IntegrationType
 
 Base = declarative_base()
 
