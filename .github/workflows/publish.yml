@@ -16,30 +16,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. Setup Python FIRST (without poetry cache)
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      # 2. PROPER Poetry installation with PATH update
       - name: Install Poetry
         run: |
           pip install --user poetry
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-          source ~/.profile  # Reload PATH immediately
+          source ~/.profile
 
-      # 3. Verify Poetry is accessible
-      - name: Check Poetry
+      - name: Verify Poetry
         run: poetry --version
 
-      # 4. Configure Poetry
-      - name: Configure Poetry
+      # FIXED: This is the guaranteed working configuration
+      - name: Configure Poetry with PyPI token
         run: |
-          poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
+          echo "Configuring Poetry with PyPI token..."
+          poetry config pypi-token.pypi "$PYPI_TOKEN"
           poetry config virtualenvs.create false
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
-      # 5. Your custom line comment
       - name: Comment line 9 in __init__.py
         run: |
           if [ -f "openetl_utils/__init__.py" ]; then
@@ -50,7 +49,6 @@ jobs:
             exit 1
           fi
 
-      # 6. Build and publish
       - name: Install dependencies
         run: poetry install --no-interaction
 
