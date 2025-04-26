@@ -22,4 +22,5 @@ def _print_logo():
     print("Follow us on Github: https://github.com/RusabKhan/OpenETL")
     print("Visit our website: https://dataomnisolutions.com")
 
+
 _print_logo()
