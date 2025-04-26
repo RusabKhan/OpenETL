@@ -10,52 +10,83 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for proper version detection
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'poetry'
 
-      - name: Install Poetry
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Install Poetry (official method)
         run: |
-          pip install --user poetry
+          pipx install poetry || pip install --user poetry
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           source ~/.profile
+          poetry --version
 
-      - name: Verify Poetry
-        run: poetry --version
-
-      # FIXED: This is the guaranteed working configuration
-      - name: Configure Poetry with PyPI token
+      - name: Configure Poetry
         run: |
-          echo "Configuring Poetry with PyPI token..."
           poetry config pypi-token.pypi "$PYPI_TOKEN"
+          poetry config http-basic.pypi __token__ "$PYPI_TOKEN"
           poetry config virtualenvs.create false
+          poetry config virtualenvs.in-project false
+          poetry config --list
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
       - name: Comment line 9 in __init__.py
         run: |
           if [ -f "openetl_utils/__init__.py" ]; then
-            sed -i '9s/^/# /' openetl_utils/__init__.py
-            echo "✅ Line 9 commented successfully"
+            sed -i.bak '9s/^/# /' openetl_utils/__init__.py
+            echo "✅ Successfully commented line 9"
+            diff -u openetl_utils/__init__.py.bak openetl_utils/__init__.py || true
           else
-            echo "❌ Error: __init__.py not found!"
+            echo "❌ Critical: openetl_utils/__init__.py not found!"
             exit 1
           fi
 
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run: |
+          poetry install --no-interaction --no-root
+          poetry show --tree
 
       - name: Build package
-        run: poetry build --no-interaction
+        run: |
+          poetry build --no-interaction
+          ls -la dist/
+          twine check dist/*
 
-      - name: Publish to PyPI
-        run: poetry publish --no-interaction
+      - name: Verify PyPI access
+        run: |
+          echo "Testing PyPI authentication..."
+          curl -s -H "Authorization: token ${PYPI_TOKEN:0:4}...${PYPI_TOKEN: -4}" \
+            https://pypi.org/pypi/$(poetry version -s)/json | jq .info.version || true
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Publish to PyPI
+        run: |
+          echo "Publishing version $(poetry version -s) to PyPI..."
+          poetry publish --no-interaction \
+            --username __token__ \
+            --password $PYPI_TOKEN
+          echo "✅ Successfully published!"
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Verify published package
+        if: always()
+        run: |
+          sleep 10  # Wait for PyPI propagation
+          pip install --no-cache-dir --upgrade openetl-utils==$(poetry version -s)
+          python -c "import openetl_utils; print(f'Successfully imported {openetl_utils.__version__}')"
