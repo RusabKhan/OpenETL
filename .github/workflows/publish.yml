@@ -1,40 +1,52 @@
-name: Publish OpenETL utils distribution to PyPI
+name: Publish OpenETL utils to PyPI
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'  # Triggers only when tags like v0.1.0 are pushed
 
 jobs:
   build-and-publish:
-    name: Build and Publish
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for tag detection
 
-      - name: Set up Python
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'poetry'
 
       - name: Install Poetry
-        run: |
-          pip install poetry
+        run: pip install poetry==1.8.2
 
       - name: Configure Poetry
-        run: |
-          poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
+        run: poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
 
-      - name: Comment line 9 in openetl_utils/__init__.py
+      - name: Comment line 9 in __init__.py
         run: |
-          sed -i '9s/^/# /' openetl_utils/__init__.py
+          if [ -f "openetl_utils/__init__.py" ]; then
+            sed -i '9s/^/# /' openetl_utils/__init__.py
+            echo "Commented line 9 in __init__.py"
+          else
+            echo "Error: openetl_utils/__init__.py not found!"
+            exit 1
+          fi
 
       - name: Build package
-        run: |
-          poetry build
+        run: poetry build --no-interaction
 
-      - name: Publish package
+      - name: Verify built package
         run: |
-          poetry publish
+          ls -la dist/
+          twine check dist/* || exit 1
+
+      - name: Publish to PyPI
+        run: poetry publish --no-interaction
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
