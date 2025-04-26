@@ -65,14 +65,13 @@ jobs:
       - name: Comment lines in __init__.py
         run: |
           if [ -f "openetl_utils/__init__.py" ]; then
-            sed -i.bak -e '3s/^/# /' -e '4s/^/# /' -e '9s/^/# /' openetl_utils/__init__.py
-            echo "✅ Successfully commented lines 3, 4, and 9"
+            sed -i.bak -e '3s/^/# /' -e '4s/^/# /' -e '7s/^/# /' -e '9s/^/# /' openetl_utils/__init__.py
+            echo "✅ Successfully commented lines 3, 4, 7, and 9"
             diff -u openetl_utils/__init__.py.bak openetl_utils/__init__.py || true
           else
-            echo "❌ Critical: __init__.py not found!"
-            exit 1
+          echo "❌ Critical: __init__.py not found!"
+          exit 1
           fi
-
       # 6. BUILD AND PUBLISH ----------------------------------------
       - name: Install dependencies
         run: poetry install --no-interaction
