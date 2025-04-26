@@ -53,7 +53,9 @@ jobs:
         run: |
           if [ -f "openetl_utils/__init__.py" ]; then
             sed -i.bak '9s/^/# /' openetl_utils/__init__.py
-            echo "✅ Successfully commented line 9"
+            sed -i.bak '3s/^/# /' openetl_utils/__init__.py
+            sed -i.bak '4s/^/# /' openetl_utils/__init__.py
+            echo "✅ Successfully commented line 9, 3 ,4"
             # Show diff for verification
             diff -u openetl_utils/__init__.py.bak openetl_utils/__init__.py || true
           else
