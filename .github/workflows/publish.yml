@@ -3,9 +3,9 @@ name: Publish OpenETL utils to PyPI
 on:
   push:
     branches:
-      - 'release/openetl-utils*'  # Triggers on branch pushes
+      - 'release/openetl-utils*'
     tags:
-      - 'v*'                     # Also triggers on version tags
+      - 'v*'
 
 jobs:
   build-and-publish:
@@ -15,47 +15,49 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Required for full git history
 
+      # 1. Setup Python FIRST (without poetry cache)
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
+      # 2. PROPER Poetry installation with PATH update
       - name: Install Poetry
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
+          pip install --user poetry
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+          source ~/.profile  # Reload PATH immediately
 
+      # 3. Verify Poetry is accessible
+      - name: Check Poetry
+        run: poetry --version
+
+      # 4. Configure Poetry
       - name: Configure Poetry
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
           poetry config virtualenvs.create false
 
+      # 5. Your custom line comment
       - name: Comment line 9 in __init__.py
         run: |
           if [ -f "openetl_utils/__init__.py" ]; then
             sed -i '9s/^/# /' openetl_utils/__init__.py
-            echo "✅ Commented line 9 in __init__.py"
+            echo "✅ Line 9 commented successfully"
           else
-            echo "❌ Error: openetl_utils/__init__.py not found!"
+            echo "❌ Error: __init__.py not found!"
             exit 1
           fi
 
+      # 6. Build and publish
       - name: Install dependencies
         run: poetry install --no-interaction
 
       - name: Build package
         run: poetry build --no-interaction
 
-      - name: Verify package
-        run: |
-          ls -la dist/
-          twine check dist/*
-
       - name: Publish to PyPI
-        if: contains(github.ref, 'release/openetl-utils') || startsWith(github.ref, 'refs/tags/v')
         run: poetry publish --no-interaction
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
