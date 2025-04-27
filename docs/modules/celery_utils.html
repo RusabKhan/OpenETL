@@ -104,17 +104,67 @@ This appends Celery worker logs to the job-specific log file and includes consol
 <dl class="py function">
 <dt class="sig sig-object py" id="celery_utils.get_task_details">
 <span class="sig-name descname"><span class="pre">get_task_details</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#celery_utils.get_task_details" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Fetches task details for the specified task ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>task_id</strong> (<em>str</em>) – Unique identifier for the task.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Task details.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>celery.result.AsyncResult</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="celery_utils.retry">
 <span class="sig-name descname"><span class="pre">retry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#celery_utils.retry" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Decorator to retry a task if it fails.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tries</strong> (<em>int</em>) – Number of times to retry a task.</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – Time to wait between retries in seconds.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Decorated function with retry logic.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>callable</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="celery_utils.run_pipeline">
 <span class="sig-name descname"><span class="pre">run_pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hadoop_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#celery_utils.run_pipeline" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Runs a pipeline with the specified configurations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job_id</strong> (<em>str</em>) – Unique identifier for the job.</p></li>
+<li><p><strong>job_name</strong> (<em>str</em>) – Name of the job.</p></li>
+<li><p><strong>job_type</strong> (<em>str</em>) – Type of the job.</p></li>
+<li><p><strong>source_connection</strong> (<em>dict</em>) – Connection details for the source database.</p></li>
+<li><p><strong>target_connection</strong> (<em>dict</em>) – Connection details for the target database.</p></li>
+<li><p><strong>source_table</strong> (<em>str</em>) – Source table name.</p></li>
+<li><p><strong>target_table</strong> (<em>str</em>) – Target table name.</p></li>
+<li><p><strong>source_schema</strong> (<em>str</em>) – Source schema name.</p></li>
+<li><p><strong>target_schema</strong> (<em>str</em>) – Target schema name.</p></li>
+<li><p><strong>spark_config</strong> (<em>dict</em>) – Spark configuration.</p></li>
+<li><p><strong>hadoop_config</strong> (<em>dict</em>) – Hadoop configuration.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>) – Batch size for processing.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If there is an error running the pipeline.</p>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 

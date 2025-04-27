@@ -174,6 +174,7 @@
 <li class="toctree-l3"><a class="reference internal" href="enums.html#enums.AuthType.BASIC"><code class="docutils literal notranslate"><span class="pre">AuthType.BASIC</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="enums.html#enums.AuthType.BEARER"><code class="docutils literal notranslate"><span class="pre">AuthType.BEARER</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="enums.html#enums.AuthType.OAUTH2"><code class="docutils literal notranslate"><span class="pre">AuthType.OAUTH2</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="enums.html#enums.AuthType.SERVICE_ACCOUNT"><code class="docutils literal notranslate"><span class="pre">AuthType.SERVICE_ACCOUNT</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="enums.html#enums.ColumnActions"><code class="docutils literal notranslate"><span class="pre">ColumnActions</span></code></a><ul>
@@ -217,14 +218,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="form_utils.html">form_utils module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="generic_utils.html">generic_utils module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="generic_utils.html#generic_utils.check_missing_values"><code class="docutils literal notranslate"><span class="pre">check_missing_values()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="generic_utils.html#generic_utils.execute"><code class="docutils literal notranslate"><span class="pre">execute()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="generic_utils.html#generic_utils.extract_connections_db_or_api"><code class="docutils literal notranslate"><span class="pre">extract_connections_db_or_api()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="generic_utils.html#generic_utils.fetch_metadata"><code class="docutils literal notranslate"><span class="pre">fetch_metadata()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="generic_utils.html#generic_utils.set_page_config"><code class="docutils literal notranslate"><span class="pre">set_page_config()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="generic_utils.html">generic_utils module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jdbc_engine_utils.html">jdbc_engine_utils module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="local_connection_utils.html">local_connection_utils module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="local_connection_utils.html#local_connection_utils.check_jar_exists"><code class="docutils literal notranslate"><span class="pre">check_jar_exists()</span></code></a></li>
@@ -243,7 +237,38 @@
 <li class="toctree-l2"><a class="reference internal" href="local_connection_utils.html#local_connection_utils.store_connection_config"><code class="docutils literal notranslate"><span class="pre">store_connection_config()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="main_api_class.html">main_api_class module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_api_class.html">main_api_class module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="main_api_class.html#main_api_class.API"><code class="docutils literal notranslate"><span class="pre">API</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.api"><code class="docutils literal notranslate"><span class="pre">API.api</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.authentication_details"><code class="docutils literal notranslate"><span class="pre">API.authentication_details</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.base_url"><code class="docutils literal notranslate"><span class="pre">API.base_url</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.connect_to_api"><code class="docutils literal notranslate"><span class="pre">API.connect_to_api()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.connection_name"><code class="docutils literal notranslate"><span class="pre">API.connection_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.connection_type"><code class="docutils literal notranslate"><span class="pre">API.connection_type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.construct_endpoint"><code class="docutils literal notranslate"><span class="pre">API.construct_endpoint()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.create_df"><code class="docutils literal notranslate"><span class="pre">API.create_df()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.database"><code class="docutils literal notranslate"><span class="pre">API.database</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.fetch_data"><code class="docutils literal notranslate"><span class="pre">API.fetch_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.get_metadata"><code class="docutils literal notranslate"><span class="pre">API.get_metadata()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.get_table_schema"><code class="docutils literal notranslate"><span class="pre">API.get_table_schema()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.install_missing_libraries"><code class="docutils literal notranslate"><span class="pre">API.install_missing_libraries()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.limit"><code class="docutils literal notranslate"><span class="pre">API.limit</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.logo"><code class="docutils literal notranslate"><span class="pre">API.logo</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.pagination"><code class="docutils literal notranslate"><span class="pre">API.pagination</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.return_final_df"><code class="docutils literal notranslate"><span class="pre">API.return_final_df()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.schema"><code class="docutils literal notranslate"><span class="pre">API.schema</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.supported_auths"><code class="docutils literal notranslate"><span class="pre">API.supported_auths</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.tables"><code class="docutils literal notranslate"><span class="pre">API.tables</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.API.test_connection"><code class="docutils literal notranslate"><span class="pre">API.test_connection()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="main_api_class.html#main_api_class.OAuth2Client"><code class="docutils literal notranslate"><span class="pre">OAuth2Client</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.OAuth2Client.get_access_token"><code class="docutils literal notranslate"><span class="pre">OAuth2Client.get_access_token()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="main_api_class.html#main_api_class.OAuth2Client.get_authorization_url"><code class="docutils literal notranslate"><span class="pre">OAuth2Client.get_authorization_url()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="main_db_class.html">main_db_class module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="main_db_class.html#main_db_class.DB"><code class="docutils literal notranslate"><span class="pre">DB</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="main_db_class.html#main_db_class.DB.authentication_details"><code class="docutils literal notranslate"><span class="pre">DB.authentication_details</span></code></a></li>
@@ -267,16 +292,10 @@
 <li class="toctree-l2"><a class="reference internal" href="pipeline_utils.html#pipeline_utils.read_data"><code class="docutils literal notranslate"><span class="pre">read_data()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="pipeline_utils.html#pipeline_utils.run_pipeline"><code class="docutils literal notranslate"><span class="pre">run_pipeline()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="pipeline_utils.html#pipeline_utils.run_pipeline_target"><code class="docutils literal notranslate"><span class="pre">run_pipeline_target()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline_utils.html#pipeline_utils.update_db"><code class="docutils literal notranslate"><span class="pre">update_db()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline_utils.html#pipeline_utils.update_integration_in_db"><code class="docutils literal notranslate"><span class="pre">update_integration_in_db()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="scheduler_utils.html">scheduler_utils module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="scheduler_utils.html#scheduler_utils.check_and_schedule_tasks"><code class="docutils literal notranslate"><span class="pre">check_and_schedule_tasks()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="scheduler_utils.html#scheduler_utils.clean_up_old_logs"><code class="docutils literal notranslate"><span class="pre">clean_up_old_logs()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="scheduler_utils.html#scheduler_utils.send_task_to_celery"><code class="docutils literal notranslate"><span class="pre">send_task_to_celery()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="scheduler_utils.html#scheduler_utils.start_scheduler"><code class="docutils literal notranslate"><span class="pre">start_scheduler()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="scheduler_utils.html">scheduler_utils module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="spark_utils.html">spark_utils module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="spark_utils.html#spark_utils.SparkConnection"><code class="docutils literal notranslate"><span class="pre">SparkConnection</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="spark_utils.html#spark_utils.SparkConnection.initializeSpark"><code class="docutils literal notranslate"><span class="pre">SparkConnection.initializeSpark()</span></code></a></li>

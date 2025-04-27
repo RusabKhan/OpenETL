@@ -53,7 +53,38 @@
 <li class="toctree-l1"><a class="reference internal" href="spark_utils.html">spark_utils module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="celery_utils.html">celery_utils module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="enums.html">enums module</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">main_api_class module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">main_api_class module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#main_api_class.API"><code class="docutils literal notranslate"><span class="pre">API</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.api"><code class="docutils literal notranslate"><span class="pre">API.api</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.authentication_details"><code class="docutils literal notranslate"><span class="pre">API.authentication_details</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.base_url"><code class="docutils literal notranslate"><span class="pre">API.base_url</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.connect_to_api"><code class="docutils literal notranslate"><span class="pre">API.connect_to_api()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.connection_name"><code class="docutils literal notranslate"><span class="pre">API.connection_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.connection_type"><code class="docutils literal notranslate"><span class="pre">API.connection_type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.construct_endpoint"><code class="docutils literal notranslate"><span class="pre">API.construct_endpoint()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.create_df"><code class="docutils literal notranslate"><span class="pre">API.create_df()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.database"><code class="docutils literal notranslate"><span class="pre">API.database</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.fetch_data"><code class="docutils literal notranslate"><span class="pre">API.fetch_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.get_metadata"><code class="docutils literal notranslate"><span class="pre">API.get_metadata()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.get_table_schema"><code class="docutils literal notranslate"><span class="pre">API.get_table_schema()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.install_missing_libraries"><code class="docutils literal notranslate"><span class="pre">API.install_missing_libraries()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.limit"><code class="docutils literal notranslate"><span class="pre">API.limit</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.logo"><code class="docutils literal notranslate"><span class="pre">API.logo</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.pagination"><code class="docutils literal notranslate"><span class="pre">API.pagination</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.return_final_df"><code class="docutils literal notranslate"><span class="pre">API.return_final_df()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.schema"><code class="docutils literal notranslate"><span class="pre">API.schema</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.supported_auths"><code class="docutils literal notranslate"><span class="pre">API.supported_auths</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.tables"><code class="docutils literal notranslate"><span class="pre">API.tables</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.API.test_connection"><code class="docutils literal notranslate"><span class="pre">API.test_connection()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#main_api_class.OAuth2Client"><code class="docutils literal notranslate"><span class="pre">OAuth2Client</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.OAuth2Client.get_access_token"><code class="docutils literal notranslate"><span class="pre">OAuth2Client.get_access_token()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_api_class.OAuth2Client.get_authorization_url"><code class="docutils literal notranslate"><span class="pre">OAuth2Client.get_authorization_url()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="pipeline_utils.html">pipeline_utils module</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tables</span></p>
@@ -86,8 +117,263 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="main-api-class-module">
-<h1>main_api_class module<a class="headerlink" href="#main-api-class-module" title="Link to this heading"></a></h1>
+  <section id="module-main_api_class">
+<span id="main-api-class-module"></span><h1>main_api_class module<a class="headerlink" href="#module-main_api_class" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="main_api_class.API">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">API</span></span><a class="headerlink" href="#main_api_class.API" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_api_class.API.api">
+<span class="sig-name descname"><span class="pre">api</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#main_api_class.API.api" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_api_class.API.authentication_details">
+<span class="sig-name descname"><span class="pre">authentication_details</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#main_api_class.API.authentication_details" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_api_class.API.base_url">
+<span class="sig-name descname"><span class="pre">base_url</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#main_api_class.API.base_url" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_api_class.API.connect_to_api">
+<span class="sig-name descname"><span class="pre">connect_to_api</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">AuthType.BASIC</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">auth_params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_api_class.API.connect_to_api" title="Link to this definition"></a></dt>
+<dd><p>Connects to a REST API using the specified authentication mechanism.</p>
+<p>This method creates and configures a requests.Session object based on the provided
+authentication type and credentials. Supported authentication methods are Basic and Bearer.
+If OAuth2 authentication is requested, a NotImplementedError is raised.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>auth_type</strong> (<em>str</em>) – The authentication mechanism to use. Expected values include:
+- AuthType.BASIC.value for Basic authentication
+- AuthType.BEARER.value for Bearer token authentication
+- AuthType.OAUTH2.value for OAuth2 authentication (not implemented)</p></li>
+<li><p><strong>**auth_params</strong> – Additional keyword arguments needed for authentication. For example:
+- For Basic authentication: ‘username’ (str) and ‘password’ (str)
+- For Bearer authentication: ‘token’ (str)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A session object configured with the authentication credentials.</dt><dd><p>If an unrecognized auth_type is provided, the session is returned without extra authentication.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>requests.Session</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>NotImplementedError</strong> – If OAuth2 authentication (AuthType.OAUTH2.value) is specified.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_api_class.API.connection_name">
+<span class="sig-name descname"><span class="pre">connection_name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#main_api_class.API.connection_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_api_class.API.connection_type">
+<span class="sig-name descname"><span class="pre">connection_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'api'</span></em><a class="headerlink" href="#main_api_class.API.connection_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_api_class.API.construct_endpoint">
+<span class="sig-name descname"><span class="pre">construct_endpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endpoint</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_api_class.API.construct_endpoint" title="Link to this definition"></a></dt>
+<dd><p>Constructs the endpoint URL for the given endpoint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>endpoint</strong> (<em>str</em>) – The endpoint to construct the URL for.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The constructed endpoint URL.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_api_class.API.create_df">
+<span class="sig-name descname"><span class="pre">create_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_api_class.API.create_df" title="Link to this definition"></a></dt>
+<dd><p>Creates a pandas DataFrame from a given dictionary or list of dictionaries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>resp</strong> (<em>dict</em><em> or </em><em>list</em>) – A dictionary or list of dictionaries containing the data to be converted into a DataFrame.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A pandas DataFrame created from the input dictionary or list of dictionaries.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+<p>This function takes in a dictionary or list of dictionaries and converts it into a pandas DataFrame.
+It iterates over the keys of the dictionary and checks if the corresponding value is a dictionary or a list.
+If it is a dictionary, it uses <cite>pd.json_normalize</cite> to flatten the nested dictionary into a DataFrame.
+If it is a list, it uses <cite>pd.json_normalize</cite> to flatten each element of the list into a DataFrame.
+The resulting DataFrames are then concatenated using <cite>pd.concat</cite>.
+Finally, the function converts all object columns to strings using <cite>df.astype(str)</cite> and returns the resulting DataFrame.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_api_class.API.database">
+<span class="sig-name descname"><span class="pre">database</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'public'</span></em><a class="headerlink" href="#main_api_class.API.database" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_api_class.API.fetch_data">
+<span class="sig-name descname"><span class="pre">fetch_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">main_response_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_api_class.API.fetch_data" title="Link to this definition"></a></dt>
+<dd><p>Fetches data from the API using the provided session object.</p>
+<p>Args:
+- api_session (requests.Session): The session object with authentication configured.
+- table (str): The table endpoint to fetch data from.
+- main_response_key (str, optional): The key to use for nested structure. Defaults to None.</p>
+<p>Returns:
+- dict: The JSON response containing the fetched data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_api_class.API.get_metadata">
+<span class="sig-name descname"><span class="pre">get_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_api_class.API.get_metadata" title="Link to this definition"></a></dt>
+<dd><p>Returns the metadata for the API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the metadata for the API.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_api_class.API.get_table_schema">
+<span class="sig-name descname"><span class="pre">get_table_schema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_api_class.API.get_table_schema" title="Link to this definition"></a></dt>
+<dd><p>Retrieve the schema details of a table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>table_name</strong> (<em>str</em>) – The name of the table to get the schema for.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing the schema details of the table.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_api_class.API.install_missing_libraries">
+<span class="sig-name descname"><span class="pre">install_missing_libraries</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#main_api_class.API.install_missing_libraries" title="Link to this definition"></a></dt>
+<dd><p>Checks if there are any missing libraries required for the function to run. If there are missing libraries, it calls the install_libraries function to install them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the libraries are installed successfully, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_api_class.API.limit">
+<span class="sig-name descname"><span class="pre">limit</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'limit':</span> <span class="pre">100}</span></em><a class="headerlink" href="#main_api_class.API.limit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_api_class.API.logo">
+<span class="sig-name descname"><span class="pre">logo</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#main_api_class.API.logo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_api_class.API.pagination">
+<span class="sig-name descname"><span class="pre">pagination</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#main_api_class.API.pagination" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_api_class.API.return_final_df">
+<span class="sig-name descname"><span class="pre">return_final_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">responses</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_api_class.API.return_final_df" title="Link to this definition"></a></dt>
+<dd><p>Generates a pandas DataFrame by concatenating the normalized JSON responses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>responses</strong> (<em>list</em>) – A list of JSON responses to be normalized and concatenated.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The concatenated DataFrame containing the normalized JSON responses.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_api_class.API.schema">
+<span class="sig-name descname"><span class="pre">schema</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'public'</span></em><a class="headerlink" href="#main_api_class.API.schema" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_api_class.API.supported_auths">
+<span class="sig-name descname"><span class="pre">supported_auths</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[AuthType.BEARER,</span> <span class="pre">AuthType.OAUTH2,</span> <span class="pre">AuthType.BASIC]</span></em><a class="headerlink" href="#main_api_class.API.supported_auths" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_api_class.API.tables">
+<span class="sig-name descname"><span class="pre">tables</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#main_api_class.API.tables" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_api_class.API.test_connection">
+<span class="sig-name descname"><span class="pre">test_connection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_session</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_api_class.API.test_connection" title="Link to this definition"></a></dt>
+<dd><p>Tests the connection to the API by attempting to retrieve the schema for each table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>api_session</strong> (<em>requests.Session</em>) – The session object with authentication configured.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the connection is successful and the schema can be retrieved for at least one table, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="main_api_class.OAuth2Client">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">OAuth2Client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_secret</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auth_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redirect_uri</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_api_class.OAuth2Client" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="main_api_class.OAuth2Client.get_access_token">
+<span class="sig-name descname"><span class="pre">get_access_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">authorization_code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_api_class.OAuth2Client.get_access_token" title="Link to this definition"></a></dt>
+<dd><p>Exchange the authorization code for an access token.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_api_class.OAuth2Client.get_authorization_url">
+<span class="sig-name descname"><span class="pre">get_authorization_url</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#main_api_class.OAuth2Client.get_authorization_url" title="Link to this definition"></a></dt>
+<dd><p>Generate the authorization URL to redirect the user to the provider’s OAuth2 login.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 

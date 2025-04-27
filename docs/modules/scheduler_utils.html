@@ -47,13 +47,7 @@
 <li class="toctree-l1"><a class="reference internal" href="connector_utils.html">connector_utils module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="local_connection_utils.html">local_connection_utils module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main_db_class.html">main_db_class module</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">scheduler_utils module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#scheduler_utils.check_and_schedule_tasks"><code class="docutils literal notranslate"><span class="pre">check_and_schedule_tasks()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#scheduler_utils.clean_up_old_logs"><code class="docutils literal notranslate"><span class="pre">clean_up_old_logs()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#scheduler_utils.send_task_to_celery"><code class="docutils literal notranslate"><span class="pre">send_task_to_celery()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#scheduler_utils.start_scheduler"><code class="docutils literal notranslate"><span class="pre">start_scheduler()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">scheduler_utils module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cache.html">cache module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="database_utils.html">database_utils module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="spark_utils.html">spark_utils module</a></li>
@@ -92,32 +86,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-scheduler_utils">
-<span id="scheduler-utils-module"></span><h1>scheduler_utils module<a class="headerlink" href="#module-scheduler_utils" title="Link to this heading"></a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="scheduler_utils.check_and_schedule_tasks">
-<span class="sig-name descname"><span class="pre">check_and_schedule_tasks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler_utils.check_and_schedule_tasks" title="Link to this definition"></a></dt>
-<dd><p>Check database for integrations and schedule tasks if needed.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="scheduler_utils.clean_up_old_logs">
-<span class="sig-name descname"><span class="pre">clean_up_old_logs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler_utils.clean_up_old_logs" title="Link to this definition"></a></dt>
-<dd><p>Clean up log files older than LOG_TTL days in the log directory.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="scheduler_utils.send_task_to_celery">
-<span class="sig-name descname"><span class="pre">send_task_to_celery</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spark_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hadoop_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler_utils.send_task_to_celery" title="Link to this definition"></a></dt>
-<dd><p>Wrapper function to send tasks to Celery dynamically using apply_async.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="scheduler_utils.start_scheduler">
-<span class="sig-name descname"><span class="pre">start_scheduler</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler_utils.start_scheduler" title="Link to this definition"></a></dt>
-<dd><p>Start the APScheduler with PostgreSQL jobstore and periodic tasks.</p>
-</dd></dl>
-
+  <section id="scheduler-utils-module">
+<h1>scheduler_utils module<a class="headerlink" href="#scheduler-utils-module" title="Link to this heading"></a></h1>
 </section>
 
 

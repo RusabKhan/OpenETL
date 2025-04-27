@@ -199,7 +199,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>action</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ColumnActions</span></code></span>)</p></li>
+<li><p><strong>action</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="openetl_utils.html#openetl_utils.enums.ColumnActions" title="openetl_utils.enums.ColumnActions"><code class="xref py py-class docutils literal notranslate"><span class="pre">ColumnActions</span></code></a></span>)</p></li>
 <li><p><strong>table_name</strong> (<em>str</em>) – The name of the table to be altered.</p></li>
 <li><p><strong>column_name</strong> (<em>str</em>) – The name of the column to be added or dropped. Required if drop_column is False.</p></li>
 <li><p><strong>column_details</strong> (<em>str</em>) – The details of the column to be added. Required if drop_column is False.</p></li>
@@ -492,14 +492,20 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="database_utils.DatabaseUtils.get_dashboard_data">
-<span class="sig-name descname"><span class="pre">get_dashboard_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.get_dashboard_data" title="Link to this definition"></a></dt>
-<dd><p>Retrieves dashboard data including total counts and integration details.</p>
+<span class="sig-name descname"><span class="pre">get_dashboard_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.get_dashboard_data" title="Link to this definition"></a></dt>
+<dd><p>Retrieves dashboard data including total counts and paginated integration details.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A dictionary containing total counts and integration details.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> (<em>int</em><em>, </em><em>optional</em>) – The page number for integrations. Defaults to 1.</p></li>
+<li><p><strong>per_page</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of items per page for integrations. Defaults to 30.</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>dict</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing total counts and paginated integration details.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -554,11 +560,12 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="database_utils.DatabaseUtils.insert_openetl_batch">
-<span class="sig-name descname"><span class="pre">insert_openetl_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.insert_openetl_batch" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">insert_openetl_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.insert_openetl_batch" title="Link to this definition"></a></dt>
 <dd><p>Inserts a new OpenETLBatch instance into the database.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>integration_id</strong> – The ID of the integration.</p></li>
 <li><p><strong>start_date</strong> (<em>datetime</em>) – The start date of the batch.</p></li>
 <li><p><strong>batch_type</strong> (<em>str</em>) – The type of the batch.</p></li>
 <li><p><strong>batch_status</strong> (<em>str</em>) – The status of the batch.</p></li>
@@ -572,7 +579,7 @@
 <dd class="field-even"><p>The newly created OpenETLBatch instance.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../tables/app.html#app.OpenETLBatch" title="app.OpenETLBatch">OpenETLBatch</a></p>
+<dd class="field-odd"><p>OpenETLBatch</p>
 </dd>
 </dl>
 </dd></dl>
@@ -630,13 +637,14 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="database_utils.DatabaseUtils.test">
 <span class="sig-name descname"><span class="pre">test</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.test" title="Link to this definition"></a></dt>
-<dd><p>Test connection to database</p>
+<dd><p>Tests the database connection by attempting to establish a connection using the configured SQLAlchemy engine.</p>
+<p>This method calls self.engine.connect() to verify that a connection to the database can be opened. If the connection attempt fails, an exception raised by the SQLAlchemy engine will propagate. On success, it returns True.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True if connected else False</p>
+<dd class="field-odd"><p>True if the connection was successfully established.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Boolean</p>
+<dd class="field-even"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -675,7 +683,7 @@ The message provides information about the truncation result.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="database_utils.DatabaseUtils.update_openetl_batch">
-<span class="sig-name descname"><span class="pre">update_openetl_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.update_openetl_batch" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">update_openetl_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.DatabaseUtils.update_openetl_batch" title="Link to this definition"></a></dt>
 <dd><p>Updates an OpenETLBatch object in the database with the specified batch_id.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -688,7 +696,7 @@ The message provides information about the truncation result.</p>
 <dd class="field-even"><p>The updated OpenETLBatch object.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../tables/app.html#app.OpenETLBatch" title="app.OpenETLBatch">OpenETLBatch</a></p>
+<dd class="field-odd"><p>OpenETLBatch</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>Exception</strong> – If no OpenETLBatch object with the specified batch_id is found.</p>
@@ -711,7 +719,7 @@ The message provides information about the truncation result.</p>
 <dd class="field-even"><p>The updated OpenETLBatch object.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../tables/app.html#app.OpenETLBatch" title="app.OpenETLBatch">OpenETLBatch</a></p>
+<dd class="field-odd"><p>OpenETLBatch</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>Exception</strong> – If no OpenETLBatch object with the specified batch_id is found.</p>
@@ -786,12 +794,12 @@ The message provides information about the truncation result.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="database_utils.parse_cron_expression">
 <span class="sig-name descname"><span class="pre">parse_cron_expression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cron_expr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#database_utils.parse_cron_expression" title="Link to this definition"></a></dt>
-<dd><p>Reverse-engineers a cron expression into its individual components with detailed explanations,
-the next execution date in 12-hour format, months in numerical format, and the exact cron expression.</p>
+<dd><p>Parses a cron expression into its components, determines the next execution time,
+and provides a human-readable explanation.</p>
 <p>Args:
-- cron_expr: A cron expression in the format ‘minute hour day_of_month month day_of_week’</p>
+- cron_expr (str): A standard 5-part cron expression.</p>
 <p>Returns:
-- A dictionary with components of the cron expression, with explanations, next execution date, and the exact cron expression.</p>
+- dict: Parsed cron details and next execution time.</p>
 </dd></dl>
 
 </section>
