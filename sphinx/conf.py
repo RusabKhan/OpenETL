@@ -9,8 +9,8 @@ sys.path.insert(0, os.path.abspath('../backend/app'))
 sys.path.insert(0, os.path.abspath('../backend/app/middlewares'))
 sys.path.insert(0, os.path.abspath('../backend/app/models'))
 
-sys.path.insert(0, os.path.abspath('../utils/'))
-sys.path.insert(0, os.path.abspath('../utils/__migrations__'))
+sys.path.insert(0, os.path.abspath('../openetl_utils/'))
+sys.path.insert(0, os.path.abspath('../openetl_utils/__migrations__'))
 sys.path.insert(0, os.path.abspath('..'))
 
 # Project Information
@@ -66,10 +66,10 @@ autodoc_default_options = {
 def run_apidoc(_):
     docs_dir = os.path.dirname(__file__)
 
-    # Define source directories (backend and utils)
+    # Define source directories (backend and openetl_utils)
     source_dirs = [
         os.path.abspath(os.path.join(docs_dir, '../backend/')),
-        os.path.abspath(os.path.join(docs_dir, '../utils/')),
+        os.path.abspath(os.path.join(docs_dir, '../openetl_utils/')),
     ]
 
     for source_dir in source_dirs:

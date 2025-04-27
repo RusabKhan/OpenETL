@@ -1,0 +1,449 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>openetl_utils.deprecated package &mdash; OpenETL 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            OpenETL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Utils</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="connector_utils.html">connector_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="local_connection_utils.html">local_connection_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_db_class.html">main_db_class module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scheduler_utils.html">scheduler_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cache.html">cache module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="database_utils.html">database_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spark_utils.html">spark_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="celery_utils.html">celery_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="enums.html">enums module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_api_class.html">main_api_class module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline_utils.html">pipeline_utils module</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tables</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tables/app.html">app module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tables/scheduler.html">scheduler module</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenETL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">openetl_utils.deprecated package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/openetl_utils.deprecated.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="openetl-utils-deprecated-package">
+<h1>openetl_utils.deprecated package<a class="headerlink" href="#openetl-utils-deprecated-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-openetl_utils.deprecated.api_utils">
+<span id="openetl-utils-deprecated-api-utils-module"></span><h2>openetl_utils.deprecated.api_utils module<a class="headerlink" href="#module-openetl_utils.deprecated.api_utils" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.check_basic_auth">
+<span class="sig-name descname"><span class="pre">check_basic_auth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.check_basic_auth" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.create_df">
+<span class="sig-name descname"><span class="pre">create_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.create_df" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.flatten_data">
+<span class="sig-name descname"><span class="pre">flatten_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'_'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.flatten_data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.flatten_dict_to_rows">
+<span class="sig-name descname"><span class="pre">flatten_dict_to_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'_'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.flatten_dict_to_rows" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.get_data">
+<span class="sig-name descname"><span class="pre">get_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auth_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.get_data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.get_data_from_api">
+<span class="sig-name descname"><span class="pre">get_data_from_api</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auth_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.get_data_from_api" title="Link to this definition"></a></dt>
+<dd><p>Retrieve data from an API using Basic Auth or Bearer token.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table</strong> (<em>str</em>) – The URL of the API endpoint.</p></li>
+<li><p><strong>auth_type</strong> (<em>str</em>) – The authentication type to be used. Either ‘basic’ or ‘bearer’.</p></li>
+<li><p><strong>token</strong> (<em>str</em><em>, </em><em>optional</em>) – The Bearer token for authentication. Required if auth_type is ‘bearer’.</p></li>
+<li><p><strong>username</strong> (<em>str</em><em>, </em><em>optional</em>) – The username for Basic Auth. Required if auth_type is ‘basic’.</p></li>
+<li><p><strong>password</strong> (<em>str</em><em>, </em><em>optional</em>) – The password for Basic Auth. Required if auth_type is ‘basic’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The JSON response from the API.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.get_pagination_parameters">
+<span class="sig-name descname"><span class="pre">get_pagination_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">main</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.get_pagination_parameters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.parse_json">
+<span class="sig-name descname"><span class="pre">parse_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json_content</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.parse_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.parse_xml">
+<span class="sig-name descname"><span class="pre">parse_xml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_content</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.parse_xml" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.read_api_tables">
+<span class="sig-name descname"><span class="pre">read_api_tables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.read_api_tables" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.read_api_tables_url">
+<span class="sig-name descname"><span class="pre">read_api_tables_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tablename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.read_api_tables_url" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.read_connection_table">
+<span class="sig-name descname"><span class="pre">read_connection_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schema</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'public'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.read_connection_table" title="Link to this definition"></a></dt>
+<dd><p>Reads a connection table from the given connection name and table name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>connection_name</strong> (<em>str</em>) – The name of the connection.</p></li>
+<li><p><strong>table</strong> (<em>str</em>) – The name of the table to read.</p></li>
+<li><p><strong>schema</strong> (<em>str</em><em>, </em><em>optional</em>) – The schema of the table. Defaults to “public”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The data read from the table.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.return_final_df">
+<span class="sig-name descname"><span class="pre">return_final_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">responses</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.return_final_df" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.api_utils.send_request">
+<span class="sig-name descname"><span class="pre">send_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">APIMethod.GET</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.api_utils.send_request" title="Link to this definition"></a></dt>
+<dd><p>A robust method to send HTTP requests with error handling for different types of errors.</p>
+<p>Args:
+- url (str): The API endpoint URL.
+- method (str): The HTTP method (‘GET’, ‘POST’, ‘PUT’, ‘DELETE’). Default is ‘GET’.
+- headers (dict): Optional headers to send with the request.
+- params (dict): Optional query parameters for GET requests.
+- data (dict): Optional data for POST/PUT requests.
+- json (dict): Optional JSON body for POST/PUT requests.
+- timeout (int): Timeout duration in seconds. Default is 10 seconds.</p>
+<p>Returns:
+- dict or str: The response content, either as a JSON or string.</p>
+</dd></dl>
+
+</section>
+<section id="module-openetl_utils.deprecated.form_utils">
+<span id="openetl-utils-deprecated-form-utils-module"></span><h2>openetl_utils.deprecated.form_utils module<a class="headerlink" href="#module-openetl_utils.deprecated.form_utils" title="Link to this heading"></a></h2>
+<p>This module contains utility functions related to form generation.</p>
+<p>Functions:
+- GenerateForm: A class that generates different types of forms based on the specified parameters.
+- database_form: Generates a database form for SQLAlchemy connections.
+- create_connection: Creates a new connection based on the provided arguments.
+- api_form: Generates an API form based on the specified engine.
+- jdbc_form: Generates a JDBC form based on the specified engine.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.form_utils.GenerateForm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">GenerateForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.form_utils.GenerateForm" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class that generates a form based on the specified engine type and engine.</p>
+<p>Attributes:
+- engine_type (string): Type of the engine, either ‘database’ or ‘JDBC’.
+- engine (string): Valid engine for SQLAlchemy connection, such as ‘pymysql’.</p>
+<p>Methods:
+- __init__: Initializes the GenerateForm class with the engine type and engine.
+- create_connection: Prints the arguments and keyword arguments, simulating the creation of a connection.
+- connection_form: Generates a form for creating a connection based on the engine type and engine provided.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.form_utils.GenerateForm.connection_form">
+<span class="sig-name descname"><span class="pre">connection_form</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.form_utils.GenerateForm.connection_form" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.form_utils.GenerateForm.create_connection">
+<span class="sig-name descname"><span class="pre">create_connection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.form_utils.GenerateForm.create_connection" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.form_utils.create_button_columns">
+<span class="sig-name descname"><span class="pre">create_button_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.form_utils.create_button_columns" title="Link to this definition"></a></dt>
+<dd><p>Create columns of buttons.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>names</strong> (<em>list</em>) – A list of button names.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.form_utils.on_button_click">
+<span class="sig-name descname"><span class="pre">on_button_click</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">button_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.form_utils.on_button_click" title="Link to this definition"></a></dt>
+<dd><p>Set session variable ‘clicked_button’. Used in connection and pipeline cards.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>button_name</strong> (<em>string</em>) – Name of the button clicked.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-openetl_utils.deprecated.generic_utils">
+<span id="openetl-utils-deprecated-generic-utils-module"></span><h2>openetl_utils.deprecated.generic_utils module<a class="headerlink" href="#module-openetl_utils.deprecated.generic_utils" title="Link to this heading"></a></h2>
+<p>This module contains utilitiy functions which can be used in particular case and are not relevant to any one scenario.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.generic_utils.check_missing_values">
+<span class="sig-name descname"><span class="pre">check_missing_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.generic_utils.check_missing_values" title="Link to this definition"></a></dt>
+<dd><p>Check on submit connection if any form field is missing values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Boolean value indicating whether a key is missing value and the key. For e.g if hostname is null, True, hostname. Else False,None</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.generic_utils.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_java</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.generic_utils.execute" title="Link to this definition"></a></dt>
+<dd><p>Execute a query on the given connection</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>connection</strong> (<em>string</em>) – Name of the connection</p></li>
+<li><p><strong>query</strong> (<em>string</em>) – The query to execute</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Database response in dataframe</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.generic_utils.extract_connections_db_or_api">
+<span class="sig-name descname"><span class="pre">extract_connections_db_or_api</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_or_api</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.generic_utils.extract_connections_db_or_api" title="Link to this definition"></a></dt>
+<dd><p>Get connections from config variable and divide them into a list of python/java based connections.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>py_or_java</strong> (<em>string</em>) – Python or Java. The connections type to be fetched from config variable.</p></li>
+<li><p><strong>configs</strong> (<em>list</em>) – list of configurations</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_type_</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.generic_utils.fetch_metadata">
+<span class="sig-name descname"><span class="pre">fetch_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auth_options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.generic_utils.fetch_metadata" title="Link to this definition"></a></dt>
+<dd><p>Fetch metadata from the given connection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>connections</strong> (<em>string</em>) – name of the connection</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>{“tables”: [],”schema”:[]}</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.generic_utils.set_page_config">
+<span class="sig-name descname"><span class="pre">set_page_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'OpenETL'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">menu_items</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_sidebar_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'expanded'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_icon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wide'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_style_state_variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.generic_utils.set_page_config" title="Link to this definition"></a></dt>
+<dd><p>Configures the Streamlit application page settings if they have not been previously set.</p>
+<p>This function sets up various page parameters such as title, icon, layout, sidebar state, and custom menu items for a Streamlit app.
+If a session state variable is provided via page_style_state_variable and is already set in st.session_state, the configuration is not reapplied,
+ensuring that the setup occurs only once per session.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page_title</strong> (<em>str</em>) – The title displayed on the browser tab. Defaults to “OpenETL”.</p></li>
+<li><p><strong>menu_items</strong> (<em>dict</em>) – A dictionary of custom menu items for the app’s menu. Defaults to an empty dictionary.</p></li>
+<li><p><strong>initial_sidebar_state</strong> (<em>str</em>) – The initial state of the sidebar; either “expanded” or “collapsed”. Defaults to “expanded”.</p></li>
+<li><p><strong>page_icon</strong> (<em>str</em>) – The URL or emoji representing the page icon. Defaults to None.</p></li>
+<li><p><strong>layout</strong> (<em>str</em>) – The layout mode of the page; either “wide” or “centered”. Defaults to “wide”.</p></li>
+<li><p><strong>page_style_state_variable</strong> (<em>str</em><em>, </em><em>optional</em>) – A key for a session state variable used to track whether the page configuration has already been applied.
+If this variable exists and is truthy in st.session_state, the configuration will not be set again.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<dl class="simple">
+<dt>set_page_config(</dt><dd><p>page_title=”MyApp”,
+menu_items={“Get Help”: “<a class="reference external" href="https://example.com/help">https://example.com/help</a>”},
+initial_sidebar_state=”collapsed”,
+page_icon=”:smile:”,
+layout=”centered”,
+page_style_state_variable=”page_configured”</p>
+</dd>
+</dl>
+<p>)</p>
+</dd></dl>
+
+</section>
+<section id="module-openetl_utils.deprecated.jdbc_engine_utils">
+<span id="openetl-utils-deprecated-jdbc-engine-utils-module"></span><h2>openetl_utils.deprecated.jdbc_engine_utils module<a class="headerlink" href="#module-openetl_utils.deprecated.jdbc_engine_utils" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JDBCEngine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hostname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine.conn">
+<span class="sig-name descname"><span class="pre">conn</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine.conn" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine.download_jar_from_maven">
+<span class="sig-name descname"><span class="pre">download_jar_from_maven</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">artifact_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">artifact_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">artifact_version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine.download_jar_from_maven" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine.execute_query">
+<span class="sig-name descname"><span class="pre">execute_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine.execute_query" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine.fetch_driver_classpath">
+<span class="sig-name descname"><span class="pre">fetch_driver_classpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jar_file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine.fetch_driver_classpath" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine.get_metadata">
+<span class="sig-name descname"><span class="pre">get_metadata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine.get_metadata" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine.test">
+<span class="sig-name descname"><span class="pre">test</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#openetl_utils.deprecated.jdbc_engine_utils.JDBCEngine.test" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-openetl_utils.deprecated">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-openetl_utils.deprecated" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, DataOmni Solutions.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

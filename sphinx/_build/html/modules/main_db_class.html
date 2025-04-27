@@ -1,0 +1,283 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>main_db_class module &mdash; OpenETL 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="scheduler_utils module" href="scheduler_utils.html" />
+    <link rel="prev" title="local_connection_utils module" href="local_connection_utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            OpenETL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Utils</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="connector_utils.html">connector_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="local_connection_utils.html">local_connection_utils module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">main_db_class module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#main_db_class.DB"><code class="docutils literal notranslate"><span class="pre">DB</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#main_db_class.DB.authentication_details"><code class="docutils literal notranslate"><span class="pre">DB.authentication_details</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_db_class.DB.close_session"><code class="docutils literal notranslate"><span class="pre">DB.close_session()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_db_class.DB.connection_type"><code class="docutils literal notranslate"><span class="pre">DB.connection_type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_db_class.DB.create_engine"><code class="docutils literal notranslate"><span class="pre">DB.create_engine()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_db_class.DB.execute_query"><code class="docutils literal notranslate"><span class="pre">DB.execute_query()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_db_class.DB.get_metadata"><code class="docutils literal notranslate"><span class="pre">DB.get_metadata()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_db_class.DB.install_missing_libraries"><code class="docutils literal notranslate"><span class="pre">DB.install_missing_libraries()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_db_class.DB.read_table"><code class="docutils literal notranslate"><span class="pre">DB.read_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_db_class.DB.required_libs"><code class="docutils literal notranslate"><span class="pre">DB.required_libs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_db_class.DB.test_connection"><code class="docutils literal notranslate"><span class="pre">DB.test_connection()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main_db_class.DB.write_data"><code class="docutils literal notranslate"><span class="pre">DB.write_data()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="scheduler_utils.html">scheduler_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cache.html">cache module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="database_utils.html">database_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spark_utils.html">spark_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="celery_utils.html">celery_utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="enums.html">enums module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_api_class.html">main_api_class module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline_utils.html">pipeline_utils module</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tables</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tables/app.html">app module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tables/scheduler.html">scheduler module</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenETL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">main_db_class module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/main_db_class.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-main_db_class">
+<span id="main-db-class-module"></span><h1>main_db_class module<a class="headerlink" href="#module-main_db_class" title="Link to this heading"></a></h1>
+<p>This module contains utility functions for working with SQLAlchemy engine connections.</p>
+<p>Class:
+- SQLAlchemyEngine: Represents a class to connect with any database using SQLAlchemy.</p>
+<p>Methods:
+- __init__: Initializes the class with database connection details.
+- test: Tests the connection to the database.
+- get_metadata: Retrieves schema metadata from the connection.
+- execute_query: Executes a SQL query against the connection.
+- get_metadata_df: Retrieves schema metadata in a dataframe format.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="main_db_class.DB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DB</span></span><a class="headerlink" href="#main_db_class.DB" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="openetl_utils.html#openetl_utils.database_utils.DatabaseUtils" title="openetl_utils.database_utils.DatabaseUtils"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatabaseUtils</span></code></a></p>
+<p>A class to connect with any database using SQLAlchemy.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_db_class.DB.authentication_details">
+<span class="sig-name descname"><span class="pre">authentication_details</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{AuthType.BASIC:</span> <span class="pre">{'database':</span> <span class="pre">'',</span> <span class="pre">'hostname':</span> <span class="pre">'',</span> <span class="pre">'password':</span> <span class="pre">'',</span> <span class="pre">'port':</span> <span class="pre">0,</span> <span class="pre">'username':</span> <span class="pre">''}}</span></em><a class="headerlink" href="#main_db_class.DB.authentication_details" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_db_class.DB.close_session">
+<span class="sig-name descname"><span class="pre">close_session</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#main_db_class.DB.close_session" title="Link to this definition"></a></dt>
+<dd><p>Close the session and set the session close flag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_db_class.DB.connection_type">
+<span class="sig-name descname"><span class="pre">connection_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'database'</span></em><a class="headerlink" href="#main_db_class.DB.connection_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_db_class.DB.create_engine">
+<span class="sig-name descname"><span class="pre">create_engine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hostname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_db_class.DB.create_engine" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_db_class.DB.execute_query">
+<span class="sig-name descname"><span class="pre">execute_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_db_class.DB.execute_query" title="Link to this definition"></a></dt>
+<dd><p>Execute query against the connection</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>query</strong> (<em>string</em>) – Valid SQL query</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pandas dataframe of your query results</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_db_class.DB.get_metadata">
+<span class="sig-name descname"><span class="pre">get_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_db_class.DB.get_metadata" title="Link to this definition"></a></dt>
+<dd><p>Returns the metadata for the API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the metadata for the API.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_db_class.DB.install_missing_libraries">
+<span class="sig-name descname"><span class="pre">install_missing_libraries</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#main_db_class.DB.install_missing_libraries" title="Link to this definition"></a></dt>
+<dd><p>Checks if there are any missing libraries required for the function to run. If there are missing libraries, it calls the install_libraries function to install them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the libraries are installed successfully, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_db_class.DB.read_table">
+<span class="sig-name descname"><span class="pre">read_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schema_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'public'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_db_class.DB.read_table" title="Link to this definition"></a></dt>
+<dd><p>Read data from a table in etl_batches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table_name</strong> (<em>str</em>) – The name of the table to read from.</p></li>
+<li><p><strong>page_size</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of rows to read per page. Defaults to 10000.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The DataFrame containing the data from the table.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="main_db_class.DB.required_libs">
+<span class="sig-name descname"><span class="pre">required_libs</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#main_db_class.DB.required_libs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_db_class.DB.test_connection">
+<span class="sig-name descname"><span class="pre">test_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#main_db_class.DB.test_connection" title="Link to this definition"></a></dt>
+<dd><p>Test connection to database</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if connected else False</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Boolean</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_db_class.DB.write_data">
+<span class="sig-name descname"><span class="pre">write_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">if_exists</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'append'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schema</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'public'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main_db_class.DB.write_data" title="Link to this definition"></a></dt>
+<dd><p>Writes data to a table in etl_batches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>) – The DataFrame to write to the table.</p></li>
+<li><p><strong>table_name</strong> (<em>str</em>) – The name of the table to write to.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="local_connection_utils.html" class="btn btn-neutral float-left" title="local_connection_utils module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="scheduler_utils.html" class="btn btn-neutral float-right" title="scheduler_utils module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, DataOmni Solutions.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
