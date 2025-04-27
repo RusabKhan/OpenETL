@@ -3,7 +3,7 @@ import os
 from datetime import timedelta
 from celery.result import AsyncResult
 from fastapi import APIRouter, Body, Request, HTTPException
-from utils.celery_utils import app as celery_app, get_task_details
+from openetl_utils.celery_utils import app as celery_app, get_task_details
 
 router = APIRouter(prefix="/worker", tags=["worker","celery"])
 
@@ -98,11 +98,13 @@ async def get_all_tasks():
     active = inspect.active() or {}
     scheduled = inspect.scheduled() or {}
     reserved = inspect.reserved() or {}
+    registered = inspect.registered() or {}
 
     return {
         "active_tasks": active,
         "scheduled_tasks": scheduled,
         "reserved_tasks": reserved,
+        'registered': registered
     }
 
 

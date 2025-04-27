@@ -1,11 +1,11 @@
-from utils.main_db_class import DB
+from openetl_utils.main_db_class import DB
 
 
 class Connector(DB):
     
     def __init__(self):
         self.required_libs = ["psycopg2-binary==2.9.9"]
-        self.logo = "https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg"
+        self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/postgresql-icon.svg"
         self.engine = "PostgreSQL"
         super().__init__()
 

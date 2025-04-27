@@ -2,15 +2,22 @@
 import React, { useState, ReactNode } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import Head from "next/head";
 
 export default function DefaultLayout({
+  title,
   children,
 }: {
+  title?: string;
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <>
+      <Head>
+        <title>{title || "Dashboard OpenETL"}</title>
+        <meta name="description" content="Dashboard for OpenETL" />
+      </Head>
       {/* <!-- ===== Page Wrapper Start ===== --> */}
       <div className="flex">
         {/* <!-- ===== Sidebar Start ===== --> */}
@@ -18,7 +25,7 @@ export default function DefaultLayout({
         {/* <!-- ===== Sidebar End ===== --> */}
 
         {/* <!-- ===== Content Area Start ===== --> */}
-        <div className="relative flex flex-1 flex-col lg:ml-72.5">
+        <div className="relative flex flex-1 flex-col lg:ml-72.5 min-h-screen">
           {/* <!-- ===== Header Start ===== --> */}
           <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
           {/* <!-- ===== Header End ===== --> */}

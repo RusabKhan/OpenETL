@@ -9,11 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "apexcharts": "^4.0.0",
+    "apexcharts": "^4.3.0",
     "axios": "^1.7.9",
     "flatpickr": "^4.6.13",
     "heroicons": "^2.2.0",
     "jsvectormap": "^1.6.0",
+    "memory-cache": "^0.2.0",
     "next": "^14.2.4",
     "react": "^18",
     "react-apexcharts": "^1.7.0",
@@ -21,6 +22,7 @@
     "sharp": "^0.33.5"
   },
   "devDependencies": {
+    "@types/memory-cache": "^0.2.6",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

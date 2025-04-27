@@ -3,7 +3,7 @@ import os
 
 sys.path.append(os.environ['OPENETL_HOME'])
 
-from utils.main_db_class import DB
+from openetl_utils.main_db_class import DB
 
 
 
@@ -11,7 +11,7 @@ class Connector(DB):
     
     def __init__(self):
         self.required_libs = ["pymysql==1.1.0"]
-        self.logo = "https://upload.wikimedia.org/wikipedia/commons/0/04/MariaDB_Logo.png"
+        self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/maria-db.png"
         super().__init__()
         
 

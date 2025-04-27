@@ -4,7 +4,8 @@ import sys
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.middlewares.exception_handler import ExceptionHandlingMiddleware
-from utils.database_utils import DatabaseUtils
+from app.middlewares.response_status import StatusAdjustMiddleware
+from openetl_utils.database_utils import DatabaseUtils
 
 sys.path.append(os.environ['OPENETL_HOME'])
 from app.database import router as db_router
@@ -15,8 +16,8 @@ from app.pipeline import router as pipeline_router
 from app.oauth import router as oauth_router
 from app.middlewares.logging import LoggingMiddleware
 from fastapi.responses import ORJSONResponse
-from utils.__migrations__.app import OpenETLDocument, OpenETLOAuthToken
-from utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
+from openetl_utils.__migrations__.app import OpenETLDocument, OpenETLOAuthToken
+from openetl_utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
 
 
 def __init__():
@@ -38,8 +39,7 @@ origins = [
     "*"
 ]
 
-app.add_middleware(LoggingMiddleware)
-app.add_middleware(ExceptionHandlingMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -47,6 +47,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(StatusAdjustMiddleware)
+app.add_middleware(ExceptionHandlingMiddleware)
+app.add_middleware(LoggingMiddleware)
+
 
 app.include_router(db_router)
 app.include_router(connector_router)

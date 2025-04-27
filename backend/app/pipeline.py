@@ -8,9 +8,9 @@ from fastapi import APIRouter, Body, Request
 from app.models.main import CreatePipelineModel
 from starlette.responses import JSONResponse
 
-from utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details, generate_cron_expression
-from utils.enums import IntegrationType, LogsType
-from utils.local_connection_utils import  paginate_log_content, get_log_file_path
+from openetl_utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details, generate_cron_expression
+from openetl_utils.enums import IntegrationType, LogsType
+from openetl_utils.local_connection_utils import  paginate_log_content, get_log_file_path
 
 sys.path.append(os.environ['OPENETL_HOME'])
 
