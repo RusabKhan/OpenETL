@@ -3,7 +3,7 @@ name: Publish OpenETL utils to PyPI
 on:
   push:
     branches:
-      - 'release/openetl-utils*'
+      - 'release/openetl-utils-main'
     tags:
       - 'v*'
 
@@ -65,8 +65,8 @@ jobs:
       - name: Comment lines in __init__.py
         run: |
           if [ -f "openetl_utils/__init__.py" ]; then
-            sed -i.bak -e '3s/^/# /' -e '4s/^/# /' -e '7s/^/# /' -e '9s/^/# /' openetl_utils/__init__.py
-            echo "✅ Successfully commented lines 3, 4, 7, and 9"
+            sed -i.bak -e '25s/^/# /' -e '26s/^/# /' -e '27s/^/# /' -e '28s/^/# /' openetl_utils/__init__.py
+            echo "✅ Successfully commented lines 25, 26, 27, and 28"
             diff -u openetl_utils/__init__.py.bak openetl_utils/__init__.py || true
           else
           echo "❌ Critical: __init__.py not found!"
