@@ -31,7 +31,12 @@ from .enums import *
 from .main_api_class import *
 from .cache import *
 from .celery_utils import *
+import tomllib
+import pathlib
 
+__version__ = tomllib.loads(
+    pathlib.Path(__file__).parent.parent.joinpath("pyproject.toml").read_text()
+)["tool"]["poetry"]["version"]
 
 def _print_logo():
     print(f"""
@@ -40,7 +45,6 @@ def _print_logo():
 ██    ██ ██████  █████   ██ ██  ██ █████      ██    ██      
 ██    ██ ██      ██      ██  ██ ██ ██         ██    ██      
  ██████  ██      ███████ ██   ████ ███████    ██    ███████  {__version__}
-
 """)
     print("Authored by DataOmni Solutions")
     print("Follow us on Github: https://github.com/RusabKhan/OpenETL")
