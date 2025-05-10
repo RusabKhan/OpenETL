@@ -130,6 +130,24 @@ services:
     volumes:
       - ~/.logs:/app/.logs
 
+  db:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: openetl
+      POSTGRES_PASSWORD: openetl123
+      POSTGRES_DB: openetl_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - openetl-network
+    restart: always
+
+volumes:
+  pgdata:
+
 networks:
   openetl-network:
     driver: bridge
