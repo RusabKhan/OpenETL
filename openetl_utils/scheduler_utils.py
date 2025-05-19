@@ -4,6 +4,7 @@ import uuid
 
 from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 
+
 sys.path.append(os.environ['OPENETL_HOME'])
 
 import logging
@@ -17,6 +18,7 @@ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from openetl_utils.celery_utils import app, run_pipeline, retry
 from openetl_utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details
 from openetl_utils.enums import RunStatus
+from openetl_utils.logger import get_logger
 
 db = DatabaseUtils(**get_open_etl_document_connection_details())
 engine = db.engine.url
@@ -34,34 +36,13 @@ LOG_DIR = f"{os.environ['OPENETL_HOME']}/.logs"  # Ensure this is set to the cor
 os.makedirs(LOG_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOG_DIR, 'scheduler.log')
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler(LOG_FILE),  # Log to a file
-        logging.StreamHandler(sys.stdout)  # Optionally, also log to console
-    ]
-)
 
-logger = logging.getLogger(__name__)
-file_handler = logging.FileHandler(LOG_FILE)
-file_handler.setLevel(logging.INFO)
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(file_formatter)
-
-# Console handler for logging to console
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.INFO)
-console_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-console_handler.setFormatter(console_formatter)
-
-# Add both handlers to the logger
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+logger = get_logger(name="scheduler", log_file=LOG_FILE, level=logging.INFO)
 
 scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=db.engine)}, executors=executors,
                                 job_defaults=job_defaults,
-                                logger=logger)
+                                logger=logger,
+                                timezone='UTC')
 
 # Wrapper function for task execution
 def send_task_to_celery(job_id, job_name, job_type, source_connection, target_connection, source_table, target_table,
