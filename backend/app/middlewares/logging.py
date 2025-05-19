@@ -1,34 +1,13 @@
-import logging
 from fastapi import FastAPI, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 import sys
 import os
+from openetl_utils.logger import get_logger
 
 LOG_FILE = f"{os.environ['OPENETL_HOME']}/.logs/api.log"
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler(LOG_FILE),  # Log to a file
-        logging.StreamHandler()          # Optionally, also log to console
-    ]
-)
 
-logger = logging.getLogger(__name__)
-file_handler = logging.FileHandler(LOG_FILE)
-file_handler.setLevel(logging.INFO)
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(file_formatter)
 
-# Console handler for logging to console
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.INFO)
-console_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-console_handler.setFormatter(console_formatter)
-
-# Add both handlers to the logger
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+logger = get_logger(name="api", log_file=LOG_FILE)
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     """
