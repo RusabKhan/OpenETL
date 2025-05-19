@@ -8,6 +8,7 @@ from celery import Celery
 from celery.signals import after_setup_logger, task_prerun
 from openetl_utils.database_utils import get_open_etl_document_connection_details, DatabaseUtils
 import openetl_utils.pipeline_utils as pipeline
+from openetl_utils.logger import get_logger
 
 # Environment setup
 LOG_DIR = f"{os.environ['OPENETL_HOME']}/.logs"
@@ -15,25 +16,9 @@ os.makedirs(LOG_DIR, exist_ok=True)
 
 # Global logging configuration
 GLOBAL_LOG_FILE = f"{LOG_DIR}/celery.log"
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler(GLOBAL_LOG_FILE),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
-file_handler = logging.FileHandler(GLOBAL_LOG_FILE)
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(file_formatter)
 
-# Console handler for logging to console
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.INFO)
-console_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-console_handler.setFormatter(console_formatter)
-# Initialize Celery app
+logger = get_logger(name="celery", log_file=GLOBAL_LOG_FILE)
+
 url = get_open_etl_document_connection_details(url=True)
 
 app = Celery('openetl',
