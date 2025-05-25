@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+/lib/
 lib64/
 parts/
 sdist/
@@ -164,7 +164,7 @@ cython_debug/
 ##docker stuff
 postgres_data
 mongo_data
-logs
+/logs
 dags
 assets
 
@@ -181,4 +181,5 @@ main.env
 ./app
 /node_modules/*
 /node_modules/.bin/*
-frontend/app/node_modules
+frontend/v2/node_modules/
+frontend/v2/node_modules/*
