@@ -1027,23 +1027,30 @@ class DatabaseUtils():
 
         offset = (page - 1) * per_page
 
-        history = self.session.query(OpenETLIntegrationsRuntimes) \
+        # Fetch the integration details
+        integration = self.session.query(OpenETLIntegrations).filter_by(id=integration_id).first()
+
+        if not integration:
+            return {
+                "error": f"Integration with ID {integration_id} not found."
+            }
+
+        history_query = self.session.query(OpenETLIntegrationsRuntimes) \
             .filter(OpenETLIntegrationsRuntimes.integration == integration_id) \
             .order_by(OpenETLIntegrationsRuntimes.created_at.desc())
 
-        total_items = history.count()
-        total_pages = (total_items + per_page - 1) // per_page
-        history = history \
-            .offset(offset) \
-            .limit(per_page).all()
+        total_items = history_query.count()
+        total_pages = (total_items + per_page - 1)
 
+        history = history_query.offset(offset).limit(per_page).all()
 
         return {
             "page": page,
             "per_page": per_page,
             "total_items": total_items,
             "total_pages": total_pages,
-            "data": history
+            "data": integration,
+            "history": history
         }
 
     def create_integration(self, integration_name, integration_type, target_schema, source_schema, spark_config,
