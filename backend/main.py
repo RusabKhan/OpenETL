@@ -36,9 +36,10 @@ def __init__():
 app = FastAPI(default_response_class=ORJSONResponse, on_startup=[__init__])
 
 origins = [
-    "*"
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://frontend:3000",
 ]
-
 
 app.add_middleware(
     CORSMiddleware,
