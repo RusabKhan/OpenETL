@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import {
-  IconCalendarEventFilled,
   IconCamera,
   IconChartBar,
   IconCpu,
@@ -57,12 +56,7 @@ const data = {
       title: "Celery",
       url: "/celery",
       icon: IconDatabase,
-    },
-    {
-      title: "Scheduler",
-      url: "/scheduler",
-      icon: IconCalendarEventFilled,
-    },
+    }
   ],
   navClouds: [
     {
