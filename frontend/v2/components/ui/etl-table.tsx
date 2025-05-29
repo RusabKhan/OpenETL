@@ -25,7 +25,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./tooltip";
-import { Card, CardContent, CardTitle } from "./card";
+import { Card, CardContent } from "./card";
 
 interface ETLTableInterface {
   columns: string[];
@@ -83,7 +83,18 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                 </Link>
               </TableCell>
               <TableCell className="px-6 py-4">
-                {integration.integration_name}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="truncate block max-w-[300px]">
+                        {integration.integration_name}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="dark:bg-card dark:text-white">
+                      <p>{integration.integration_name}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableCell>
               <TableCell className="px-6 py-4">
                 {integration.integration_type}
