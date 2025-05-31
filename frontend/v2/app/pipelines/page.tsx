@@ -93,7 +93,7 @@ export default function PipelinesPage() {
               onBulkDelete={handleBulkDelete}
             />
           ) : (
-            <Alert>
+            <Alert className="mt-6">
               <AlertTitle>Heads up!</AlertTitle>
               <AlertDescription>
                 No integrations available! Create your first integration now.
