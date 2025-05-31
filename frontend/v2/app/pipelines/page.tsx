@@ -5,11 +5,12 @@ import Spinner from "@/components/Spinner";
 import { PaginatedIntegrationConfig } from "@/components/types/integration";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import ETLTable from "@/components/ui/etl-table";
-import { getIntegrations } from "@/components/utils/api";
+import { delete_pipeline, getIntegrations } from "@/components/utils/api";
 import { IconRefresh } from "@tabler/icons-react";
 import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const initial_list = {
   page: 1,
@@ -39,12 +40,27 @@ export default function PipelinesPage() {
   };
 
   useEffect(() => {
+    load_integrations(false);
+  }, []);
+
+  useEffect(() => {
     document.title = "Pipelines | OpenETL";
-    
+
     load_integrations(true);
   }, [page]);
 
-  const columns = ["Id", "Name", "Type", "Cron Expression", "Active", "Status"];
+  const handleBulkDelete = async (ids: string[]) => {
+    try {
+      for (const id of ids) {
+        await delete_pipeline(id);
+      }
+    } catch (error) {
+      console.log("Error", error);
+      toast(error);
+    }
+  };
+
+  const columns = ["Id", "Name", "Cron Expression", "Type", "Active", "Status"];
 
   return (
     <DefaultLayout title="Pipelines">
@@ -57,7 +73,7 @@ export default function PipelinesPage() {
             <PlusIcon /> Create ETL Pipeline
           </button>
         </div>
-        <h1 className="flex items-center gap-4 text-2xl font-bold mb-6">
+        <h1 className="flex items-center gap-4 text-2xl font-bold">
           Pipelines{" "}
           <button
             className="cursor-pointer"
@@ -74,6 +90,7 @@ export default function PipelinesPage() {
               data={integrations}
               load={load_integrations}
               changePage={changePage}
+              onBulkDelete={handleBulkDelete}
             />
           ) : (
             <Alert>

@@ -151,10 +151,9 @@ export const getIntegrationHistory = async (id: string, page: number) => {
 export const getPipelineLogs = async (useCache: boolean, params: LogsParam) => {
   return apiRequest(
     "get",
-    `/pipeline/get_logs?${
-      params.integration_id
-        ? `integration_id=${params.integration_id}&logs_type=${params.logs_type}`
-        : `logs_type=${params.logs_type}`
+    `/pipeline/get_logs?${params.integration_id
+      ? `integration_id=${params.integration_id}&logs_type=${params.logs_type}`
+      : `logs_type=${params.logs_type}`
     }&page=${params.page}&per_page=${params.per_page}`,
     undefined,
     useCache && 5 * 60 * 1000
@@ -225,6 +224,9 @@ export const delete_connection = async (id: number) => {
 export const clear_tasks = async () => {
   return apiRequest("delete", "/worker/clear-tasks");
 };
+export const delete_pipeline = async (id: string) => {
+  return apiRequest("delete", `/pipeline/delete_integration?pipeline_id=${id}`)
+}
 
 // UPDATE
 export const update_connection = async (params: ParamUpdateConnection) => {
