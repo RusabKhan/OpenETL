@@ -16,13 +16,16 @@ import os
 import sys
 from typing import List, Type
 
+import sqlalchemy
 import sqlalchemy as sq
 import pandas as pd
+from alembic.operations import Operations
+from alembic.runtime.migration import MigrationContext
 
 from openetl_utils.__migrations__.app import OpenETLDocument, OpenETLOAuthToken
 from openetl_utils.__migrations__.batch import OpenETLBatch
 from openetl_utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
-from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect, or_
+from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect, or_, String
 from sqlalchemy.orm import sessionmaker
 
 from openetl_utils.cache import sqlalchemy_database_engines
@@ -285,41 +288,44 @@ class DatabaseUtils():
 
         return df
 
-    def alter_table_column_add_or_drop(self, table_name, column_name=None, column_details=None, action: ColumnActions = ColumnActions.ADD):
+    def alter_table_column_add_or_drop_alembic(self, table_name, column_name=None,
+                                               column_details: sqlalchemy.Column = Column(String),
+                                               action: ColumnActions = ColumnActions.ADD):
         """
-        Alters a SQLAlchemy table by either adding or dropping a column.
+        Uses Alembic Operations API to add or drop a column from a table without dropping data.
+        """
+        with self.engine.connect() as conn:
+            ctx = MigrationContext.configure(conn)
+            op = Operations(ctx)
 
-        Args:
-            action:
-            table_name (str): The name of the table to be altered.
-            column_name (str): The name of the column to be added or dropped. Required if drop_column is False.
-            column_details (str): The details of the column to be added. Required if drop_column is False.
+            if action == ColumnActions.ADD:
+                if not isinstance(column_details, Column):
+                    return False, "column_details must be a SQLAlchemy Column instance"
+                op.add_column(table_name, column_details)
+                conn.commit()
+                return True, f"Added column '{column_details.name}' to table '{table_name}'"
 
-        Returns:
-            tuple: A tuple containing a boolean indicating success or failure and a message.
+            elif action == ColumnActions.DROP:
+                op.drop_column(table_name, column_name)
+                conn.commit()
+                return True, f"Dropped column '{column_name}' from table '{table_name}'"
 
-         """
-        # Reflect the existing table from the database
-        table = Table(table_name, self.metadata,
-                      autoload_with=self.engine)
 
-        if action == ColumnActions.DROP:
-            table._columns.remove(table.c[column_name])
-            action = f"Dropped column '{column_name}' from table '{table_name}'."
+            elif action == ColumnActions.MODIFY:
+                if not isinstance(column_details, Column):
+                    return False, "column_details must be a SQLAlchemy Column instance"
+                op.alter_column(
+                    table_name=table_name,
+                    column_name=column_name,
+                    type_=column_details.type,
+                    existing_type=column_details.type,
+                    nullable=column_details.nullable
+                )
+                conn.commit()
+                return True, f"Modified column '{column_name}' in table '{table_name}'"
 
-        elif action == ColumnActions.ADD:
-            new_column = Column(column_name, column_details)
-            table.append_column(new_column)
-            action = f"Added column '{column_name}' to table '{table_name}'."
-
-        elif action == ColumnActions.MODIFY:
-            raise NotImplementedError
-
-        # Save changes to the database
-        self.metadata.drop_all(self.engine)
-        self.metadata.create_all(self.engine)
-
-        return True, action
+            else:
+                return False, "Invalid action specified"
 
     def drop_table(self, table_name: str):
         """
@@ -571,15 +577,15 @@ class DatabaseUtils():
 
             # Drop extra columns from the table
             for column_name in extra_columns:
-                self.alter_table_column_add_or_drop(table_name=base.__tablename__,
-                                                    column_name=column_name,
-                                                    column_details=None, action=ColumnActions.DROP)
+                self.alter_table_column_add_or_drop_alembic(table_name=base.__tablename__,
+                                                            column_name=column_name,
+                                                            column_details=None, action=ColumnActions.DROP)
 
             # Add missing columns to the table
             for column_name, column_type_sql in missing_columns.items():
-                self.alter_table_column_add_or_drop(table_name=base.__tablename__,
-                                                        column_name=column_name,
-                                                    column_details=column_type_sql, action=ColumnActions.ADD)
+                self.alter_table_column_add_or_drop_alembic(table_name=base.__tablename__,
+                                                            column_name=column_name,
+                                                            column_details=column_type_sql, action=ColumnActions.ADD)
         else:
             # Create the table if it doesn't exist
             base.metadata.create_all(self.engine)
