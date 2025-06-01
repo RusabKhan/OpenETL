@@ -175,6 +175,8 @@ class Connector(API):
 
             if "paging_next_after" in resp:
                 self.pagination["after"] = resp["paging_next_after"]
+                del resp["paging_next_after"]
+                del resp["paging_next_link"]
             else:
                 break
         
