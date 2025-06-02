@@ -1,7 +1,7 @@
 "use client";
 
 import { DashboardConfig } from "../types/integration";
-import { formatDateTime } from "../utils/func";
+import { formatDateTime, truncateText } from "../utils/func";
 import {
   Table,
   TableBody,
@@ -12,6 +12,12 @@ import {
 } from "../ui/table";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 
 interface DashTableProps {
   columns: string[];
@@ -24,6 +30,7 @@ export default function DashTable({
   data,
   changePage,
 }: DashTableProps) {
+
   return (
     <div className="space-y-4">
       {/* Table */}
@@ -38,7 +45,20 @@ export default function DashTable({
         <TableBody>
           {data.integrations.data.map((integration, key) => (
             <TableRow key={key}>
-              <TableCell>{integration.integration_name}</TableCell>
+              <TableCell>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="truncate block max-w-[200px]">
+                        {integration.integration_name}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{integration.integration_name}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </TableCell>
               <TableCell>{integration.run_count}</TableCell>
               <TableCell>
                 <Badge
@@ -46,14 +66,29 @@ export default function DashTable({
                     integration.latest_run_status === "success"
                       ? "outline"
                       : integration.latest_run_status === "running"
-                      ? "secondary"
-                      : "destructive"
+                        ? "secondary"
+                        : "destructive"
                   }
                 >
                   {integration.latest_run_status}
                 </Badge>
               </TableCell>
-              <TableCell>{integration.error_message || "None"}</TableCell>
+              <TableCell>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="truncate block max-w-[200px]">
+                        {truncateText(integration.error_message)}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="max-w-[300px] max-h-[200px] overflow-y-auto whitespace-pre-wrap break-words">
+                        {integration.error_message || "None"}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </TableCell>
               <TableCell>{formatDateTime(integration.start_date)}</TableCell>
               <TableCell>{formatDateTime(integration.end_date)}</TableCell>
             </TableRow>

@@ -1,7 +1,6 @@
 "use client";
 
 import Head from "next/head";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SidebarInset, SidebarProvider } from "../ui/sidebar";
 import { AppSidebar } from "../app-sidebar";
@@ -16,9 +15,7 @@ export default function DefaultLayout({
   title?: string;
   children: React.ReactNode;
 }>) {
-  const [token, setToken] = useState<string | null>(null);
   const [timezone, setTimezone] = useState<string>("UTC");
-  const router = useRouter();
 
   const load_timezone = async () => {
     try {
@@ -32,14 +29,7 @@ export default function DefaultLayout({
   };
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (!storedToken) {
-      console.log("No token found, redirecting to login");
-      router.push("/login");
-    } else {
-      load_timezone();
-      setToken(storedToken);
-    }
+    load_timezone();
   }, []);
 
   return (

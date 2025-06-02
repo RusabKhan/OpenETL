@@ -71,7 +71,6 @@ const CreateEtl = () => {
   const handleCreateIntegration = async () => {
     try {
       const res = await create_integration(integration);
-      console.log(res);
       if (res && 'status' in res && res.status === 201) {
         toast.success("Integration created successfully!");
         router.push("/pipelines");

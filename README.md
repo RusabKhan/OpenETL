@@ -2,7 +2,7 @@
 
 _By [DataOmni Solutions](https://dataomnisolutions.com)_
 
-![dashboard](https://cdn.dataomnisolutions.com/main/app/dashboard.png)
+![dashboard_new](https://cdn.dataomnisolutions.com/main/app/dashboard.png)
 
 OpenETL is a robust and scalable ETL (Extract, Transform, Load) application built with modern technologies like
 **FastAPI**, **Next.js**, and **Apache Spark**. The application offers an intuitive, user-friendly interface that
