@@ -57,7 +57,7 @@ export default function Home() {
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 md:gap-6">
           <SectionCards data={dashData} />
-          {dashData && dashData.integrations.data.length > 3 && (
+          {dashData && (
             <div className="px-4 lg:px-6">
               <ChartArea data={dashData.integrations.data} />
             </div>
