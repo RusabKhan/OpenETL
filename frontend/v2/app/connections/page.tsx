@@ -29,7 +29,10 @@ export default function Connections() {
       setDatabases(updatedDataConnections);
       setApis(updatedApiConnections);
     } catch (err: any) {
-      toast.error(err.message || "Failed to load connections. Please try again.");
+      if (!err.message.includes("undefined"))
+        toast.error(
+          err.message || "Failed to load connections. Please try again."
+        );
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +65,9 @@ export default function Connections() {
     try {
       await delete_connection(id);
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete connections. Please try again.");
+      toast.error(
+        error.message || "Failed to delete connections. Please try again."
+      );
     } finally {
       load();
     }
