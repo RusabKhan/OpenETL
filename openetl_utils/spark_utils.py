@@ -93,6 +93,8 @@ class SparkConnection():
 
             # Build SparkSession
             spark_session = SparkSession.builder \
+                .master(os.getenv("SPARK_MASTER" , "spark://spark-master:7077")) \
+                .config("spark.driver.host", os.getenv("SPARK_DRIVER_HOST" , "openetl-pro-celery-worker")) \
                 .config(conf=spark_conf) \
                 .getOrCreate()
 
