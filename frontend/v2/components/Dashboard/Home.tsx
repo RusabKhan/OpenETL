@@ -32,7 +32,8 @@ export default function Home() {
         const result = await fetchDashboardData(page);
         setDashData(result.data);
       } catch (err: any) {
-        toast.error(err.message || "Failed to load data. Please try again.");
+        if (!err.message.includes("undefined"))
+          toast.error(err.message || "Failed to load data. Please try again.");
       }
     };
 
