@@ -26,13 +26,15 @@ ENV PATH=$SPARK_HOME/bin:$PATH
 
 # Copy backend application
 COPY ./backend/requirements.txt /app/requirements.txt
-COPY ./backend /app
-COPY ./openetl_utils /app/openetl_utils
-COPY ./connectors /app/connectors
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
+
+COPY ./backend /app
+COPY ./openetl_utils /app/openetl_utils
+COPY ./connectors /app/connectors
+
 
 # Expose the port for FastAPI
 EXPOSE 5009
