@@ -1197,6 +1197,26 @@ def parse_cron_expression(cron_expr):
 
     minute, hour, day_of_month, month, day_of_week = cron_parts
 
+    def format_day_of_week(component):
+        if component == "*":
+            return "every day of the week"
+        if component == "1-5":
+            return "weekdays (Monday to Friday)"
+        if component == "0,6" or component == "6,0":
+            return "weekends (Saturday and Sunday)"
+        if "," in component:
+            days = component.split(",")
+            days_map = {"0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday",
+                        "4": "Thursday", "5": "Friday", "6": "Saturday"}
+            day_names = [days_map.get(day, day) for day in days]
+            return "multiple days: " + ", ".join(day_names)
+        if "-" in component:
+            start, end = component.split("-")
+            days_map = {"0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday",
+                        "4": "Thursday", "5": "Friday", "6": "Saturday"}
+            return f"days from {days_map.get(start, start)} to {days_map.get(end, end)}"
+        return f"specific day(s) of week: {component}"
+
     # Component formatting function
     def format_component(component, name):
         if component == "*":
@@ -1215,7 +1235,7 @@ def parse_cron_expression(cron_expr):
         "hour": format_component(hour, "hour"),
         "day_of_month": format_component(day_of_month, "day of month"),
         "month": format_component(month, "month"),
-        "day_of_week": format_component(day_of_week, "day of week"),
+        "day_of_week": format_day_of_week(day_of_week),
     }
 
     # Compute next execution using croniter (prevents infinite loops)
