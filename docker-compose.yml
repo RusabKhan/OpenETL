@@ -124,6 +124,8 @@ services:
       - openetl-network
     env_file:
       - .env
+    environment:
+      - SPARK_DRIVER_HOST=openetl-celery-worker-1
     depends_on:
       - redis
     restart: always
@@ -138,6 +140,8 @@ services:
       - openetl-network
     env_file:
       - .env
+    environment:
+      - SPARK_DRIVER_HOST=openetl-celery-worker-2
     depends_on:
       - redis
     restart: always
