@@ -40,7 +40,9 @@ const Celery = () => {
       const res = await getCeleryTasks(cache);
       setTasks(res.data);
     } catch (err: any) {
-      toast.error(err.message || "Failed to load tasks");
+      if (!err.message.includes("undefined")) {
+        toast.error(err.message || "Failed to load tasks");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +54,8 @@ const Celery = () => {
       const res = await getCeleryWorkerStatus(cache);
       setWorkerStatus(res.data);
     } catch (err: any) {
-      toast.error(err.message || "Failed to load worker status");
+      if (!err.message.includes("undefined"))
+        toast.error(err.message || "Failed to load worker status");
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +67,8 @@ const Celery = () => {
       const res = await getCeleryQueueInfo(cache);
       setQueueInfo(res.data);
     } catch (err: any) {
-      toast.error(err.message || "Failed to load queue info");
+      if (!err.message.includes("undefined"))
+        toast.error(err.message || "Failed to load queue info");
     } finally {
       setIsLoading(false);
     }
