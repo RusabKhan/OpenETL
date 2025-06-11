@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { update_integration } from "../utils/api";
+import { Input } from "../ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 interface DynamicFormProps {
   data: { [key: string]: any };
@@ -101,13 +103,28 @@ const EditIntegration: React.FC<DynamicFormProps> = ({
                   >
                     {key.replace("_", " ")}
                   </label>
-                  <input
-                    id={key}
-                    name={key}
-                    value={value}
-                    onChange={handleChange}
-                    className="mt-1 rounded-md border border-input bg-background p-2 text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  />
+                  {typeof value === 'boolean' ? (
+                    <Select
+                      value={value.toString()}
+                      onValueChange={(val) => handleChange({ target: { name: key, value: val === 'true' } } as any)}
+                    >
+                      <SelectTrigger className="mt-1 w-full">
+                        <SelectValue placeholder="Select value" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">True</SelectItem>
+                        <SelectItem value="false">False</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id={key}
+                      name={key}
+                      value={value}
+                      onChange={handleChange}
+                      className="mt-1"
+                    />
+                  )}
                 </div>
               );
             }

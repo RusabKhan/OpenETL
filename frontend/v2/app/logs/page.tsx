@@ -159,7 +159,7 @@ const ApiLogs = (params: any) => {
   const loadLogs = async (cache: boolean) => {
     setIsloading(true);
     const params: LogsParam = {
-      logs_type: "api",
+      logs_type: "integration",
       per_page: 20,
       page: page,
     };

@@ -11,6 +11,15 @@ import {
 } from "../utils/api";
 import { useRouter } from "next/navigation";
 import { Connectors } from "../types/connectors";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Input } from "../ui/input";
 
 interface CreateProps {
   closeForm: () => void;
@@ -30,38 +39,33 @@ const FormField = ({
   label: string;
   name: string;
   value: string | number;
-  onChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => void;
+  onChange: (value: string) => void;
   options?: { value: string; label: string }[];
   type?: string;
   placeholder?: string;
 }) => (
   <div className="space-y-2">
-    <label htmlFor={name} className="block text-sm font-medium text-foreground">
-      {label}
-    </label>
+    <Label>{label}</Label>
     {options ? (
-      <select
-        name={name}
-        id={name}
-        value={value}
-        onChange={onChange}
-        className="block w-full rounded-md border border-input bg-background p-2 text-sm text-foreground shadow-sm focus:border-primary focus:ring-primary"
-      >
-        {options.map((option, i) => (
-          <option value={option.value} key={i}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      <Select onValueChange={onChange}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder={`Select ${label}`} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option, i) => (
+            <SelectItem key={option.value} value={option.value}>
+              {capitalizeFirstLetter(option.label)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     ) : (
-      <input
+      <Input
         type={type}
         name={name}
         id={name}
         value={value}
-        onChange={onChange}
+        onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="block w-full rounded-md border border-input bg-background p-2 text-sm text-foreground shadow-sm focus:border-primary focus:ring-primary"
         required
@@ -88,7 +92,15 @@ const DynamicFields = ({
           label={capitalizeFirstLetter(key)}
           name={key}
           value={value}
-          onChange={onChange}
+          onChange={(val: string) => {
+            const event = {
+              target: {
+                name: key,
+                value: val,
+              },
+            } as React.ChangeEvent<HTMLInputElement>;
+            onChange(event);
+          }}
           type={
             key === "password"
               ? "password"
@@ -106,7 +118,7 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
     connection_type: "database",
     connection_name: "",
     connector_name: "postgresql",
-    auth_type: "basic",
+    auth_type: "",
   });
 
   const [connectors, setConnectors] = useState<Connectors>({
@@ -172,17 +184,22 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
         if (name === "connection_type") {
           return {
             ...prev,
-            auth_type: value === "database" ? "basic" : "bearer",
             connection_type: value,
             connector_name:
               value === "database" ? connectors.database[0] : connectors.api[0],
+          };
+        } else if (name == "connector_name") {
+          return {
+            ...prev,
+            connector_name: value,
+            auth_type: "",
           };
         }
 
         return { ...prev, [name]: value };
       });
     },
-    [connectors]
+    [connectors, authType]
   );
 
   const handleFieldsChange = useCallback(
@@ -242,7 +259,7 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
         };
 
         const response = await store_connection(storePayload);
-        
+
         if (response.data[0]) {
           toast.success("Connection added!");
           closeForm();
@@ -269,7 +286,16 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
               label="Select Connection Type"
               name="connection_type"
               value={connection.connection_type}
-              onChange={handleChange}
+              onChange={(value: string) =>
+                setConnection((prev) => ({
+                  ...prev,
+                  connection_type: value,
+                  connector_name:
+                    value === "database"
+                      ? connectors.database[0]
+                      : connectors.api[0],
+                }))
+              }
               options={CONNECTION_TYPES.map((type) => ({
                 value: type.value,
                 label: type.label,
@@ -279,7 +305,11 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
               label="Connection Name"
               name="connection_name"
               value={connection.connection_name}
-              onChange={handleChange}
+              onChange={(value: string) =>
+                handleChange({
+                  target: { name: "connection_name", value },
+                } as React.ChangeEvent<HTMLInputElement>)
+              }
               placeholder="my_connection"
             />
             <FormField
@@ -288,14 +318,22 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
               )}`}
               name="connector_name"
               value={connection.connector_name}
-              onChange={handleChange}
+              onChange={(value: string) =>
+                handleChange({
+                  target: { name: "connector_name", value },
+                } as React.ChangeEvent<HTMLInputElement>)
+              }
               options={connectorOptions}
             />
             <FormField
               label="Authentication Type"
               name="auth_type"
               value={connection.auth_type}
-              onChange={handleChange}
+              onChange={(value: string) =>
+                handleChange({
+                  target: { name: "auth_type", value },
+                } as React.ChangeEvent<HTMLInputElement>)
+              }
               options={authType.map((auth) => ({
                 value: auth,
                 label: capitalizeFirstLetter(auth),
@@ -303,7 +341,7 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
             />
             <DynamicFields fields={fields} onChange={handleFieldsChange} />
           </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 mt-2">
             <button
               type="button"
               className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-foreground bg-secondary hover:bg-secondary/80 focus-visible:ring focus-visible:ring-ring focus-visible:ring-offset-2"

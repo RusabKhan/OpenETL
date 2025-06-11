@@ -16,13 +16,16 @@ import os
 import sys
 from typing import List, Type
 
+import sqlalchemy
 import sqlalchemy as sq
 import pandas as pd
+from alembic.operations import Operations
+from alembic.runtime.migration import MigrationContext
 
 from openetl_utils.__migrations__.app import OpenETLDocument, OpenETLOAuthToken
 from openetl_utils.__migrations__.batch import OpenETLBatch
 from openetl_utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
-from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect, or_
+from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect, or_, String
 from sqlalchemy.orm import sessionmaker
 
 from openetl_utils.cache import sqlalchemy_database_engines
@@ -285,41 +288,44 @@ class DatabaseUtils():
 
         return df
 
-    def alter_table_column_add_or_drop(self, table_name, column_name=None, column_details=None, action: ColumnActions = ColumnActions.ADD):
+    def alter_table_column_add_or_drop_alembic(self, table_name, column_name=None,
+                                               column_details: sqlalchemy.Column = Column(String),
+                                               action: ColumnActions = ColumnActions.ADD):
         """
-        Alters a SQLAlchemy table by either adding or dropping a column.
+        Uses Alembic Operations API to add or drop a column from a table without dropping data.
+        """
+        with self.engine.connect() as conn:
+            ctx = MigrationContext.configure(conn)
+            op = Operations(ctx)
 
-        Args:
-            action:
-            table_name (str): The name of the table to be altered.
-            column_name (str): The name of the column to be added or dropped. Required if drop_column is False.
-            column_details (str): The details of the column to be added. Required if drop_column is False.
+            if action == ColumnActions.ADD:
+                if not isinstance(column_details, Column):
+                    return False, "column_details must be a SQLAlchemy Column instance"
+                op.add_column(table_name, column_details)
+                conn.commit()
+                return True, f"Added column '{column_details.name}' to table '{table_name}'"
 
-        Returns:
-            tuple: A tuple containing a boolean indicating success or failure and a message.
+            elif action == ColumnActions.DROP:
+                op.drop_column(table_name, column_name)
+                conn.commit()
+                return True, f"Dropped column '{column_name}' from table '{table_name}'"
 
-         """
-        # Reflect the existing table from the database
-        table = Table(table_name, self.metadata,
-                      autoload_with=self.engine)
 
-        if action == ColumnActions.DROP:
-            table._columns.remove(table.c[column_name])
-            action = f"Dropped column '{column_name}' from table '{table_name}'."
+            elif action == ColumnActions.MODIFY:
+                if not isinstance(column_details, Column):
+                    return False, "column_details must be a SQLAlchemy Column instance"
+                op.alter_column(
+                    table_name=table_name,
+                    column_name=column_name,
+                    type_=column_details.type,
+                    existing_type=column_details.type,
+                    nullable=column_details.nullable
+                )
+                conn.commit()
+                return True, f"Modified column '{column_name}' in table '{table_name}'"
 
-        elif action == ColumnActions.ADD:
-            new_column = Column(column_name, column_details)
-            table.append_column(new_column)
-            action = f"Added column '{column_name}' to table '{table_name}'."
-
-        elif action == ColumnActions.MODIFY:
-            raise NotImplementedError
-
-        # Save changes to the database
-        self.metadata.drop_all(self.engine)
-        self.metadata.create_all(self.engine)
-
-        return True, action
+            else:
+                return False, "Invalid action specified"
 
     def drop_table(self, table_name: str):
         """
@@ -571,15 +577,15 @@ class DatabaseUtils():
 
             # Drop extra columns from the table
             for column_name in extra_columns:
-                self.alter_table_column_add_or_drop(table_name=base.__tablename__,
-                                                    column_name=column_name,
-                                                    column_details=None, action=ColumnActions.DROP)
+                self.alter_table_column_add_or_drop_alembic(table_name=base.__tablename__,
+                                                            column_name=column_name,
+                                                            column_details=None, action=ColumnActions.DROP)
 
             # Add missing columns to the table
             for column_name, column_type_sql in missing_columns.items():
-                self.alter_table_column_add_or_drop(table_name=base.__tablename__,
-                                                        column_name=column_name,
-                                                    column_details=column_type_sql, action=ColumnActions.ADD)
+                self.alter_table_column_add_or_drop_alembic(table_name=base.__tablename__,
+                                                            column_name=column_name,
+                                                            column_details=column_type_sql, action=ColumnActions.ADD)
         else:
             # Create the table if it doesn't exist
             base.metadata.create_all(self.engine)
@@ -1144,32 +1150,24 @@ def get_open_etl_document_connection_details(url=False):
         "database": os.getenv("OPENETL_DOCUMENT_DB","airflow")
     }
 
-def generate_cron_expression(schedule_time, schedule_dates=None, frequency=None):
-    """
-    Generates a cron expression based on provided scheduling details.
-
-    :param schedule_time: Time string in 'HH:MM:SS' format.
-    :param schedule_dates: List of date strings in 'YYYY-MM-DD' format or None.
-    :param frequency: A string defining the frequency ('daily', 'weekly', 'hourly') or None.
-    :return: List of cron expression strings.
-    """
+def generate_cron_expression(frequency, schedule_time, schedule_dates=None):
     time_parts = schedule_time.split(':')
     minute = time_parts[1]
     hour = time_parts[0]
 
-    if frequency:
-        frequency = frequency.lower()
-
-        if frequency == 'hourly':
-            return [f"0 * * * *"]
-        elif frequency == 'daily':
-            return [f"{minute} {hour} * * *"]
-        elif frequency == 'weekly':
-            return [f"{minute} {hour} * * 0"]
-        else:
-            raise ValueError("Unsupported frequency value. Use 'hourly', 'daily', or 'weekly'.")
-
-    if schedule_dates:
+    if frequency.lower() == 'hourly':
+        return [f"0 * * * *"]
+    elif frequency.lower() == 'daily':
+        return [f"{minute} {hour} * * *"]
+    elif frequency.lower() == 'weekly':
+        return [f"{minute} {hour} * * 0"]  # Sunday
+    elif frequency.lower() == 'weekdays':
+        # Monday(1) to Friday(5)
+        return [f"{minute} {hour} * * 1-5"]
+    elif frequency.lower() == 'weekends':
+        # Saturday(6) and Sunday(0)
+        return [f"{minute} {hour} * * 6,0"]
+    elif schedule_dates:
         cron_expressions = []
         for date_str in schedule_dates:
             date_obj = datetime.strptime(date_str, "%Y-%m-%d")
@@ -1177,8 +1175,8 @@ def generate_cron_expression(schedule_time, schedule_dates=None, frequency=None)
             month = date_obj.month
             cron_expressions.append(f"{minute} {hour} {day} {month} *")
         return cron_expressions
-
-    raise ValueError("Either frequency or schedule_dates must be provided.")
+    else:
+        raise ValueError("Unsupported scheduling details provided.")
 
 
 
@@ -1199,6 +1197,26 @@ def parse_cron_expression(cron_expr):
 
     minute, hour, day_of_month, month, day_of_week = cron_parts
 
+    def format_day_of_week(component):
+        if component == "*":
+            return "every day of the week"
+        if component == "1-5":
+            return "weekdays (Monday to Friday)"
+        if component == "0,6" or component == "6,0":
+            return "weekends (Saturday and Sunday)"
+        if "," in component:
+            days = component.split(",")
+            days_map = {"0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday",
+                        "4": "Thursday", "5": "Friday", "6": "Saturday"}
+            day_names = [days_map.get(day, day) for day in days]
+            return "multiple days: " + ", ".join(day_names)
+        if "-" in component:
+            start, end = component.split("-")
+            days_map = {"0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday",
+                        "4": "Thursday", "5": "Friday", "6": "Saturday"}
+            return f"days from {days_map.get(start, start)} to {days_map.get(end, end)}"
+        return f"specific day(s) of week: {component}"
+
     # Component formatting function
     def format_component(component, name):
         if component == "*":
@@ -1217,7 +1235,7 @@ def parse_cron_expression(cron_expr):
         "hour": format_component(hour, "hour"),
         "day_of_month": format_component(day_of_month, "day of month"),
         "month": format_component(month, "month"),
-        "day_of_week": format_component(day_of_week, "day of week"),
+        "day_of_week": format_day_of_week(day_of_week),
     }
 
     # Compute next execution using croniter (prevents infinite loops)

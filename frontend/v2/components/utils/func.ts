@@ -18,9 +18,9 @@ export function isValidAuthParams(
 
 export const getCurrentTime = () => {
   const now = new Date();
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  const seconds = String(now.getSeconds()).padStart(2, "0");
+  const hours = String(now.getUTCHours()).padStart(2, "0");
+  const minutes = String(now.getUTCMinutes()).padStart(2, "0");
+  const seconds = String(now.getUTCSeconds()).padStart(2, "0");
 
   return `${hours}:${minutes}:${seconds}`;
 };
@@ -29,9 +29,9 @@ export const getCurrentDate = () => {
   const now = new Date();
 
   // Format date as YYYY-MM-DD
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
-  const day = String(now.getDate()).padStart(2, "0");
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+  const day = String(now.getUTCDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 };
@@ -78,3 +78,8 @@ export function extractInitials(input: string): string {
     words[0].charAt(0).toUpperCase() + words[1].charAt(0).toUpperCase() // Return the first letters of the first two words
   );
 }
+
+export const truncateText = (text: string, maxLength: number = 50) => {
+  if (!text) return "None";
+  return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+};

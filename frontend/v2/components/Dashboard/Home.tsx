@@ -32,7 +32,8 @@ export default function Home() {
         const result = await fetchDashboardData(page);
         setDashData(result.data);
       } catch (err: any) {
-        toast.error(err.message || "Failed to load data. Please try again.");
+        if (!err.message.includes("undefined"))
+          toast.error(err.message || "Failed to load data. Please try again.");
       }
     };
 
@@ -57,7 +58,7 @@ export default function Home() {
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 md:gap-6">
           <SectionCards data={dashData} />
-          {dashData && dashData.integrations.data.length > 3 && (
+          {dashData && (
             <div className="px-4 lg:px-6">
               <ChartArea data={dashData.integrations.data} />
             </div>
