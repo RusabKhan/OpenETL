@@ -124,25 +124,15 @@ services:
       - openetl-network
     env_file:
       - .env
+    environment:
+        - SPARK_DRIVER_HOST=openetl-pro-celery-worker-1
+        - CELERYD_PREFETCH_MULTIPLIER=1
     depends_on:
       - redis
     restart: always
     volumes:
       - ~/.logs:/app/.logs
 
-  celery_worker-2:
-    container_name: openetl-celery-worker-2
-    image: openetl-backend  # Use the backend image
-    command: celery -A openetl_utils.celery_utils worker --loglevel=info --concurrency=4
-    networks:
-      - openetl-network
-    env_file:
-      - .env
-    depends_on:
-      - redis
-    restart: always
-    volumes:
-      - ~/.logs:/app/.logs
 
   db:
     image: postgres:15
