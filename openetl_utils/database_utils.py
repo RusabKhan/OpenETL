@@ -787,7 +787,7 @@ class DatabaseUtils():
         return True
 
 
-    def insert_openetl_batch(self, start_date, integration_id, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None):
+    def insert_openetl_batch(self, start_date, integration_id, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None, run_id=None):
         """
         Inserts a new OpenETLBatch instance into the database.
 
@@ -800,6 +800,7 @@ class DatabaseUtils():
             integration_name (str): The name of the integration.
             rows_count (int, optional): The number of rows in the batch. Defaults to 0.
             end_date (datetime, optional): The end date of the batch. Defaults to None.
+            run_id (UUID): The run ID of the batch. Defaults to None.
 
         Returns:
             OpenETLBatch: The newly created OpenETLBatch instance.
@@ -816,7 +817,8 @@ class DatabaseUtils():
             batch_type=batch_type,
             batch_status=batch_status,
             integration_name=integration_name,
-            rows_count=rows_count
+            rows_count=rows_count,
+            run_id=run_id
         )
 
         # Add and commit the new batch to the session

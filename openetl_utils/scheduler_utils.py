@@ -189,7 +189,7 @@ def start_scheduler():
     # Add a periodic job to check and schedule tasks every 30 seconds
     scheduler.add_job(
         func=check_and_schedule_tasks,
-        trigger=IntervalTrigger(seconds=60),
+        trigger=IntervalTrigger(seconds=15),
         id=scheduler_job_id,
         replace_existing=True,
     )
