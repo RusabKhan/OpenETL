@@ -1122,7 +1122,10 @@ class DatabaseUtils():
         return batch
 
     def get_integrations_to_schedule(self) -> list[Type[OpenETLIntegrations]]:
-        return self.session.query(OpenETLIntegrations).all()
+        return self.session.query(OpenETLIntegrations).filter(
+            OpenETLIntegrations.is_enabled == True,
+            OpenETLIntegrations.is_running == False
+        ).all()
 
 
     def create_integration_history(self, **kwargs):
