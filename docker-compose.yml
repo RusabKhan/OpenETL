@@ -47,15 +47,12 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
-      - SPARK_MASTER_LOG_DIR=/app/.logs
     ports:
       - "8080:8080"  # Spark Web UI
       - "7077:7077"  # Spark Master
     networks:
       - openetl-network
     restart: always
-    volumes:
-      - ~/.logs:/app/.logs
 
   spark-worker-1:
     image: bitnami/spark:3.5.6
@@ -69,12 +66,9 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
-      - SPARK_WORKER_LOG_DIR=/app/.logs
     networks:
       - openetl-network
     restart: always
-    volumes:
-      - ~/.logs:/app/.logs
 
   spark-worker-2:
     image: bitnami/spark:3.5.6
@@ -88,12 +82,9 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
-      - SPARK_WORKER_LOG_DIR=/app/.logs
     networks:
       - openetl-network
     restart: always
-    volumes:
-      - ~/.logs:/app/.logs
 
   redis:
     image: redis
@@ -125,7 +116,6 @@ services:
     env_file:
       - .env
     environment:
-        - SPARK_DRIVER_HOST=openetl-pro-celery-worker-1
         - CELERYD_PREFETCH_MULTIPLIER=1
     depends_on:
       - redis
@@ -142,7 +132,7 @@ services:
       POSTGRES_PASSWORD: openetl123
       POSTGRES_DB: openetl_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:

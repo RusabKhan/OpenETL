@@ -150,14 +150,15 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                                             spark_session=spark_session, db_class=db, logger=logger)
                         run_status = RunStatus.SUCCESS
             else:
-                for df in read_data(connector_name=source_connection_details['connector_name'],
+                gen = read_data(connector_name=source_connection_details['connector_name'],
                                     auth_values=source_credentials,
                                     auth_type=source_connection_details['auth_type'],
                                     table=source_table,
                                     connection_type=source_connection_details['connection_type'],
                                     schema=source_schema,
                                     batch_size=batch_size,
-                                    logger=logger):
+                                    logger=logger)
+                for df in gen:
                     row_count = 0
 
                     if not df.empty:
@@ -192,8 +193,6 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
         logger.error(e)
         run_status = RunStatus.FAILED
     finally:
-        if batch_id:
-            complete_batch(db_class=db, batch_id=batch_id, integration_id=job_id, batch_df_size=row_count, logger=logger, batch_status=run_status)
         update_integration_in_db(job_id, job_id, exception, run_status, datetime.utcnow(), row_count=row_count)
 
 
