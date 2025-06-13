@@ -176,7 +176,6 @@ main.env
 /.idea/*
 
 .DS_Store
-.*
 
 ./app
 /node_modules/*
