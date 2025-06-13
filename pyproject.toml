@@ -1,6 +1,6 @@
 [project]
 name = "OpenETL"
-version = "0.1.0"
+version = "0.1.1"
 description = "Freemium ETL application by DataOmni Solutions"
 readme = "README.md"
 authors = [
