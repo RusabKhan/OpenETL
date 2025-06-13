@@ -34,7 +34,7 @@ services:
     restart: always
 
   spark-master:
-    image: bitnami/spark:3.5.3
+    image: bitnami/spark:3.5.6
     container_name: spark-master
     environment:
       - SPARK_MODE=master
@@ -47,18 +47,15 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
-      - SPARK_MASTER_LOG_DIR=/app/.logs
     ports:
       - "8080:8080"  # Spark Web UI
       - "7077:7077"  # Spark Master
     networks:
       - openetl-network
     restart: always
-    volumes:
-      - ~/.logs:/app/.logs
 
   spark-worker-1:
-    image: bitnami/spark:3.5.3
+    image: bitnami/spark:3.5.6
     container_name: spark-worker-1
     environment:
       - SPARK_MODE=worker
@@ -69,15 +66,12 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
-      - SPARK_WORKER_LOG_DIR=/app/.logs
     networks:
       - openetl-network
     restart: always
-    volumes:
-      - ~/.logs:/app/.logs
 
   spark-worker-2:
-    image: bitnami/spark:3.5.3
+    image: bitnami/spark:3.5.6
     container_name: spark-worker-2
     environment:
       - SPARK_MODE=worker
@@ -88,12 +82,9 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
-      - SPARK_WORKER_LOG_DIR=/app/.logs
     networks:
       - openetl-network
     restart: always
-    volumes:
-      - ~/.logs:/app/.logs
 
   redis:
     image: redis
@@ -116,19 +107,40 @@ services:
     volumes:
       - ~/.logs:/app/.logs
 
-  celery_worker:
-    container_name: openetl-celery-worker
+  celery_worker-1:
+    container_name: openetl-celery-worker-1
     image: openetl-backend  # Use the backend image
     command: celery -A openetl_utils.celery_utils worker --loglevel=info --concurrency=4
     networks:
       - openetl-network
     env_file:
       - .env
+    environment:
+        - CELERYD_PREFETCH_MULTIPLIER=1
     depends_on:
       - redis
     restart: always
     volumes:
       - ~/.logs:/app/.logs
+
+
+  db:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: openetl
+      POSTGRES_PASSWORD: openetl123
+      POSTGRES_DB: openetl_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - openetl-network
+    restart: always
+
+volumes:
+  pgdata:
 
 networks:
   openetl-network:

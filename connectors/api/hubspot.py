@@ -173,8 +173,10 @@ class Connector(API):
             resp = super().fetch_data(api_session, paginated_endpoint, self.main_response_key)
             yield resp
 
-            if "paging" in resp and "next" in resp["paging"]:
-                self.pagination["after"] = resp["paging"]["next"]["after"]
+            if "paging_next_after" in resp:
+                self.pagination["after"] = resp["paging_next_after"]
+                del resp["paging_next_after"]
+                del resp["paging_next_link"]
             else:
                 break
         
