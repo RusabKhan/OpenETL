@@ -36,7 +36,7 @@ services:
     restart: always
 
   spark-master:
-    image: bitnami/spark:3.5.6
+    image: bitnami/spark:4.0.0
     container_name: spark-master
     environment:
       - SPARK_MODE=master
@@ -50,7 +50,9 @@ services:
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
       - SPARK_WORKER_LOG_DIR=/app/.logs
-      - SPARK_LOCAL_DIRS=/app/tmp
+      - SPARK_LOCAL_DIRS=/tmp
+      - SPARK_WORKER_DIR=/tmp
+      - SPARK_MASTER_DIR=/tmp
     ports:
       - "8080:8080"
       - "7077:7077"
@@ -60,9 +62,12 @@ services:
     volumes:
       - openetl-logs:/app/.logs
       - spark-tmp:/app/tmp
+      - /tmp:/tmp
+      - type: tmpfs
+        target: /tmp/spark
 
   spark-worker-1:
-    image: bitnami/spark:3.5.6
+    image: bitnami/spark:4.0.0
     container_name: spark-worker-1
     environment:
       - SPARK_MODE=worker
@@ -74,7 +79,8 @@ services:
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
       - SPARK_WORKER_LOG_DIR=/app/.logs
-      - SPARK_LOCAL_DIRS=/app/tmp
+      - SPARK_LOCAL_DIRS=/tmp
+      - SPARK_WORKER_DIR=/tmp
     ports:
       - "8081:8081"
     networks:
@@ -83,9 +89,12 @@ services:
     volumes:
       - openetl-logs:/app/.logs
       - spark-tmp:/app/tmp
+      - /tmp:/tmp
+      - type: tmpfs
+        target: /tmp/spark
 
   spark-worker-2:
-    image: bitnami/spark:3.5.6
+    image: bitnami/spark:4.0.0
     container_name: spark-worker-2
     environment:
       - SPARK_MODE=worker
@@ -97,7 +106,8 @@ services:
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
       - SPARK_WORKER_LOG_DIR=/app/.logs
-      - SPARK_LOCAL_DIRS=/app/tmp
+      - SPARK_LOCAL_DIRS=/tmp
+      - SPARK_WORKER_DIR=/tmp
     ports:
       - "8082:8082"
     networks:
@@ -106,6 +116,9 @@ services:
     volumes:
       - openetl-logs:/app/.logs
       - spark-tmp:/app/tmp
+      - /tmp:/tmp
+      - type: tmpfs
+        target: /tmp/spark
 
   redis:
     image: redis:latest
