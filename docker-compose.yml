@@ -7,6 +7,7 @@ services:
       dockerfile: backend/Dockerfile
       args:
         - DOCKER_BUILDKIT=1
+    image: openetl-backend:latest
     container_name: openetl-backend
     networks:
       - openetl-network
@@ -16,7 +17,7 @@ services:
       - .env
     restart: always
     volumes:
-      - ~/.logs:/app/.logs
+      - openetl-logs:/app/.logs
 
   frontend:
     build:
@@ -24,6 +25,7 @@ services:
       dockerfile: frontend/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:5009
+    image: openetl-frontend:latest
     container_name: openetl-frontend
     networks:
       - openetl-network
@@ -34,7 +36,7 @@ services:
     restart: always
 
   spark-master:
-    image: bitnami/spark:3.5.6
+    image: bitnami/spark:4.0.0
     container_name: spark-master
     environment:
       - SPARK_MODE=master
@@ -47,15 +49,25 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
+      - SPARK_WORKER_LOG_DIR=/app/.logs
+      - SPARK_LOCAL_DIRS=/tmp
+      - SPARK_WORKER_DIR=/tmp
+      - SPARK_MASTER_DIR=/tmp
     ports:
-      - "8080:8080"  # Spark Web UI
-      - "7077:7077"  # Spark Master
+      - "8080:8080"
+      - "7077:7077"
     networks:
       - openetl-network
     restart: always
+    volumes:
+      - openetl-logs:/app/.logs
+      - spark-tmp:/app/tmp
+      - /tmp:/tmp
+      - type: tmpfs
+        target: /tmp/spark
 
   spark-worker-1:
-    image: bitnami/spark:3.5.6
+    image: bitnami/spark:4.0.0
     container_name: spark-worker-1
     environment:
       - SPARK_MODE=worker
@@ -66,12 +78,23 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
+      - SPARK_WORKER_LOG_DIR=/app/.logs
+      - SPARK_LOCAL_DIRS=/tmp
+      - SPARK_WORKER_DIR=/tmp
+    ports:
+      - "8081:8081"
     networks:
       - openetl-network
     restart: always
+    volumes:
+      - openetl-logs:/app/.logs
+      - spark-tmp:/app/tmp
+      - /tmp:/tmp
+      - type: tmpfs
+        target: /tmp/spark
 
   spark-worker-2:
-    image: bitnami/spark:3.5.6
+    image: bitnami/spark:4.0.0
     container_name: spark-worker-2
     environment:
       - SPARK_MODE=worker
@@ -82,12 +105,23 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
+      - SPARK_WORKER_LOG_DIR=/app/.logs
+      - SPARK_LOCAL_DIRS=/tmp
+      - SPARK_WORKER_DIR=/tmp
+    ports:
+      - "8082:8082"
     networks:
       - openetl-network
     restart: always
+    volumes:
+      - openetl-logs:/app/.logs
+      - spark-tmp:/app/tmp
+      - /tmp:/tmp
+      - type: tmpfs
+        target: /tmp/spark
 
   redis:
-    image: redis
+    image: redis:latest
     container_name: redis
     networks:
       - openetl-network
@@ -97,7 +131,7 @@ services:
 
   scheduler:
     container_name: openetl-scheduler
-    image: openetl-backend  # Use the backend image
+    image: openetl-backend:latest
     command: python3 openetl_utils/scheduler_utils.py
     env_file:
       - .env
@@ -105,24 +139,24 @@ services:
       - openetl-network
     restart: always
     volumes:
-      - ~/.logs:/app/.logs
+      - openetl-logs:/app/.logs
 
   celery_worker-1:
     container_name: openetl-celery-worker-1
-    image: openetl-backend  # Use the backend image
+    image: openetl-backend:latest
     command: celery -A openetl_utils.celery_utils worker --loglevel=info --concurrency=4
     networks:
       - openetl-network
     env_file:
       - .env
     environment:
-        - CELERYD_PREFETCH_MULTIPLIER=1
+      - CELERYD_PREFETCH_MULTIPLIER=1
     depends_on:
       - redis
     restart: always
     volumes:
-      - ~/.logs:/app/.logs
-
+      - openetl-logs:/app/.logs
+      - /tmp:/tmp
 
   db:
     image: postgres:15
@@ -141,6 +175,12 @@ services:
 
 volumes:
   pgdata:
+  openetl-logs:
+  spark-tmp:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
 
 networks:
   openetl-network:

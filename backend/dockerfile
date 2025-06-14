@@ -14,12 +14,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Spark (version 3.5.3) from the official Apache repo
-RUN wget -q "https://downloads.apache.org/spark/spark-3.5.6/spark-3.5.6-bin-hadoop3.tgz" && \
-    tar -xvf spark-3.5.6-bin-hadoop3.tgz -C /opt && \
-    rm spark-3.5.6-bin-hadoop3.tgz
+RUN wget -q "https://downloads.apache.org/spark/spark-4.0.0/spark-4.0.0-bin-hadoop3.tgz" && \
+    tar -xvf spark-4.0.0-bin-hadoop3.tgz -C /opt && \
+    rm spark-4.0.0-bin-hadoop3.tgz
 
 # Set SPARK_HOME environment variable
-ENV SPARK_HOME=/opt/spark-3.5.6-bin-hadoop3
+ENV SPARK_HOME=/opt/spark-4.0.0-bin-hadoop3
 
 # Add Spark binaries to the PATH
 ENV PATH=$SPARK_HOME/bin:$PATH
