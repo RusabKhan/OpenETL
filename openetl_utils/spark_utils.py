@@ -93,9 +93,9 @@ class SparkConnection():
 
             # Build SparkSession
             spark_session = SparkSession.builder \
-                .master(os.getenv("SPARK_MASTER" , "local[*]")) \
-                .config(conf=spark_conf) \
-                .getOrCreate()
+            .master(os.getenv("SPARK_MASTER" , "local[*]")) \
+            .config(conf=spark_conf) \
+            .getOrCreate()
 
             # Set Hadoop configurations
             if self.hadoop_configuration:
