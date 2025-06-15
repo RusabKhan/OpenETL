@@ -1,99 +1,73 @@
-version: '3.9'
+name: Build and Push Docker Images
 
-services:
-  backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-      args:
-        - DOCKER_BUILDKIT=1
-    container_name: openetl-backend
-    networks:
-      - openetl-network
-    depends_on:
-      - db
-    ports:
-      - "5009:5009"
-    env_file:
-      - .env
-    restart: always
-    volumes:
-      - ~/.logs:/app/.logs
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
-  frontend:
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: http://localhost:5009
-    container_name: openetl-frontend
-    networks:
-      - openetl-network
-    depends_on:
-      - backend
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:5009
-    restart: always
+jobs:
+  docker:
+    runs-on: ubuntu-latest
 
-  redis:
-    image: redis
-    container_name: redis
-    networks:
-      - openetl-network
-    ports:
-      - "6379:6379"
-    restart: always
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-  scheduler:
-    container_name: openetl-scheduler
-    image: openetl-backend  # Use the backend image
-    command: python3 openetl_utils/scheduler_utils.py
-    env_file:
-      - .env
-    depends_on:
-      - db
-    networks:
-      - openetl-network
-    restart: always
-    volumes:
-      - ~/.logs:/app/.logs
+      - name: Verify tag is on release/docker branch
+        run: |
+          TAG_COMMIT=$(git rev-list -n 1 $GITHUB_REF)
+          BRANCH=$(git branch -r --contains $TAG_COMMIT | grep origin/release/docker || true)
+          if [ -z "$BRANCH" ]; then
+            echo "Tag is not on release/docker branch. Exiting."
+            exit 1
+          fi
 
-  celery_worker-1:
-    container_name: openetl-celery-worker-1
-    image: openetl-backend  # Use the backend image
-    command: celery -A openetl_utils.celery_utils worker --loglevel=info --concurrency=4
-    networks:
-      - openetl-network
-    env_file:
-      - .env
-    depends_on:
-      - redis
-      - db
-    restart: always
-    volumes:
-      - ~/.logs:/app/.logs
+      - name: Extract version from tag
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: rusabkhan
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-  db:
-    image: postgres:15
-    container_name: postgres
-    environment:
-      POSTGRES_USER: openetl
-      POSTGRES_PASSWORD: openetl123
-      POSTGRES_DB: openetl_db
-    ports:
-      - "5433:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks:
-      - openetl-network
-    restart: always
+      - name: Build and tag all services
+        run: |
+          docker-compose build backend frontend
 
-volumes:
-  pgdata:
+          docker tag openetl-backend rusabkhan/openetl-backend:$VERSION
+          docker tag openetl-backend rusabkhan/openetl-backend:latest
 
-networks:
-  openetl-network:
-    driver: bridge
+          docker tag openetl-frontend rusabkhan/openetl-frontend:$VERSION
+          docker tag openetl-frontend rusabkhan/openetl-frontend:latest
+
+          docker tag openetl-backend rusabkhan/openetl-scheduler:$VERSION
+          docker tag openetl-backend rusabkhan/openetl-scheduler:latest
+
+          docker tag openetl-backend rusabkhan/openetl-celery:$VERSION
+          docker tag openetl-backend rusabkhan/openetl-celery:latest
+
+      - name: Push images to Docker Hub
+        run: |
+          docker push rusabkhan/openetl-backend:$VERSION
+          docker push rusabkhan/openetl-backend:latest
+
+          docker push rusabkhan/openetl-frontend:$VERSION
+          docker push rusabkhan/openetl-frontend:latest
+
+          docker push rusabkhan/openetl-scheduler:$VERSION
+          docker push rusabkhan/openetl-scheduler:latest
+
+          docker push rusabkhan/openetl-celery:$VERSION
+          docker push rusabkhan/openetl-celery:latest
+
+      - name: Update backend README on Docker Hub
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: rusabkhan
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: rusabkhan/openetl-backend
+          readme-filepath: ./README.md
