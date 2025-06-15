@@ -1,0 +1,73 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag is on release/docker branch
+        run: |
+          TAG_COMMIT=$(git rev-list -n 1 $GITHUB_REF)
+          BRANCH=$(git branch -r --contains $TAG_COMMIT | grep origin/release/docker || true)
+          if [ -z "$BRANCH" ]; then
+            echo "Tag is not on release/docker_hub branch. Exiting."
+            exit 1
+          fi
+
+      - name: Extract version from tag
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: rusabkhan
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and tag all services
+        run: |
+          docker compose build backend frontend
+
+          docker tag openetl-backend rusabkhan/openetl-backend:$VERSION
+          docker tag openetl-backend rusabkhan/openetl-backend:latest
+
+          docker tag openetl-frontend rusabkhan/openetl-frontend:$VERSION
+          docker tag openetl-frontend rusabkhan/openetl-frontend:latest
+
+          docker tag openetl-backend rusabkhan/openetl-scheduler:$VERSION
+          docker tag openetl-backend rusabkhan/openetl-scheduler:latest
+
+          docker tag openetl-backend rusabkhan/openetl-celery:$VERSION
+          docker tag openetl-backend rusabkhan/openetl-celery:latest
+
+      - name: Push images to Docker Hub
+        run: |
+          docker push rusabkhan/openetl-backend:$VERSION
+          docker push rusabkhan/openetl-backend:latest
+
+          docker push rusabkhan/openetl-frontend:$VERSION
+          docker push rusabkhan/openetl-frontend:latest
+
+          docker push rusabkhan/openetl-scheduler:$VERSION
+          docker push rusabkhan/openetl-scheduler:latest
+
+          docker push rusabkhan/openetl-celery:$VERSION
+          docker push rusabkhan/openetl-celery:latest
+
+      - name: Update backend README on Docker Hub
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: rusabkhan
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: rusabkhan/openetl-backend
+          readme-filepath: ./README.md
