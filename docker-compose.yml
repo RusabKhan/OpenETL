@@ -10,6 +10,8 @@ services:
     container_name: openetl-backend
     networks:
       - openetl-network
+    depends_on:
+      - db
     ports:
       - "5009:5009"
     env_file:
@@ -27,6 +29,8 @@ services:
     container_name: openetl-frontend
     networks:
       - openetl-network
+    depends_on:
+      - backend
     ports:
       - "3000:3000"
     environment:
@@ -48,6 +52,8 @@ services:
     command: python3 openetl_utils/scheduler_utils.py
     env_file:
       - .env
+    depends_on:
+      - db
     networks:
       - openetl-network
     restart: always
@@ -64,6 +70,7 @@ services:
       - .env
     depends_on:
       - redis
+      - db
     restart: always
     volumes:
       - ~/.logs:/app/.logs
