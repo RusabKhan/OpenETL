@@ -36,7 +36,7 @@ jobs:
 
       - name: Build and tag all services
         run: |
-          docker-compose build backend frontend
+          docker compose build backend frontend
 
           docker tag openetl-backend rusabkhan/openetl-backend:$VERSION
           docker tag openetl-backend rusabkhan/openetl-backend:latest
