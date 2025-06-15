@@ -192,8 +192,7 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
         exception = str(e)
         logger.error(e)
         run_status = RunStatus.FAILED
-        if batch_id is not None:
-            complete_batch(db, batch_id, job_id, row_count, logger, batch_status=run_status)
+        complete_batch(db, batch_id, job_id, row_count, logger, batch_status=run_status)
     finally:
         update_integration_in_db(job_id, job_id, exception, run_status, datetime.utcnow(), row_count=row_count)
 

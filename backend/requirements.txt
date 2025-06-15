@@ -71,14 +71,14 @@ pendulum==3.0.0
 prometheus_client==0.21.0
 prompt_toolkit==3.0.48
 psycopg2-binary==2.9.9
-py4j==0.10.9.9
+py4j==0.10.9.7
 pycparser==2.22
 pydantic==2.10.1
 pydantic-extra-types==2.10.0
 pydantic-settings==2.6.1
 pydantic_core==2.27.1
 Pygments==2.18.0
-pyspark==4.0.0
+pyspark==3.5.3
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 python-slugify==8.0.4

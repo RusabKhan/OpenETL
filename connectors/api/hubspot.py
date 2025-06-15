@@ -171,6 +171,7 @@ class Connector(API):
             limit_query = urlencode(self.limit)
             paginated_endpoint = f"{endpoint}?{pagination_query}&{limit_query}"
             resp = super().fetch_data(api_session, paginated_endpoint, self.main_response_key)
+            yield resp
 
             if "paging_next_after" in resp:
                 self.pagination["after"] = resp["paging_next_after"]
@@ -178,9 +179,6 @@ class Connector(API):
                 del resp["paging_next_link"]
             else:
                 break
-
-            yield resp
-
         
 
     def return_final_df(self, responses) -> pd.DataFrame:
