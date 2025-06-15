@@ -21,7 +21,7 @@ jobs:
           TAG_COMMIT=$(git rev-list -n 1 $GITHUB_REF)
           BRANCH=$(git branch -r --contains $TAG_COMMIT | grep origin/release/docker || true)
           if [ -z "$BRANCH" ]; then
-            echo "Tag is not on release/docker branch. Exiting."
+            echo "Tag is not on release/docker_hub branch. Exiting."
             exit 1
           fi
 
