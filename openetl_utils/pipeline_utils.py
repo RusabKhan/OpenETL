@@ -168,11 +168,10 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
 
                         logger.info(df)
 
-                        df = spark_session.createDataFrame(coerce_inferable_columns(df, spark_session, logger))
-                        logger.info("DF AFTER CONVERSION")
+                        df = coerce_inferable_columns(df, spark_session, logger)
+                        logger.info("DF AFTER INFERABLE CONVERSION")
                         logger.info(df)
                         logger.info(df.dtypes)
-                        row_count = df.count()
 
                         logger.info("Replacing null values")
                         df = df.fillna(np.nan)  # optional, Pandas already treats NaNs as NaNs
@@ -196,6 +195,15 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
 
                         logger.info("DF AFTER REPLACING NULL VALUES")
                         logger.info(df)
+
+                        df = spark_session.createDataFrame(df)
+                        logger.info("DF AFTER CONVERSION TO SPARK DF")
+                        logger.info(df)
+                        logger.info(df.dtypes)
+                        row_count = df.count()
+
+                        logger.info("Replacing null values")
+
 
                         run_pipeline_target(df=df, integration_id=job_id, spark_class=spark_class,
                                             con_string=con_string,
