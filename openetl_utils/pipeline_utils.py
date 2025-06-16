@@ -16,6 +16,7 @@ import sys
 # sys.path.append(base_dir)
 import uuid
 
+import numpy as np
 import pandas as pd
 from pyspark.sql import SparkSession
 
@@ -166,12 +167,35 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
 
 
                         logger.info(df)
-                        df = spark_session.createDataFrame(df)
+
+                        df = spark_session.createDataFrame(coerce_inferable_columns(df, spark_session, logger))
                         logger.info("DF AFTER CONVERSION")
                         logger.info(df)
                         logger.info(df.dtypes)
                         row_count = df.count()
 
+                        logger.info("Replacing null values")
+                        df = df.fillna(np.nan)  # optional, Pandas already treats NaNs as NaNs
+                        fill_map = {
+                            'int': 0,
+                            'float': 0.0,
+                            'bool': False,
+                            'string': '',
+                            'object': '',
+                            'datetime': pd.Timestamp('1970-01-01'),
+                            'timedelta': pd.Timedelta(0),
+                            'category': '',
+                            'bytes': b'',
+                            'complex': 0j,
+                        }
+
+                        df = df.fillna({
+                            col: next((v for k, v in fill_map.items() if k in str(df[col].dtype).lower()), '')
+                            for col in df.columns
+                        })
+
+                        logger.info("DF AFTER REPLACING NULL VALUES")
+                        logger.info(df)
 
                         run_pipeline_target(df=df, integration_id=job_id, spark_class=spark_class,
                                             con_string=con_string,
@@ -192,7 +216,8 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
         exception = str(e)
         logger.error(e)
         run_status = RunStatus.FAILED
-        complete_batch(db, batch_id, job_id, row_count, logger, batch_status=run_status)
+        if batch_id:
+            complete_batch(db, batch_id, job_id, row_count, logger, batch_status=run_status)
     finally:
         update_integration_in_db(job_id, job_id, exception, run_status, datetime.utcnow(), row_count=row_count)
 
@@ -250,5 +275,21 @@ def run_pipeline_target(df, integration_id, spark_class, job_id, job_name, con_s
 
     return True
 
-
-
+def coerce_inferable_columns(df: pd.DataFrame, spark_session: SparkSession, logger):
+    """
+    Attempt to create a Spark DataFrame from each column individually to detect schema inference issues.
+    If inference fails for any column, it is cast to string to avoid Spark type merge errors.
+    Args:
+        df (pd.DataFrame): The input Pandas DataFrame.
+        spark_session (SparkSession): Active Spark session for testing type inference.
+        logger: Logger instance for warning messages.
+    Returns:
+        pd.DataFrame: Cleaned DataFrame with problematic columns coerced to string.
+    """
+    for col in df.columns:
+        try:
+            _ = spark_session.createDataFrame(df[[col]])
+        except Exception as e:
+            logger.warning(f"Unable to infer type for column {col}: {e}")
+            df[col] = df[col].astype(str)
+    return df
