@@ -87,23 +87,25 @@ OpenETL is a free application that offers a range of powerful features. However,
 capabilities, we also offer Pro and an Enterprise version with additional features and customizations.
 
 ### Features Comparison
+| Feature                                    |  Basic Version  |   Pro Version         | Enterprise Version       |
+|--------------------------------------------|:---------------:|:---------------------:|:------------------------:|
+| Free Full Load ETL                         | ✅ Available     | ✅ Available           | ✅ Available              |
+| Scheduled Timing                           | ✅ Available     | ✅ Available           | ✅ Available              |
+| User Interface (UI)                        | ✅ Available     | ✅ Available           | ✅ Available              |
+| Logging                                    | ✅ Available     | ✅ Available           | ✅ Available              |
+| Integration History                        | ✅ Available     | ✅ Available           | ✅ Available              |
+| Batches                                    | ✅ Available     | ✅ Available           | ✅ Available              |
+| Distributed Spark Computing (Configurable) | ✅ Available     | ✅ Available           | ✅ Available              |
+| NaN Value Replacement Based on Data Type   | ✅ Available     | ✅ Available           | ✅ Available              |
+| Views (ID mapping and data attachment)     | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Support                                    | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Dedicated Machine for Running the App      | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Custom Schema Declarations                 | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Python-Based Transformations               | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Permission-Based Users                     | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Dtype Casting                              | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Custom Development                         | ❌ Not Available | ❌ Not Available       | ✅ Available              |
 
-| Feature                                    |  Basic Version  |   Pro Version   | Enterprise Version |
-|--------------------------------------------|:---------------:|:---------------:|:------------------:|
-| Free Full Load ETL                         |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| Scheduled Timing                           |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| User Interface (UI)                        |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| Logging                                    |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| Integration History                        |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| Batches                                    |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| Distributed Spark Computing (Configurable) |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| NaN Value Replacement Based on Data Type   | ❌ Not Available |   ✅ Available   |    ✅ Available     |
-| Views (ID mapping and data attachment)     | ❌ Not Available |   ✅ Available   |    ✅ Available     |
-| Support                                    | ❌ Not Available |   ✅ Available   |    ✅ Available     |
-| Dedicated Machine for Running the App      | ❌ Not Available |   ✅ Available   |    ✅ Available     |
-| Custom Schema Declarations                 | ❌ Not Available |   ✅ Available   |    ✅ Available     |
-| Python-Based Transformations               | ❌ Not Available |   ✅ Available   |    ✅ Available     |
-| Custom Development                         | ❌ Not Available | ❌ Not Available |    ✅ Available     |
 
 If the features in the base version of OpenETL aren't quite cutting it for you, fear not! We're here to help. If you
 require additional functionality, customizations, or have specific requirements, reach out to us.
