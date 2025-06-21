@@ -32,7 +32,11 @@ and load it into your desired target destinations.
 - **Distributed Spark Computing**: Utilize Spark for distributed computing, allowing you to process large datasets
   efficiently across multiple nodes.
 
+## Benchmark
 
+Check the detailed performance benchmark of OpenETL [here](https://cdn.dataomnisolutions.com/main/app/benchmark.html).
+
+---
 
 ## Getting Started
 
@@ -44,15 +48,17 @@ OpenETL relies on a `.env` file for configuration. Ensure the following variable
 and **update them** according to your environment:
 
 ```bash
-OPENETL_DOCUMENT_HOST=localhost
-OPENETL_DOCUMENT_DB=airflow
-OPENETL_DOCUMENT_SCHEMA=open_etl
-OPENETL_DOCUMENT_USER=MY_USER
-OPENETL_DOCUMENT_PASS=1234
+OPENETL_DOCUMENT_HOST=postgres
+OPENETL_DOCUMENT_DB=openetl_db
+OPENETL_DOCUMENT_SCHEMA=public
+OPENETL_DOCUMENT_USER=openetl
+OPENETL_DOCUMENT_PASS=openetl123
 OPENETL_DOCUMENT_PORT=5432
 OPENETL_DOCUMENT_ENGINE=PostgreSQL
-OPENETL_HOME=/Users/usr/OpenETL
+OPENETL_HOME=/app
 CELERY_BROKER_URL=redis://redis:6379/0
+SPARK_MASTER=spark://spark-master:7077
+SPARK_DRIVER_HOST=openetl-celery-worker-1
 ```
 
 ### Using Docker
@@ -81,23 +87,25 @@ OpenETL is a free application that offers a range of powerful features. However,
 capabilities, we also offer Pro and an Enterprise version with additional features and customizations.
 
 ### Features Comparison
+| Feature                                    |  Basic Version  |   Pro Version         | Enterprise Version       |
+|--------------------------------------------|:---------------:|:---------------------:|:------------------------:|
+| Free Full Load ETL                         | ✅ Available     | ✅ Available           | ✅ Available              |
+| Scheduled Timing                           | ✅ Available     | ✅ Available           | ✅ Available              |
+| User Interface (UI)                        | ✅ Available     | ✅ Available           | ✅ Available              |
+| Logging                                    | ✅ Available     | ✅ Available           | ✅ Available              |
+| Integration History                        | ✅ Available     | ✅ Available           | ✅ Available              |
+| Batches                                    | ✅ Available     | ✅ Available           | ✅ Available              |
+| Distributed Spark Computing (Configurable) | ✅ Available     | ✅ Available           | ✅ Available              |
+| NaN Value Replacement Based on Data Type   | ✅ Available     | ✅ Available           | ✅ Available              |
+| Views (ID mapping and data attachment)     | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Support                                    | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Dedicated Machine for Running the App      | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Custom Schema Declarations                 | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Python-Based Transformations               | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Permission-Based Users                     | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Dtype Casting                              | ❌ Not Available | ✅ Available           | ✅ Available              |
+| Custom Development                         | ❌ Not Available | ❌ Not Available       | ✅ Available              |
 
-| Feature                                    |  Basic Version  |   Pro Version   | Enterprise Version |
-|--------------------------------------------|:---------------:|:---------------:|:------------------:|
-| Free Full Load ETL                         |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| Scheduled Timing                           |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| User Interface (UI)                        |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| Logging                                    |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| Integration History                        |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| Batches                                    |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| Distributed Spark Computing (Configurable) |   ✅ Available   |   ✅ Available   |    ✅ Available     |
-| NaN Value Replacement Based on Data Type   | ❌ Not Available |   ✅ Available   |    ✅ Available     |
-| Views (ID mapping and data attachment)     | ❌ Not Available |   ✅ Available   |    ✅ Available     |
-| Support                                    | ❌ Not Available |   ✅ Available   |    ✅ Available     |
-| Dedicated Machine for Running the App      | ❌ Not Available |   ✅ Available   |    ✅ Available     |
-| Custom Schema Declarations                 | ❌ Not Available |   ✅ Available   |    ✅ Available     |
-| Python-Based Transformations               | ❌ Not Available |   ✅ Available   |    ✅ Available     |
-| Custom Development                         | ❌ Not Available | ❌ Not Available |    ✅ Available     |
 
 If the features in the base version of OpenETL aren't quite cutting it for you, fear not! We're here to help. If you
 require additional functionality, customizations, or have specific requirements, reach out to us.

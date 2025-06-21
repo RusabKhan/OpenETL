@@ -104,7 +104,6 @@ def check_and_schedule_tasks():
         try:
             uuid.UUID(job_id)  # Ensure job_id is a valid UUID
             scheduler.remove_job(job_id)
-            app.control.revoke(job_id, terminate=True)
             logger.info(f"Removed old job: {job_id}. Not found in DB.")
         except ValueError:
             logger.warning(f"Job ID {job_id} is not a valid UUID. Skipping removal.")
@@ -113,7 +112,6 @@ def check_and_schedule_tasks():
     for job_id in disabled_integrations:
         if job_id in current_job_ids:
             scheduler.remove_job(job_id)
-            app.control.revoke(job_id, terminate=True)
             logger.info(f"Removed job: {job_id}. Disabled")
 
     # Schedule new integrations
@@ -189,7 +187,7 @@ def start_scheduler():
     # Add a periodic job to check and schedule tasks every 30 seconds
     scheduler.add_job(
         func=check_and_schedule_tasks,
-        trigger=IntervalTrigger(seconds=60),
+        trigger=IntervalTrigger(seconds=15),
         id=scheduler_job_id,
         replace_existing=True,
     )

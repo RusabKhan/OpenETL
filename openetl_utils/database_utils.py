@@ -787,7 +787,7 @@ class DatabaseUtils():
         return True
 
 
-    def insert_openetl_batch(self, start_date, integration_id, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None):
+    def insert_openetl_batch(self, start_date, integration_id, batch_type, batch_status, batch_id, integration_name, rows_count=0, end_date=None, run_id=None):
         """
         Inserts a new OpenETLBatch instance into the database.
 
@@ -800,6 +800,7 @@ class DatabaseUtils():
             integration_name (str): The name of the integration.
             rows_count (int, optional): The number of rows in the batch. Defaults to 0.
             end_date (datetime, optional): The end date of the batch. Defaults to None.
+            run_id (UUID): The run ID of the batch. Defaults to None.
 
         Returns:
             OpenETLBatch: The newly created OpenETLBatch instance.
@@ -816,7 +817,8 @@ class DatabaseUtils():
             batch_type=batch_type,
             batch_status=batch_status,
             integration_name=integration_name,
-            rows_count=rows_count
+            rows_count=rows_count,
+            run_id=run_id
         )
 
         # Add and commit the new batch to the session
@@ -1120,7 +1122,10 @@ class DatabaseUtils():
         return batch
 
     def get_integrations_to_schedule(self) -> list[Type[OpenETLIntegrations]]:
-        return self.session.query(OpenETLIntegrations).all()
+        return self.session.query(OpenETLIntegrations).filter(
+            OpenETLIntegrations.is_enabled == True,
+            OpenETLIntegrations.is_running == False
+        ).all()
 
 
     def create_integration_history(self, **kwargs):
@@ -1150,32 +1155,24 @@ def get_open_etl_document_connection_details(url=False):
         "database": os.getenv("OPENETL_DOCUMENT_DB","airflow")
     }
 
-def generate_cron_expression(schedule_time, schedule_dates=None, frequency=None):
-    """
-    Generates a cron expression based on provided scheduling details.
-
-    :param schedule_time: Time string in 'HH:MM:SS' format.
-    :param schedule_dates: List of date strings in 'YYYY-MM-DD' format or None.
-    :param frequency: A string defining the frequency ('daily', 'weekly', 'hourly') or None.
-    :return: List of cron expression strings.
-    """
+def generate_cron_expression(frequency, schedule_time, schedule_dates=None):
     time_parts = schedule_time.split(':')
     minute = time_parts[1]
     hour = time_parts[0]
 
-    if frequency:
-        frequency = frequency.lower()
-
-        if frequency == 'hourly':
-            return [f"0 * * * *"]
-        elif frequency == 'daily':
-            return [f"{minute} {hour} * * *"]
-        elif frequency == 'weekly':
-            return [f"{minute} {hour} * * 0"]
-        else:
-            raise ValueError("Unsupported frequency value. Use 'hourly', 'daily', or 'weekly'.")
-
-    if schedule_dates:
+    if frequency.lower() == 'hourly':
+        return [f"0 * * * *"]
+    elif frequency.lower() == 'daily':
+        return [f"{minute} {hour} * * *"]
+    elif frequency.lower() == 'weekly':
+        return [f"{minute} {hour} * * 0"]  # Sunday
+    elif frequency.lower() == 'weekdays':
+        # Monday(1) to Friday(5)
+        return [f"{minute} {hour} * * 1-5"]
+    elif frequency.lower() == 'weekends':
+        # Saturday(6) and Sunday(0)
+        return [f"{minute} {hour} * * 6,0"]
+    elif schedule_dates:
         cron_expressions = []
         for date_str in schedule_dates:
             date_obj = datetime.strptime(date_str, "%Y-%m-%d")
@@ -1183,8 +1180,8 @@ def generate_cron_expression(schedule_time, schedule_dates=None, frequency=None)
             month = date_obj.month
             cron_expressions.append(f"{minute} {hour} {day} {month} *")
         return cron_expressions
-
-    raise ValueError("Either frequency or schedule_dates must be provided.")
+    else:
+        raise ValueError("Unsupported scheduling details provided.")
 
 
 
@@ -1205,6 +1202,26 @@ def parse_cron_expression(cron_expr):
 
     minute, hour, day_of_month, month, day_of_week = cron_parts
 
+    def format_day_of_week(component):
+        if component == "*":
+            return "every day of the week"
+        if component == "1-5":
+            return "weekdays (Monday to Friday)"
+        if component == "0,6" or component == "6,0":
+            return "weekends (Saturday and Sunday)"
+        if "," in component:
+            days = component.split(",")
+            days_map = {"0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday",
+                        "4": "Thursday", "5": "Friday", "6": "Saturday"}
+            day_names = [days_map.get(day, day) for day in days]
+            return "multiple days: " + ", ".join(day_names)
+        if "-" in component:
+            start, end = component.split("-")
+            days_map = {"0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday",
+                        "4": "Thursday", "5": "Friday", "6": "Saturday"}
+            return f"days from {days_map.get(start, start)} to {days_map.get(end, end)}"
+        return f"specific day(s) of week: {component}"
+
     # Component formatting function
     def format_component(component, name):
         if component == "*":
@@ -1223,7 +1240,7 @@ def parse_cron_expression(cron_expr):
         "hour": format_component(hour, "hour"),
         "day_of_month": format_component(day_of_month, "day of month"),
         "month": format_component(month, "month"),
-        "day_of_week": format_component(day_of_week, "day of week"),
+        "day_of_week": format_day_of_week(day_of_week),
     }
 
     # Compute next execution using croniter (prevents infinite loops)
