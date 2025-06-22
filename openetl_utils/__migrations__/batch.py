@@ -8,17 +8,16 @@ Base = declarative_base()
 
 class OpenETLBatch(Base):
     __tablename__ = 'openetl_batches'
-    __table_args__ = {'schema': 'public'}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    batch_id = Column(UUID(as_uuid=True))
-    run_id = Column(UUID(as_uuid=True))
+    batch_id = Column(String(36))
+    run_id = Column(String(36))
     start_date = Column(DateTime, nullable=True)
     end_date = Column(DateTime, nullable=True)
-    batch_type = Column(String)
+    batch_type = Column(String(50))
     batch_status = Column(Enum(RunStatus))
-    integration_name = Column(String)
-    integration_id = Column(String)
+    integration_name = Column(String(500))
+    integration_id = Column(String(500))
     rows_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow,
