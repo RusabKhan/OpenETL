@@ -12,6 +12,7 @@ class Connector(DB):
     def __init__(self):
         self.required_libs = ["pymysql==1.1.0"]
         self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/mysql-icon.svg"
+        self.engine = "MySQL"
         super().__init__()
         
 
@@ -33,6 +34,9 @@ class Connector(DB):
     
     def close_session(self):
         super().close_session()
+
+    def test_connection(self):
+        return super().test_connection()
     
     def read_table(self, table_name, schema_name="public", page_size=10000):
         return super().read_table(table_name, schema_name, page_size)
