@@ -145,11 +145,13 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                         batch_id = create_batch(db, job_id, job_name, logger)
 
                         row_count = df.count()
-                        run_pipeline_target(df=df, integration_id=job_id, spark_class=spark_class,
-                                            con_string=con_string,
-                                            target_table=target_table, job_id=job_id, job_name=job_name, driver=driver,
-                                            spark_session=spark_session, db_class=db, logger=logger)
-                        run_status = RunStatus.SUCCESS
+                        run_status = RunStatus.SUCCESS if run_pipeline_target(df=df, integration_id=job_id,
+                                                                              spark_class=spark_class,
+                                                                              con_string=con_string,
+                                                                              target_table=target_table, job_id=job_id,
+                                                                              job_name=job_name, driver=driver,
+                                                                              spark_session=spark_session, db_class=db,
+                                                                              logger=logger) else RunStatus.FAILED
             else:
                 gen = read_data(connector_name=source_connection_details['connector_name'],
                                     auth_values=source_credentials,
@@ -205,12 +207,12 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                         logger.info("Replacing null values")
 
 
-                        run_pipeline_target(df=df, integration_id=job_id, spark_class=spark_class,
+
+
+                        run_status = RunStatus.SUCCESS if run_pipeline_target(df=df, integration_id=job_id, spark_class=spark_class,
                                             con_string=con_string,
                                             target_table=target_table, job_id=job_id, job_name=job_name, driver=driver,
-                                            spark_session=spark_session, db_class=db, logger=logger)
-
-                        run_status = RunStatus.SUCCESS
+                                            spark_session=spark_session, db_class=db, logger=logger) else RunStatus.FAILED
 
             logger.info("FINISHED PIPELINE")
             logger.info("DISPOSING ENGINES")
@@ -273,15 +275,15 @@ def run_pipeline_target(df, integration_id, spark_class, job_id, job_name, con_s
     df = df.selectExpr(*[f"`{col}` as `{col.replace('.', '_')}`" for col in df.columns])
 
     logger.info(f"Writing full DataFrame to target table: {target_table}")
-    success = spark_class.write_via_spark(df, conn_string=con_string, table=target_table, driver=driver)
+    success, message = spark_class.write_via_spark(df, conn_string=con_string, table=target_table, driver=driver)
 
     if success:
         logger.info("Data written successfully. Updating batch status.")
         complete_batch(db_class, batch_id, integration_id, row_count, logger)
     else:
-        logger.error("Batch Update Failed.")
+        logger.error(message)
 
-    return True
+    return success
 
 def coerce_inferable_columns(df: pd.DataFrame, spark_session: SparkSession, logger):
     """
