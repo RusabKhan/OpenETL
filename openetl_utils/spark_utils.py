@@ -167,10 +167,10 @@ class SparkConnection():
                 .mode(mode) \
                 .save()
 
-            return True
+            return True, "Data written successfully"
         except Exception as e:
             logging.error(str(e))
-            return False
+            return False, str(e)
         
     def __dispose__(self):
         """
