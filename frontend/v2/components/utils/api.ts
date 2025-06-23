@@ -140,12 +140,12 @@ export const getIntegrations = async (cache: boolean, page?: number) => {
     cache && 5 * 60 * 1000
   );
 };
-export const getIntegrationHistory = async (id: string, page: number) => {
+export const getIntegrationHistory = async (id: string, page: number, cache: boolean) => {
   return apiRequest(
     "get",
     `/pipeline/get_integration_history/${id}?page=${page}`,
     undefined,
-    5 * 60 * 1000
+    cache && 5 * 60 * 1000
   );
 };
 export const getPipelineLogs = async (useCache: boolean, params: LogsParam) => {
