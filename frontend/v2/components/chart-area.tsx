@@ -151,12 +151,12 @@ export function ChartArea({ data }: { data: DashboardIntegrationConfig[] }) {
               <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-white)"
+                  stopColor="#ccc"
                   stopOpacity={1}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-white)"
+                  stopColor="#888"
                   stopOpacity={0.1}
                 />
               </linearGradient>
