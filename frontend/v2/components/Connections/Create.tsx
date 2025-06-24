@@ -245,7 +245,7 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
 
       try {
         const testResult = await test_connection(testPayload);
-        if (!testResult.data) {
+        if (!testResult || !testResult.data) {
           toast.error("Test Connection Failed!");
           return;
         }
