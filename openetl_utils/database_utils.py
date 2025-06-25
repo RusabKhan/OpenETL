@@ -25,7 +25,8 @@ from alembic.runtime.migration import MigrationContext
 from openetl_utils.__migrations__.app import OpenETLDocument, OpenETLOAuthToken
 from openetl_utils.__migrations__.batch import OpenETLBatch
 from openetl_utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
-from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect, or_, String
+from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect, or_, String, \
+    desc
 from sqlalchemy.orm import sessionmaker
 
 from openetl_utils.cache import sqlalchemy_database_engines
@@ -93,7 +94,7 @@ class DatabaseUtils():
     _connections = {}  # Class-level dictionary to store connections
 
     def __init__(self, engine=None, hostname=None, username=None, password=None, port=None, database=None,
-                 connection_name=None, connection_type=None):
+                 connection_name=None, connection_type=None, schema="public"):
         """
                  Initialize a DatabaseUtils instance with the specified database connection parameters.
                  
@@ -114,6 +115,7 @@ class DatabaseUtils():
         if engine is None:
             self.engine = None
             return
+        self.schema = schema
 
         self.connection_key = f"{engine}_{hostname}_{port}_{database}_{username}"
 
@@ -523,13 +525,13 @@ class DatabaseUtils():
         with self.engine.connect() as connection:
             connection.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
 
-    def alter_table_column_add_primary_key(self, table_name, column_name='id', schema_name='open_etl'):
+    def alter_table_column_add_primary_key(self, table_name, column_name='uid', schema_name='open_etl'):
         """
         Alter a table by adding a primary key to a specified column.
 
         Args:
             table_name (str): The name of the table to alter.
-            column_name (str): The name of the column to set as the primary key. Defaults to 'id'.
+            column_name (str): The name of the column to set as the primary key. Defaults to 'uid'.
             Currently not working changes do not reflect in the database.
 
         Returns:
@@ -806,10 +808,19 @@ class DatabaseUtils():
             OpenETLBatch: The newly created OpenETLBatch instance.
         """
         # Get the current highest batch_id
+        def get_max_id(session, model, filters=None):
+            query = select(model.id).order_by(desc(model.id)).limit(1)
+            if filters:
+                query = query.filter_by(**filters)
+            result = session.execute(query).scalar()
+            return result or 0
+
         session = self.session
+
 
         # Create new OpenETLBatch instance
         new_batch = OpenETLBatch(
+            uid=int(get_max_id(session, OpenETLBatch) + 1),
             batch_id=batch_id,
             integration_id=integration_id,
             start_date=start_date,
@@ -1010,7 +1021,7 @@ class DatabaseUtils():
 
         results = [
             {
-                "id": scheduler.id,
+                "uid": scheduler.id,
                 "integration_name": scheduler.integration_name,
                 "integration_type": scheduler.integration_type,
                 "cron_expression": [parse_cron_expression(cron) for cron in scheduler.cron_expression],
