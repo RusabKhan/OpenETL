@@ -100,7 +100,7 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
         Exception: If no data is found in the source table.
         NotImplementedError: If the target connection type is API.
     """
-    global row_count, db, batch_id
+    global row_count, db, batch_id, spark_class
     batch_id = None
     exception = None
     run_status = None
@@ -219,10 +219,6 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                                             target_table=target_table, job_id=job_id, job_name=job_name, driver=driver,
                                             spark_session=spark_session, db_class=db, logger=logger) else RunStatus.FAILED
 
-            logger.info("FINISHED PIPELINE")
-            logger.info("DISPOSING ENGINES")
-            spark_class.__dispose__()
-            db.__dispose__()
 
         elif target_connection_details['connection_type'].lower() == ConnectionType.API.value:
             raise NotImplementedError("API target connection not implemented")
@@ -235,6 +231,10 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
             complete_batch(db, batch_id, job_id, row_count, logger, batch_status=run_status)
     finally:
         update_integration_in_db(job_id, job_id, exception, run_status, datetime.utcnow(), row_count=row_count)
+        logger.info("FINISHED PIPELINE")
+        logger.info("DISPOSING ENGINES")
+        spark_class.__dispose__()
+        db.__dispose__()
 
 
 def update_integration_in_db(celery_task_id, integration, error_message, run_status, start_date, row_count=0):
