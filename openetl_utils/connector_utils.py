@@ -2,6 +2,9 @@ import importlib
 import os
 import subprocess
 import sys
+
+import pkg_resources
+
 home = os.environ['OPENETL_HOME']
 sys.path.append(home)
 import json
@@ -238,6 +241,13 @@ def fetch_data_from_connector( connector_name, auth_values, auth_type, table, co
             yield module.return_final_df(page)
     
 
+def create_db_connector_engine(connector_name, **kwargs):
+    path = f"{connectors_directory}/database/{connector_name}.py"
+    module = import_module(connector_name, path)
+    module.create_engine(**kwargs)
+    return module.engine, module.session
+
+
 
 # if __name__ == "__main__":
 #     source_connection = {'table': 'get_all_contacts', 'schema': 'public', 'connection_type': 'api', 
@@ -248,7 +258,11 @@ def fetch_data_from_connector( connector_name, auth_values, auth_type, table, co
 def install_libraries(libs):
     try:
         for lib in libs:
-            subprocess.call(['pip', 'install', lib])
+            pkg_name = lib.split("==")[0] if "==" in lib else lib
+            try:
+                pkg_resources.get_distribution(pkg_name)
+            except pkg_resources.DistributionNotFound:
+                subprocess.call(['pip', 'install', lib])
         return True
     except Exception as e:
         raise e
