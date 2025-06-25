@@ -16,8 +16,8 @@ class Connector(DB):
         super().__init__()
         
 
-    def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="MySQL"):
-        return super().create_engine(engine, hostname, username, password, port, database, connection_name=None, connection_type=None)
+    def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="MySQL", schema="public", **kwargs):
+        return super().create_engine(engine, hostname, username, password, port, database, connection_name=None, connection_type=None, schema=schema)
         
     def get_metadata(self, *args, **kwargs):
         auth_details = kwargs
