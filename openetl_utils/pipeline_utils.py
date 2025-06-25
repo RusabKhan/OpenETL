@@ -241,6 +241,7 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
             db.__dispose__()
 
 
+
 def update_integration_in_db(celery_task_id, integration, error_message, run_status, start_date, row_count=0):
     db = database_utils.DatabaseUtils(**database_utils.get_open_etl_document_connection_details())
     db.update_integration(record_id=integration, is_running=False)
