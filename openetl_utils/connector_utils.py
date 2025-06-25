@@ -241,6 +241,13 @@ def fetch_data_from_connector( connector_name, auth_values, auth_type, table, co
             yield module.return_final_df(page)
     
 
+def create_db_connector_engine(connector_name, **kwargs):
+    path = f"{connectors_directory}/database/{connector_name}.py"
+    module = import_module(connector_name, path)
+    module.create_engine(**kwargs)
+    return module.engine, module.session
+
+
 
 # if __name__ == "__main__":
 #     source_connection = {'table': 'get_all_contacts', 'schema': 'public', 'connection_type': 'api', 

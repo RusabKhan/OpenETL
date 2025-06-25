@@ -19,6 +19,10 @@ import uuid
 import numpy as np
 import pandas as pd
 from pyspark.sql import SparkSession
+from pyspark.sql.types import *
+
+from sqlalchemy import MetaData, inspect
+from sqlalchemy import Table, MetaData, Column, Integer, Float, String, Boolean, DateTime, BigInteger
 
 import openetl_utils.connector_utils as con_utils
 from openetl_utils.enums import RunStatus, ConnectionType, ColumnActions
@@ -120,8 +124,9 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
             con_string = jdbc_connection_strings[engine].format(
                 **connection_details)
 
-            db = database_utils.DatabaseUtils(
-                engine=engine, **target_credentials)
+            db = database_utils.DatabaseUtils()
+            db.engine, db.session = con_utils.create_db_connector_engine(target_connection_details['connector_name'], **target_credentials)
+
             db.create_table_from_base(base=OpenETLBatch)
 
             logger.info("PRINTING OUT JARS")
@@ -207,7 +212,7 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                         logger.info("Replacing null values")
 
 
-
+                        create_table_from_spark_df(df=df, engine=db.engine, table_name=target_table, schema_name=target_credentials['schema'])
 
                         run_status = RunStatus.SUCCESS if run_pipeline_target(df=df, integration_id=job_id, spark_class=spark_class,
                                             con_string=con_string,
@@ -244,12 +249,12 @@ def create_batch(db_class, job_id, job_name, logger, run_id):
     logger.info(f"Creating batch ID: {batch_id}")
     db_class.insert_openetl_batch(
         batch_id=batch_id,
-        integration_id=job_id,
+        integration_id=str(job_id),
         start_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         batch_type="full",
         batch_status=RunStatus.RUNNING,
         integration_name=job_name,
-        run_id=run_id
+        run_id=str(run_id)
     )
     return batch_id
 
@@ -282,6 +287,7 @@ def run_pipeline_target(df, integration_id, spark_class, job_id, job_name, con_s
         complete_batch(db_class, batch_id, integration_id, row_count, logger)
     else:
         logger.error(message)
+        raise Exception(message)
 
     return success
 
@@ -303,3 +309,43 @@ def coerce_inferable_columns(df: pd.DataFrame, spark_session: SparkSession, logg
             logger.warning(f"Unable to infer type for column {col}: {e}")
             df[col] = df[col].astype(str)
     return df
+
+
+def map_spark_type_to_sqlalchemy(spark_type, max_len=None):
+    from sqlalchemy import Integer, BigInteger, Float, Boolean, DateTime
+
+    if isinstance(spark_type, IntegerType):
+        return Integer
+    elif isinstance(spark_type, LongType):
+        return BigInteger
+    elif isinstance(spark_type, (FloatType, DoubleType)):
+        return Float
+    elif isinstance(spark_type, StringType):
+        return String(max_len + 50 if max_len else 255)
+    elif isinstance(spark_type, BooleanType):
+        return Boolean
+    elif isinstance(spark_type, (TimestampType, DateType)):
+        return DateTime
+    else:
+        return String(255)
+
+def create_table_from_spark_df(df, engine, table_name, schema_name="public"):
+    inspector = inspect(engine)
+    if inspector.has_table(table_name, schema=schema_name):
+        return  # Table exists, do nothing
+
+    metadata = MetaData(schema=schema_name)
+    columns = []
+
+    for field in df.schema.fields:
+        max_len = None
+        if isinstance(field.dataType, StringType):
+            max_len = df.selectExpr(f"length({field.name})").agg({"length({})".format(field.name): "max"}).collect()[0][0]
+            max_len = max_len if max_len else 0
+
+        col_type = map_spark_type_to_sqlalchemy(field.dataType, max_len)
+        col = Column(field.name, col_type, nullable=field.nullable)
+        columns.append(col)
+
+    sql_table = Table(table_name, metadata, *columns)
+    metadata.create_all(engine, tables=[sql_table])
