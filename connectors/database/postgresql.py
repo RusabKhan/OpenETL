@@ -11,8 +11,8 @@ class Connector(DB):
 
 
 
-    def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="PostgreSQL"):
-        return super().create_engine(engine, hostname, username, password, port, database, connection_name=None, connection_type=None)
+    def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="PostgreSQL", schema="public", **kwargs):
+        return super().create_engine(engine, hostname, username, password, port, database, connection_name=None, connection_type=None, schema=schema)
         
     def test_connection(self):
         return super().test_connection()
