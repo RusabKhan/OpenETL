@@ -112,10 +112,11 @@ class DatabaseUtils():
                      connection_name (str, optional): A custom name for the connection. Defaults to None.
                      connection_type (str, optional): A description of the connection type. Defaults to None.
                  """
+        self.schema = schema
+
         if engine is None:
             self.engine = None
             return
-        self.schema = schema
 
         self.connection_key = f"{engine}_{hostname}_{port}_{database}_{username}"
 
