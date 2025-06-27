@@ -682,8 +682,7 @@ class DatabaseUtils():
         session.close()
         return True, ""
 
-
-    def delete_document(self,  document_id: int=None):
+    def delete_document(self, document_id: int = None):
         """
         Deletes a document from the specified table in the database.
 
@@ -696,30 +695,36 @@ class DatabaseUtils():
         Raises:
             Exception: If an error occurs while deleting the document. The error message is logged.
         """
-        Session = sessionmaker(bind=self.engine)
-        session = Session()
-        document = session.query(OpenETLDocument).filter_by(id=document_id).first()
-        integrations = (
-            session.query(OpenETLIntegrations)
-            .filter(or_(
-                OpenETLIntegrations.source_connection == document_id,
-                OpenETLIntegrations.target_connection == document_id
-            ))
-            .all()
-        )
-        if integrations:
-            for integration in integrations:
-                session.delete(integration)
+        try:
+            Session = sessionmaker(bind=self.engine)
+            session = Session()
+            document = session.query(OpenETLDocument).filter_by(id=document_id).first()
+            integrations = (
+                session.query(OpenETLIntegrations)
+                .filter(or_(
+                    OpenETLIntegrations.source_connection == document_id,
+                    OpenETLIntegrations.target_connection == document_id
+                ))
+                .all()
+            )
+            if integrations:
+                for integration in integrations:
+                    session.query(OpenETLIntegrationsRuntimes).filter(
+                        OpenETLIntegrationsRuntimes.integration == integration.id
+                    ).delete()
+                    session.delete(integration)
+                    session.commit()
+            if document:
+                session.delete(document)
                 session.commit()
-        if document:
-            session.delete(document)
-            session.commit()
-            session.close()
-            return True, ""
-        else:
-            session.close()
-            raise NoResultFound
-
+                session.close()
+                return True, ""
+            else:
+                session.close()
+                raise NoResultFound(f"Document with id {document_id} not found")
+        except Exception as e:
+            logging.error(f"Error deleting document: {e}")
+            return False, f"Error deleting document: {e}"
 
 
     def get_created_connections(self, connector_type=None, connection_name=None, id=None) -> pd.DataFrame:
