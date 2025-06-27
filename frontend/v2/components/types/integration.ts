@@ -95,7 +95,7 @@ export type PaginatedIntegrationHistoryConfig = {
 
 export type ParamUpdateIntegration = {
   pipeline_id: string;
-  fields: {
+  fields: IntegrationConfig | {
     [key: string]: string;
   };
 };

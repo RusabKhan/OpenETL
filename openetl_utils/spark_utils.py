@@ -10,6 +10,8 @@ Functions:
 - other_function_name(): Description of what this function does.
 - another_function_name(): Description of what this function does.
 """
+import uuid
+
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 from pyspark.sql import SparkSession
@@ -91,12 +93,14 @@ class SparkConnection():
             for name, value in self.spark_configuration.items():
                 spark_conf.set(name, value)
 
+            app_name = self.spark_configuration.get("spark.app.name", "default") + f"_{uuid.uuid4()}"
+
             # Build SparkSession
             spark_session = SparkSession.builder \
-                .master(os.getenv("SPARK_MASTER" , "spark://spark-master:7077")) \
-                .config("spark.driver.host", os.getenv("SPARK_DRIVER_HOST" , "openetl-pro-celery-worker")) \
-                .config(conf=spark_conf) \
-                .getOrCreate()
+            .master(os.getenv("SPARK_MASTER" , "local[*]")) \
+            .appName(app_name) \
+            .config(conf=spark_conf) \
+            .getOrCreate()
 
             # Set Hadoop configurations
             if self.hadoop_configuration:
@@ -168,10 +172,10 @@ class SparkConnection():
                 .mode(mode) \
                 .save()
 
-            return True
+            return True, "Data written successfully"
         except Exception as e:
             logging.error(str(e))
-            return False
+            return False, str(e)
         
     def __dispose__(self):
         """
