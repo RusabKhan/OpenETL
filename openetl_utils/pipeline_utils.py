@@ -16,8 +16,13 @@ import sys
 # sys.path.append(base_dir)
 import uuid
 
+import numpy as np
 import pandas as pd
 from pyspark.sql import SparkSession
+from pyspark.sql.types import *
+
+from sqlalchemy import MetaData, inspect
+from sqlalchemy import Table, MetaData, Column, Integer, Float, String, Boolean, DateTime, BigInteger
 
 import openetl_utils.connector_utils as con_utils
 from openetl_utils.enums import RunStatus, ConnectionType, ColumnActions
@@ -95,7 +100,9 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
         Exception: If no data is found in the source table.
         NotImplementedError: If the target connection type is API.
     """
-    global row_count, db, batch_id
+    global row_count, db, batch_id, spark_class
+    spark_class = None
+    db = None
     batch_id = None
     exception = None
     run_status = None
@@ -119,8 +126,9 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
             con_string = jdbc_connection_strings[engine].format(
                 **connection_details)
 
-            db = database_utils.DatabaseUtils(
-                engine=engine, **target_credentials)
+            db = database_utils.DatabaseUtils()
+            db.engine, db.session = con_utils.create_db_connector_engine(target_connection_details['connector_name'], **target_credentials)
+
             db.create_table_from_base(base=OpenETLBatch)
 
             logger.info("PRINTING OUT JARS")
@@ -144,11 +152,13 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                         batch_id = create_batch(db, job_id, job_name, logger)
 
                         row_count = df.count()
-                        run_pipeline_target(df=df, integration_id=job_id, spark_class=spark_class,
-                                            con_string=con_string,
-                                            target_table=target_table, job_id=job_id, job_name=job_name, driver=driver,
-                                            spark_session=spark_session, db_class=db, logger=logger)
-                        run_status = RunStatus.SUCCESS
+                        run_status = RunStatus.SUCCESS if run_pipeline_target(df=df, integration_id=job_id,
+                                                                              spark_class=spark_class,
+                                                                              con_string=con_string,
+                                                                              target_table=target_table, job_id=job_id,
+                                                                              job_name=job_name, driver=driver,
+                                                                              spark_session=spark_session, db_class=db,
+                                                                              logger=logger) else RunStatus.FAILED
             else:
                 gen = read_data(connector_name=source_connection_details['connector_name'],
                                     auth_values=source_credentials,
@@ -166,24 +176,51 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
 
 
                         logger.info(df)
+
+                        df = coerce_inferable_columns(df, spark_session, logger)
+                        logger.info("DF AFTER INFERABLE CONVERSION")
+                        logger.info(df)
+                        logger.info(df.dtypes)
+
+                        logger.info("Replacing null values")
+                        df = df.fillna(np.nan)  # optional, Pandas already treats NaNs as NaNs
+                        fill_map = {
+                            'int': 0,
+                            'float': 0.0,
+                            'bool': False,
+                            'string': '',
+                            'object': '',
+                            'datetime': pd.Timestamp('1970-01-01'),
+                            'timedelta': pd.Timedelta(0),
+                            'category': '',
+                            'bytes': b'',
+                            'complex': 0j,
+                        }
+
+                        df = df.fillna({
+                            col: next((v for k, v in fill_map.items() if k in str(df[col].dtype).lower()), '')
+                            for col in df.columns
+                        })
+
+                        logger.info("DF AFTER REPLACING NULL VALUES")
+                        logger.info(df)
+
                         df = spark_session.createDataFrame(df)
-                        logger.info("DF AFTER CONVERSION")
+                        logger.info("DF AFTER CONVERSION TO SPARK DF")
                         logger.info(df)
                         logger.info(df.dtypes)
                         row_count = df.count()
 
+                        logger.info("Replacing null values")
 
-                        run_pipeline_target(df=df, integration_id=job_id, spark_class=spark_class,
+
+                        create_table_from_spark_df(df=df, engine=db.engine, table_name=target_table, schema_name=target_credentials['schema'])
+
+                        run_status = RunStatus.SUCCESS if run_pipeline_target(df=df, integration_id=job_id, spark_class=spark_class,
                                             con_string=con_string,
                                             target_table=target_table, job_id=job_id, job_name=job_name, driver=driver,
-                                            spark_session=spark_session, db_class=db, logger=logger)
+                                            spark_session=spark_session, db_class=db, logger=logger) else RunStatus.FAILED
 
-                        run_status = RunStatus.SUCCESS
-
-            logger.info("FINISHED PIPELINE")
-            logger.info("DISPOSING ENGINES")
-            spark_class.__dispose__()
-            db.__dispose__()
 
         elif target_connection_details['connection_type'].lower() == ConnectionType.API.value:
             raise NotImplementedError("API target connection not implemented")
@@ -192,9 +229,17 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
         exception = str(e)
         logger.error(e)
         run_status = RunStatus.FAILED
-        complete_batch(db, batch_id, job_id, row_count, logger, batch_status=run_status)
+        if batch_id:
+            complete_batch(db, batch_id, job_id, row_count, logger, batch_status=run_status)
     finally:
         update_integration_in_db(job_id, job_id, exception, run_status, datetime.utcnow(), row_count=row_count)
+        logger.info("FINISHED PIPELINE")
+        logger.info("DISPOSING ENGINES")
+        if spark_class:
+            spark_class.__dispose__()
+        if db:
+            db.__dispose__()
+
 
 
 def update_integration_in_db(celery_task_id, integration, error_message, run_status, start_date, row_count=0):
@@ -209,12 +254,12 @@ def create_batch(db_class, job_id, job_name, logger, run_id):
     logger.info(f"Creating batch ID: {batch_id}")
     db_class.insert_openetl_batch(
         batch_id=batch_id,
-        integration_id=job_id,
+        integration_id=str(job_id),
         start_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         batch_type="full",
         batch_status=RunStatus.RUNNING,
         integration_name=job_name,
-        run_id=run_id
+        run_id=str(run_id)
     )
     return batch_id
 
@@ -240,15 +285,72 @@ def run_pipeline_target(df, integration_id, spark_class, job_id, job_name, con_s
     df = df.selectExpr(*[f"`{col}` as `{col.replace('.', '_')}`" for col in df.columns])
 
     logger.info(f"Writing full DataFrame to target table: {target_table}")
-    success = spark_class.write_via_spark(df, conn_string=con_string, table=target_table, driver=driver)
+    success, message = spark_class.write_via_spark(df, conn_string=con_string, table=target_table, driver=driver)
 
     if success:
         logger.info("Data written successfully. Updating batch status.")
         complete_batch(db_class, batch_id, integration_id, row_count, logger)
     else:
-        logger.error("Batch Update Failed.")
+        logger.error(message)
+        raise Exception(message)
 
-    return True
+    return success
+
+def coerce_inferable_columns(df: pd.DataFrame, spark_session: SparkSession, logger):
+    """
+    Attempt to create a Spark DataFrame from each column individually to detect schema inference issues.
+    If inference fails for any column, it is cast to string to avoid Spark type merge errors.
+    Args:
+        df (pd.DataFrame): The input Pandas DataFrame.
+        spark_session (SparkSession): Active Spark session for testing type inference.
+        logger: Logger instance for warning messages.
+    Returns:
+        pd.DataFrame: Cleaned DataFrame with problematic columns coerced to string.
+    """
+    for col in df.columns:
+        try:
+            _ = spark_session.createDataFrame(df[[col]])
+        except Exception as e:
+            logger.warning(f"Unable to infer type for column {col}: {e}")
+            df[col] = df[col].astype(str)
+    return df
 
 
+def map_spark_type_to_sqlalchemy(spark_type, max_len=None):
+    from sqlalchemy import Integer, BigInteger, Float, Boolean, DateTime
 
+    if isinstance(spark_type, IntegerType):
+        return Integer
+    elif isinstance(spark_type, LongType):
+        return BigInteger
+    elif isinstance(spark_type, (FloatType, DoubleType)):
+        return Float
+    elif isinstance(spark_type, StringType):
+        return String(max_len + 50 if max_len else 255)
+    elif isinstance(spark_type, BooleanType):
+        return Boolean
+    elif isinstance(spark_type, (TimestampType, DateType)):
+        return DateTime
+    else:
+        return String(255)
+
+def create_table_from_spark_df(df, engine, table_name, schema_name="public"):
+    inspector = inspect(engine)
+    if inspector.has_table(table_name, schema=schema_name):
+        return  # Table exists, do nothing
+
+    metadata = MetaData(schema=schema_name)
+    columns = []
+
+    for field in df.schema.fields:
+        max_len = None
+        if isinstance(field.dataType, StringType):
+            max_len = df.selectExpr(f"length({field.name})").agg({"length({})".format(field.name): "max"}).collect()[0][0]
+            max_len = max_len if max_len else 0
+
+        col_type = map_spark_type_to_sqlalchemy(field.dataType, max_len)
+        col = Column(field.name, col_type, nullable=field.nullable)
+        columns.append(col)
+
+    sql_table = Table(table_name, metadata, *columns)
+    metadata.create_all(engine, tables=[sql_table])

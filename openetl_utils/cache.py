@@ -72,7 +72,7 @@ sqlalchemy_database_engines = {
 }
 
 jdbc_database_jars = {
-    'MySQL': 'mysql:mysql-connector-java:8.0.0',
+    'MySQL': 'com.mysql:mysql-connector-j:9.1.0',
     'PostgreSQL': 'org.postgresql:postgresql:42.2.6',
     'SQLite': 'org.xerial:sqlite-jdbc:3.34.0',
     'Oracle': 'com.oracle.database.jdbc:ojdbc8:19.8.0.0',
@@ -91,7 +91,7 @@ jdbc_database_jars = {
     'SQLCipher': 'net.zetetic:android-database-sqlcipher:4.4.0',
     'Teradata': 'com.teradata.jdbc:teradata-driver:17.10.0.10',
     'Presto': 'com.facebook.presto:presto-jdbc:0.257',
-    'Snowflake': 'net.snowflake:snowflake-jdbc:3.13.0',
+    'Snowflake': 'net.snowflake:snowflake-jdbc:3.23.2',
     'Amazon Redshift': 'com.amazon.redshift:redshift-jdbc42-no-awssdk:1.2.54.1059',
     'CockroachDB': 'org.postgresql:postgresql:42.2.23.jre7',
     'MonetDB': 'nl.cwi.monetdb:monetdb-jdbc:2.42.1',
@@ -159,7 +159,7 @@ jdbc_connection_strings = {
     'SQLCipher': 'jdbc:sqlite:/path/to/database.db',
     'Teradata': 'jdbc:teradata://{HOSTNAME}/DATABASE={DATABASE}?user={USERNAME}&password={PASSWORD}',
     'Presto': 'jdbc:presto://{HOSTNAME}:{PORT}/hive/{catalog}',
-    'Snowflake': 'jdbc:snowflake://{account}.snowflakecomputing.com/?{connection_params}',
+    'Snowflake': 'jdbc:snowflake://{HOSTNAME}.snowflakecomputing.com/?warehouse={WAREHOUSE}&db={DATABASE}&schema={SCHEMA}&role={ROLE}&user={USERNAME}&password={PASSWORD}',
     'Amazon Redshift': 'jdbc:redshift://{HOSTNAME}:{PORT}/{DATABASE}?user={USERNAME}&password={PASSWORD}',
     'CockroachDB': 'jdbc:postgresql://{HOSTNAME}:{PORT}/{DATABASE}?user={USERNAME}&password={PASSWORD}',
     'MonetDB': 'jdbc:monetdb://{HOSTNAME}:{PORT}/{DATABASE}?user={USERNAME}&password={PASSWORD}',

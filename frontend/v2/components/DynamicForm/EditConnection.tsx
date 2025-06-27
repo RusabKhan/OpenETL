@@ -54,7 +54,7 @@ const EditConnection: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
       <div className="absolute inset-0 bg-black/50" onClick={closeForm}></div>
 
       {/* Sidebar */}
-      <div className="animate-slide-in-right relative h-full w-120 bg-white p-4 shadow-lg dark:bg-neutral-900">
+      <div className="animate-slide-in-right relative h-full w-120 bg-white p-4 shadow-lg dark:bg-neutral-900 overflow-y-scroll">
         {/* Close Button */}
         <button
           onClick={closeForm}

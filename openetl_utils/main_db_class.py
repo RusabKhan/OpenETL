@@ -30,15 +30,16 @@ class DB(DatabaseUtils):
         "hostname": "",
         "port": 0,
         "database": "",
+        "schema": "public",
     }}
 
     def __init__(self):
         self.install_missing_libraries()
 
 
-    def create_engine(self, engine, hostname, username, password, port, database, connection_name=None, connection_type=None):
+    def create_engine(self, engine, hostname, username, password, port, database, connection_name=None, connection_type=None, schema="public"):
         if hostname is not None and username is not None and password is not None and port is not None and database is not None:
-            super().__init__(engine, hostname, username, password, port, database, connection_name, connection_type)
+            super().__init__(engine, hostname, username, password, port, database, connection_name, connection_type, schema=schema)
 
 
     def test_connection(self) -> bool:

@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ListIntegrationConfig, PaginatedIntegrationConfig } from "../types/integration";
-import EditIntegration from "../DynamicForm/EditIntegration";
+import { PaginatedIntegrationConfig } from "../types/integration";
 import {
   Table,
   TableBody,
@@ -39,6 +38,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "./checkbox";
 import Spinner from "../Spinner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
+import { update_integration } from "../utils/api";
 
 interface ETLTableInterface {
   columns: string[];
@@ -50,11 +51,9 @@ interface ETLTableInterface {
 
 const ETLTable: React.FC<ETLTableInterface> = (params) => {
   const { columns, data, load, changePage, onBulkDelete } = params;
-  const [showForm, setShowForm] = useState(false);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [integration, setIntegration] = useState<ListIntegrationConfig | null>(null)
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -87,6 +86,17 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
       setShowDeleteDialog(false);
     }
   };
+
+  const onEditIntegration = async (integration_id, is_enabled) => {
+    await update_integration({
+      pipeline_id: integration_id,
+      fields: {
+        is_enabled
+      }
+    });
+
+    load(false);
+  }
 
   return (
     <div className="relative shadow-md sm:rounded-lg">
@@ -133,7 +143,6 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                 {column}
               </TableHead>
             ))}
-            <TableHead className="px-6 py-3">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -222,17 +231,35 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                 {integration.integration_type}
               </TableCell>
               <TableCell className="px-6 py-4">
-                <Badge
-                  variant="outline"
-                  className="text-muted-foreground px-1.5"
-                >
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={integration.is_enabled ? "true" : "false"}
+                    onValueChange={async (value) => {
+                      const newValue = value === "true";
+                      try {
+                        await onEditIntegration(
+                          integration.id,
+                          newValue,
+                        );
+                      } catch (err) {
+                        console.error("Failed to update integration", err);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-[110px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Enabled</SelectItem>
+                      <SelectItem value="false">Disabled</SelectItem>
+                    </SelectContent>
+                  </Select>
                   {integration.is_enabled === true ? (
                     <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
                   ) : (
                     <IconLoader />
                   )}
-                  {integration.is_enabled ? "True" : "False"}
-                </Badge>
+                </div>
               </TableCell>
               <TableCell className="px-6 py-4">
                 <Badge
@@ -247,32 +274,10 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                   {integration.is_running ? "Running" : "Stopped"}
                 </Badge>
               </TableCell>
-              <TableCell className="px-6 py-4">
-                <Button
-                  variant="link"
-                  onClick={() => {
-                    setShowForm(true);
-                    setIntegration(integration);
-                  }}
-                >
-                  Edit
-                </Button>
-              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      {showForm && (
-        <EditIntegration
-          data={integration}
-          refresh={() => {
-            load(false);
-          }}
-          closeForm={() => {
-            setShowForm(false);
-          }}
-        />
-      )}
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
