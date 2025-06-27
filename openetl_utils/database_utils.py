@@ -724,6 +724,8 @@ class DatabaseUtils():
                 raise NoResultFound(f"Document with id {document_id} not found")
         except Exception as e:
             logging.error(f"Error deleting document: {e}")
+            if 'session' in locals():
+                session.close()
             return False, f"Error deleting document: {e}"
 
 
