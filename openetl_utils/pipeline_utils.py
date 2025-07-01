@@ -205,6 +205,10 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                         logger.info("DF AFTER REPLACING NULL VALUES")
                         logger.info(df)
 
+                        logger.info("Sanitizing column names")
+                        df.columns = [col.replace('.', '_').replace(' ', '_') for col in df.columns]
+                        logger.info("Sanitized column names: " + str(df.columns))
+
                         df = spark_session.createDataFrame(df)
                         logger.info("DF AFTER CONVERSION TO SPARK DF")
                         logger.info(df)
@@ -280,9 +284,6 @@ def run_pipeline_target(df, integration_id, spark_class, job_id, job_name, con_s
     logger.info(df.limit(2))
     logger.info(df.dtypes)
     logger.debug(df.show(truncate=False))
-
-    logger.info("Sanitizing column names")
-    df = df.selectExpr(*[f"`{col}` as `{col.replace('.', '_')}`" for col in df.columns])
 
     logger.info(f"Writing full DataFrame to target table: {target_table}")
     success, message = spark_class.write_via_spark(df, conn_string=con_string, table=target_table, driver=driver)
