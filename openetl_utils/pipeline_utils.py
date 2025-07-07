@@ -236,7 +236,7 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
         if batch_id:
             complete_batch(db, batch_id, job_id, row_count, logger, batch_status=run_status)
     finally:
-        update_integration_in_db(job_id, job_id, exception, run_status, datetime.utcnow(), row_count=row_count)
+        update_integration_in_db(job_id, job_id, exception, run_status, datetime.utcnow())
         logger.info("FINISHED PIPELINE")
         logger.info("DISPOSING ENGINES")
         if spark_class:
@@ -246,11 +246,18 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
 
 
 
-def update_integration_in_db(celery_task_id, integration, error_message, run_status, start_date, row_count=0):
+def update_integration_in_db(celery_task_id, integration, error_message, run_status, start_date):
     db = database_utils.DatabaseUtils(**database_utils.get_open_etl_document_connection_details())
     db.update_integration(record_id=integration, is_running=False)
     db.update_integration_runtime(job_id=celery_task_id, error_message=error_message, run_status=run_status,
-                                  end_date=start_date, row_count=row_count)
+                                  end_date=start_date)
+
+
+
+def update_integration_row_in_db(integration, row_count):
+    db = database_utils.DatabaseUtils(**database_utils.get_open_etl_document_connection_details())
+    db.update_integration_row_count(integration, row_count)
+
 
 
 def create_batch(db_class, job_id, job_name, logger, run_id):
@@ -291,6 +298,7 @@ def run_pipeline_target(df, integration_id, spark_class, job_id, job_name, con_s
     if success:
         logger.info("Data written successfully. Updating batch status.")
         complete_batch(db_class, batch_id, integration_id, row_count, logger)
+        update_integration_row_in_db(integration_id, row_count)
     else:
         logger.error(message)
         raise Exception(message)

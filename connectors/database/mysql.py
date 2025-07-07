@@ -1,6 +1,8 @@
 import sys
 import os
 
+from openetl_utils import AuthType
+
 sys.path.append(os.environ['OPENETL_HOME'])
 
 from openetl_utils.main_db_class import DB
@@ -13,11 +15,20 @@ class Connector(DB):
         self.required_libs = ["pymysql==1.1.0"]
         self.logo = "https://cdn.dataomnisolutions.com/main/connector_logos/mysql-icon.svg"
         self.engine = "MySQL"
+        self.authentication_details = {
+            AuthType.BASIC: {
+                "hostname": "",
+                "username": "",
+                "password": "",
+                "database": "",
+                "port": "",
+            }
+        }
         super().__init__()
         
 
-    def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="MySQL", schema="public", **kwargs):
-        return super().create_engine(engine, hostname, username, password, port, database, connection_name=None, connection_type=None, schema=schema)
+    def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="MySQL", **kwargs):
+        return super().create_engine(engine, hostname, username, password, port, database, connection_name=None, connection_type=None, schema=database)
         
     def get_metadata(self, *args, **kwargs):
         auth_details = kwargs
