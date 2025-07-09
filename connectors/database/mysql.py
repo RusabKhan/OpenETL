@@ -21,14 +21,14 @@ class Connector(DB):
                 "username": "",
                 "password": "",
                 "database": "",
-                "port": "",
+                "schema": "",
             }
         }
         super().__init__()
-        
 
-    def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="MySQL", **kwargs):
-        return super().create_engine(engine, hostname, username, password, port, database, connection_name=None, connection_type=None, schema=database)
+    def create_engine(self, hostname, username, password, port, database, connection_name=None, connection_type=None,engine="MySQL", schema="defaultdb", **kwargs):
+        return super().create_engine(engine, hostname, username, password, port, database, connection_name=None,
+                                     connection_type=None, schema=schema)
         
     def get_metadata(self, *args, **kwargs):
         auth_details = kwargs
