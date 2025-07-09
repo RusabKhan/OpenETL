@@ -20,6 +20,7 @@ class Connector(DB):
                 "username": "",
                 "password": "",
                 "database": "",
+                "port":"",
                 "schema": "",
             }
         }
