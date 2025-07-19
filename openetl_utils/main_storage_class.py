@@ -132,3 +132,17 @@ class Storage(ABC):
         Closes connection/session if needed.
         """
         pass
+
+    @abstractmethod
+    def get_table_file_type(self, folder_path):
+        """
+        Detects the file type used in a given S3 folder (table).
+        Assumes all files are of the same type.
+
+        Args:
+            folder_path (str): S3 prefix/folder path.
+
+        Returns:
+            str: File extension (e.g., '.csv', '.parquet'), or None if not identifiable.
+        """
+        pass
