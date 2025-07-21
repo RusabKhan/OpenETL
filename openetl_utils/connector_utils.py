@@ -280,3 +280,15 @@ def install_libraries(libs):
         return True
     except Exception as e:
         raise e
+
+
+def get_storage_connector_file_type(connector_name, connection_type, location, auth_params):
+    module = import_module(connector_name, f"{connectors_directory}/{connection_type}/{connector_name}.py")
+    module = module.connect(**auth_params)
+    return module.get_table_file_type(location)
+
+
+def get_spark_workflow_for_storage(connector_name, connection_type, location, auth_params):
+    module = import_module(connector_name, f"{connectors_directory}/{connection_type}/{connector_name}.py")
+    module = module.connect(**auth_params)
+    return module.get_spark_workflow(location)
