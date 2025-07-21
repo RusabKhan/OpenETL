@@ -29,7 +29,6 @@ class Storage(ABC):
         self.connection_type = ConnectionType.STORAGE
         self.required_libs = []
         self.logo = ""
-        self.engine = "Storage"
 
     def install_missing_libraries(self) -> bool:
         if len(self.required_libs) > 0:
@@ -144,5 +143,33 @@ class Storage(ABC):
 
         Returns:
             str: File extension (e.g., '.csv', '.parquet'), or None if not identifiable.
+        """
+        pass
+
+    @abstractmethod
+    def get_hadoop_config(self):
+        """
+        Returns the Hadoop configuration for Spark.
+        """
+        pass
+
+    @abstractmethod
+    def get_spark_config(self):
+        """
+        Returns the Spark configuration for Spark.
+        """
+        pass
+
+    @abstractmethod
+    def get_spark_workflow(self):
+        """
+        Returns the Spark workflow for Spark.
+        """
+        pass
+
+    @abstractmethod
+    def get_file_url(self):
+        """
+        Returns the Spark session for Spark.
         """
         pass
