@@ -146,3 +146,31 @@ class Storage(ABC):
             str: File extension (e.g., '.csv', '.parquet'), or None if not identifiable.
         """
         pass
+
+    @abstractmethod
+    def get_hadoop_config(self):
+        """
+        Returns the Hadoop configuration for Spark.
+        """
+        pass
+
+    @abstractmethod
+    def get_spark_config(self):
+        """
+        Returns the Spark configuration for Spark.
+        """
+        pass
+
+    @abstractmethod
+    def get_spark_workflow(self):
+        """
+        Returns the Spark workflow for Spark.
+        """
+        pass
+
+    @abstractmethod
+    def get_file_url(self):
+        """
+        Returns the Spark session for Spark.
+        """
+        pass
