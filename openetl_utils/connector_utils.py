@@ -102,7 +102,7 @@ def import_module(module_name, module_path, class_name="Connector", *args, **kwa
             f"Error initializing class '{class_name}' from module '{module_name}': {str(e)}.")
 
 
-def get_connector_engine(connector_name, connector_type=ConnectionType.DATABASE) -> str:
+def get_connector_engine(connector_name, connector_type=ConnectionType.DATABASE.value) -> str:
     """
     Returns the engine for the specified connector.
 
@@ -114,11 +114,11 @@ def get_connector_engine(connector_name, connector_type=ConnectionType.DATABASE)
         object: The engine for the specified connector.
     """
     path = None
-    if connector_type == ConnectionType.DATABASE:
+    if connector_type == ConnectionType.DATABASE.value:
         path = f"{connectors_directory}/database/{connector_name}.py"
-    elif connector_type == ConnectionType.API:
+    elif connector_type == ConnectionType.API.value:
         path = f"{connectors_directory}/api/{connector_name}.py"
-    elif connector_type == ConnectionType.STORAGE:
+    elif connector_type == ConnectionType.STORAGE.value:
         path = f"{connectors_directory}/storage/{connector_name}.py"
     module = import_module(connector_name, path)
     engine = module.engine

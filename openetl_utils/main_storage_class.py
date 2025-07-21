@@ -29,7 +29,6 @@ class Storage(ABC):
         self.connection_type = ConnectionType.STORAGE
         self.required_libs = []
         self.logo = ""
-        self.engine = "Storage"
 
     def install_missing_libraries(self) -> bool:
         if len(self.required_libs) > 0:
