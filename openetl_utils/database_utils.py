@@ -15,6 +15,7 @@ import calendar
 import os
 import sys
 from typing import List, Type
+from uuid import UUID
 
 import sqlalchemy
 import sqlalchemy as sq
@@ -25,7 +26,8 @@ from alembic.runtime.migration import MigrationContext
 from openetl_utils.__migrations__.app import OpenETLDocument, OpenETLOAuthToken
 from openetl_utils.__migrations__.batch import OpenETLBatch
 from openetl_utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
-from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect, or_, String
+from sqlalchemy import MetaData, Table, Column, and_, select, PrimaryKeyConstraint, func, text, inspect, or_, String, \
+    desc
 from sqlalchemy.orm import sessionmaker
 
 from openetl_utils.cache import sqlalchemy_database_engines
@@ -93,7 +95,7 @@ class DatabaseUtils():
     _connections = {}  # Class-level dictionary to store connections
 
     def __init__(self, engine=None, hostname=None, username=None, password=None, port=None, database=None,
-                 connection_name=None, connection_type=None):
+                 connection_name=None, connection_type=None, schema="public"):
         """
                  Initialize a DatabaseUtils instance with the specified database connection parameters.
                  
@@ -111,6 +113,8 @@ class DatabaseUtils():
                      connection_name (str, optional): A custom name for the connection. Defaults to None.
                      connection_type (str, optional): A description of the connection type. Defaults to None.
                  """
+        self.schema = schema
+
         if engine is None:
             self.engine = None
             return
@@ -523,13 +527,13 @@ class DatabaseUtils():
         with self.engine.connect() as connection:
             connection.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
 
-    def alter_table_column_add_primary_key(self, table_name, column_name='id', schema_name='open_etl'):
+    def alter_table_column_add_primary_key(self, table_name, column_name='uid', schema_name='open_etl'):
         """
         Alter a table by adding a primary key to a specified column.
 
         Args:
             table_name (str): The name of the table to alter.
-            column_name (str): The name of the column to set as the primary key. Defaults to 'id'.
+            column_name (str): The name of the column to set as the primary key. Defaults to 'uid'.
             Currently not working changes do not reflect in the database.
 
         Returns:
@@ -679,8 +683,7 @@ class DatabaseUtils():
         session.close()
         return True, ""
 
-
-    def delete_document(self,  document_id: int=None):
+    def delete_document(self, document_id: int = None):
         """
         Deletes a document from the specified table in the database.
 
@@ -693,30 +696,38 @@ class DatabaseUtils():
         Raises:
             Exception: If an error occurs while deleting the document. The error message is logged.
         """
-        Session = sessionmaker(bind=self.engine)
-        session = Session()
-        document = session.query(OpenETLDocument).filter_by(id=document_id).first()
-        integrations = (
-            session.query(OpenETLIntegrations)
-            .filter(or_(
-                OpenETLIntegrations.source_connection == document_id,
-                OpenETLIntegrations.target_connection == document_id
-            ))
-            .all()
-        )
-        if integrations:
-            for integration in integrations:
-                session.delete(integration)
+        try:
+            Session = sessionmaker(bind=self.engine)
+            session = Session()
+            document = session.query(OpenETLDocument).filter_by(id=document_id).first()
+            integrations = (
+                session.query(OpenETLIntegrations)
+                .filter(or_(
+                    OpenETLIntegrations.source_connection == document_id,
+                    OpenETLIntegrations.target_connection == document_id
+                ))
+                .all()
+            )
+            if integrations:
+                for integration in integrations:
+                    session.query(OpenETLIntegrationsRuntimes).filter(
+                        OpenETLIntegrationsRuntimes.integration == integration.id
+                    ).delete()
+                    session.delete(integration)
+                    session.commit()
+            if document:
+                session.delete(document)
                 session.commit()
-        if document:
-            session.delete(document)
-            session.commit()
-            session.close()
-            return True, ""
-        else:
-            session.close()
-            raise NoResultFound
-
+                session.close()
+                return True, ""
+            else:
+                session.close()
+                raise NoResultFound(f"Document with id {document_id} not found")
+        except Exception as e:
+            logging.error(f"Error deleting document: {e}")
+            if 'session' in locals():
+                session.close()
+            return False, f"Error deleting document: {e}"
 
 
     def get_created_connections(self, connector_type=None, connection_name=None, id=None) -> pd.DataFrame:
@@ -806,10 +817,19 @@ class DatabaseUtils():
             OpenETLBatch: The newly created OpenETLBatch instance.
         """
         # Get the current highest batch_id
+        def get_max_id(session, model, filters=None):
+            query = select(model.id).order_by(desc(model.id)).limit(1)
+            if filters:
+                query = query.filter_by(**filters)
+            result = session.execute(query).scalar()
+            return result or 0
+
         session = self.session
+
 
         # Create new OpenETLBatch instance
         new_batch = OpenETLBatch(
+            uid=int(get_max_id(session, OpenETLBatch) + 1),
             batch_id=batch_id,
             integration_id=integration_id,
             start_date=start_date,
@@ -1010,7 +1030,7 @@ class DatabaseUtils():
 
         results = [
             {
-                "id": scheduler.id,
+                "uid": scheduler.id,
                 "integration_name": scheduler.integration_name,
                 "integration_type": scheduler.integration_type,
                 "cron_expression": [parse_cron_expression(cron) for cron in scheduler.cron_expression],
@@ -1088,6 +1108,9 @@ class DatabaseUtils():
         self.session.commit()
 
     def update_integration(self, record_id, **kwargs):
+        if isinstance(record_id, str):
+            record_id = UUID(record_id)
+
         batch = self.session.query(OpenETLIntegrations).filter(OpenETLIntegrations.id == record_id).first()
 
         if not batch:
@@ -1099,6 +1122,9 @@ class DatabaseUtils():
         return batch
 
     def update_integration_runtime(self, job_id, **kwargs):
+        if isinstance(job_id, str):
+            record_id = UUID(job_id)
+
         batch = self.session.query(OpenETLIntegrationsRuntimes).filter(
             OpenETLIntegrationsRuntimes.integration == job_id,
             OpenETLIntegrationsRuntimes.celery_task_id == job_id
@@ -1108,18 +1134,41 @@ class DatabaseUtils():
             raise NoResultFound
 
         for key, value in kwargs.items():
-            if hasattr(batch, key):
-                if key == 'row_count_trg':
-                    # Add the row_count_trg value if it already exists in the database record
-                    current_row_count = getattr(batch, 'row_count_trg', 0)
-                    if current_row_count is None:
-                        current_row_count = 0
-                    setattr(batch, 'row_count_trg', current_row_count + value)
-                else:
-                    setattr(batch, key, value)
+            setattr(batch, key, value)
 
         self.session.commit()
         return batch
+
+
+    def update_integration_row_count(self, job_id, value):
+        """
+        Updates the row count for the most recent OpenETLIntegrationsRuntimes entry of a given integration.
+        Args:
+            job_id (int): The ID of the integration job to update.
+            value (int): The number of rows to add to the current row count.
+        Returns:
+            OpenETLIntegrationsRuntimes: The updated batch entry with the new row count.
+        Raises:
+            NoResultFound: If no OpenETLIntegrationsRuntimes entry is found for the given job_id.
+        """
+        if isinstance(job_id, str):
+            job_id = UUID(job_id)
+
+        batch = self.session.query(OpenETLIntegrationsRuntimes).filter(
+            OpenETLIntegrationsRuntimes.integration == job_id
+        ).order_by(OpenETLIntegrationsRuntimes.created_at.desc()).first()
+
+        if not batch:
+            raise NoResultFound
+
+        current_row_count = batch.row_count or 0
+        batch.row_count = current_row_count + value
+
+        self.session.commit()
+        return batch
+
+
+
 
     def get_integrations_to_schedule(self) -> list[Type[OpenETLIntegrations]]:
         return self.session.query(OpenETLIntegrations).filter(
