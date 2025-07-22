@@ -5,6 +5,8 @@ import sys
 
 import pkg_resources
 
+
+
 home = os.environ['OPENETL_HOME']
 sys.path.append(home)
 import json
@@ -30,6 +32,8 @@ def get_installed_connectors(connector_type=ConnectionType.DATABASE):
         files = os.listdir(f"{connectors_directory}/database")
     elif connector_type == ConnectionType.API:
         files = os.listdir(f"{connectors_directory}/api")
+    elif connector_type == ConnectionType.STORAGE:
+        files = os.listdir(f"{connectors_directory}/storage")
         
     return [file.replace('.py', '') for file in files if file.endswith('.py')]
 
@@ -50,6 +54,8 @@ def get_connector_auth_details(connector_name, connector_type=ConnectionType.DAT
         path = f"{connectors_directory}/database/{connector_name}.py"
     elif connector_type == ConnectionType.API:
         path = f"{connectors_directory}/api/{connector_name}.py"
+    elif connector_type == ConnectionType.STORAGE:
+        path = f"{connectors_directory}/storage/{connector_name}.py"
     module = import_module(connector_name, path)
     return module.authentication_details
 
@@ -96,7 +102,7 @@ def import_module(module_name, module_path, class_name="Connector", *args, **kwa
             f"Error initializing class '{class_name}' from module '{module_name}': {str(e)}.")
 
 
-def get_connector_engine(connector_name, connector_type=ConnectionType.DATABASE) -> str:
+def get_connector_engine(connector_name, connector_type=ConnectionType.DATABASE.value) -> str:
     """
     Returns the engine for the specified connector.
 
@@ -108,10 +114,12 @@ def get_connector_engine(connector_name, connector_type=ConnectionType.DATABASE)
         object: The engine for the specified connector.
     """
     path = None
-    if connector_type == ConnectionType.DATABASE:
+    if connector_type == ConnectionType.DATABASE.value:
         path = f"{connectors_directory}/database/{connector_name}.py"
-    elif connector_type == ConnectionType.API:
-        path = f"{connectors_directory}/api/{connector_name}.py"
+    elif connector_type == ConnectionType.API.value:
+        return None
+    elif connector_type == ConnectionType.STORAGE.value:
+        path = f"{connectors_directory}/storage/{connector_name}.py"
     module = import_module(connector_name, path)
     engine = module.engine
     return engine
@@ -141,6 +149,12 @@ def connector_test_connection(connector_name, connector_type=ConnectionType.DATA
             api_session = module.connect_to_api(auth_type=auth_type, **auth_params)
             result = module.test_connection(api_session)
             return result
+        elif connector_type == ConnectionType.STORAGE:
+            path = f"{connectors_directory}/storage/{connector_name}.py"
+            module = import_module(connector_name, path)
+            module = module.connect(**auth_params)
+            return module.test_connection()
+
     except Exception as e:
         print(f"Error: {str(e)}")
         raise e
@@ -160,6 +174,8 @@ def get_connector_metadata(connector_name, connector_type=ConnectionType.DATABAS
         path = f"{connectors_directory}/database/{connector_name}.py"
     elif connector_type == ConnectionType.API.value:
         path = f"{connectors_directory}/api/{connector_name}.py"
+    elif connector_type == ConnectionType.STORAGE.value:
+        path = f"{connectors_directory}/storage/{connector_name}.py"
     module = import_module(connector_name, path)
     return module.get_metadata()
 
@@ -191,13 +207,11 @@ def fetch_metadata(connection, auth_options, connection_type):
     Returns:
         dict: {"tables": [],"schema":[]}
     """
-    try:
-        module = import_module(auth_options["connection_name"], f"{connectors_directory}/{connection_type}/{auth_options['connector_name']}.py")
-        auth_details = auth_options["connection_credentials"]
-        return module.get_metadata(**auth_details)
-                    
-    except Exception as e:
-        return {"tables": [], "schema": []}
+
+    module = import_module(auth_options["connection_name"], f"{connectors_directory}/{connection_type}/{auth_options['connector_name']}.py")
+    auth_details = auth_options["connection_credentials"]
+    return module.get_metadata(**auth_details)
+
     
     
 def get_connector_image(connector_name,connection_type):
@@ -266,3 +280,15 @@ def install_libraries(libs):
         return True
     except Exception as e:
         raise e
+
+
+def get_storage_connector_file_type(connector_name, connection_type, location, auth_params):
+    module = import_module(connector_name, f"{connectors_directory}/{connection_type}/{connector_name}.py")
+    module = module.connect(**auth_params)
+    return module.get_table_file_type(location)
+
+
+def get_spark_workflow_for_storage(connector_name, connection_type, location, auth_params):
+    module = import_module(connector_name, f"{connectors_directory}/{connection_type}/{connector_name}.py")
+    module = module.connect(**auth_params)
+    return module.get_spark_workflow(location)

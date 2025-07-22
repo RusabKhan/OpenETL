@@ -118,8 +118,10 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
         if target_connection_details['connection_type'].lower() == ConnectionType.DATABASE.value:
 
             engine = con_utils.get_connector_engine(connector_name=target_connection_details['connector_name'])
+            source_engine = con_utils.get_connector_engine(connector_name=source_connection_details['connector_name'],connector_type=source_connection_details['connection_type'])
 
             jar = jdbc_database_jars[engine]
+            source_jar = jdbc_database_jars[source_engine] if source_engine else "" # if source engine is None, then source_jar is None, source engine is none for API
             driver = jdbc_engine_drivers[engine]
             connection_details = {key.upper(): value for key,
             value in target_credentials.items()}
@@ -133,12 +135,15 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
 
             logger.info("PRINTING OUT JARS")
             logger.info(jar)
+            jars = ",".join(filter(None, [jar, source_jar]))
             spark_class = sp_ut.SparkConnection(spark_configuration=spark_config,
-                                                hadoop_configuration=hadoop_config, jar=jar,
+                                                hadoop_configuration=hadoop_config,
+                                                jar=jars,
                                                 connection_string=con_string)
             spark_session = spark_class.initializeSpark()
             spark_config["spark.app.name"] = spark_config[
                                                  "spark.app.name"] + f"_read_source_table{source_table}"
+
             if source_connection_details["connection_type"].lower() == ConnectionType.DATABASE.value:
 
                 connection_details_upper = {key.upper(): value for key, value in connection_details.items()}
@@ -159,7 +164,8 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                                                                               job_name=job_name, driver=driver,
                                                                               spark_session=spark_session, db_class=db,
                                                                               logger=logger) else RunStatus.FAILED
-            else:
+
+            elif source_connection_details["connection_type"].lower() == ConnectionType.API.value:
                 gen = read_data(connector_name=source_connection_details['connector_name'],
                                     auth_values=source_credentials,
                                     auth_type=source_connection_details['auth_type'],
@@ -225,6 +231,44 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                                             target_table=target_table, job_id=job_id, job_name=job_name, driver=driver,
                                             spark_session=spark_session, db_class=db, logger=logger) else RunStatus.FAILED
 
+            elif source_connection_details['connection_type'].lower() == ConnectionType.STORAGE.value:
+
+                spark_workflow = con_utils.get_spark_workflow_for_storage(
+                    connector_name=source_connection_details['connector_name'],
+                    connection_type=source_connection_details['connection_type'],
+                    location=source_table,
+                    auth_params=source_credentials
+                )
+
+                for k, v in spark_workflow["hadoop_config"].items():
+                    spark_session._jsc.hadoopConfiguration().set(k, v)
+
+                spark_connection_details = {k: v for k, v in spark_workflow.items() if k not in ["hadoop_config", "read_path"]}
+                source_format = spark_workflow["format"].replace('.', '')
+                if source_format == "csv":
+                    spark_connection_details["header"] = "true"
+
+                gen = spark_class.read_via_spark(
+                    spark_connection_details=spark_connection_details,
+                    source_format=source_format,
+                    load=spark_workflow["read_path"]
+                )
+
+                for df in gen:
+                    row_count = df.count()
+                    run_status = RunStatus.SUCCESS if run_pipeline_target(
+                        df=df,
+                        integration_id=job_id,
+                        spark_class=spark_class,
+                        con_string=con_string,
+                        target_table=target_table,
+                        job_id=job_id,
+                        job_name=job_name,
+                        driver=driver,
+                        spark_session=spark_session,
+                        db_class=db,
+                        logger=logger
+                    ) else RunStatus.FAILED
 
         elif target_connection_details['connection_type'].lower() == ConnectionType.API.value:
             raise NotImplementedError("API target connection not implemented")
