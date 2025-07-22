@@ -121,7 +121,7 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
             source_engine = con_utils.get_connector_engine(connector_name=source_connection_details['connector_name'],connector_type=source_connection_details['connection_type'])
 
             jar = jdbc_database_jars[engine]
-            source_jar = jdbc_database_jars[source_engine]
+            source_jar = jdbc_database_jars[source_engine] if source_engine else "" # if source engine is None, then source_jar is None, source engine is none for API
             driver = jdbc_engine_drivers[engine]
             connection_details = {key.upper(): value for key,
             value in target_credentials.items()}
