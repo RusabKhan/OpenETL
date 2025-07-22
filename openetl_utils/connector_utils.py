@@ -117,7 +117,7 @@ def get_connector_engine(connector_name, connector_type=ConnectionType.DATABASE.
     if connector_type == ConnectionType.DATABASE.value:
         path = f"{connectors_directory}/database/{connector_name}.py"
     elif connector_type == ConnectionType.API.value:
-        path = f"{connectors_directory}/api/{connector_name}.py"
+        return None
     elif connector_type == ConnectionType.STORAGE.value:
         path = f"{connectors_directory}/storage/{connector_name}.py"
     module = import_module(connector_name, path)
