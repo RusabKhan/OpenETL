@@ -57,7 +57,7 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedRows(data.data.map((item) => item.id));
+      setSelectedRows(data.data.map((item) => item.uid));
     } else {
       setSelectedRows([]);
     }
@@ -155,8 +155,8 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                 <div className="flex items-center">
                   <Checkbox
                     id={`checkbox-${key}`}
-                    checked={selectedRows.includes(integration.id)}
-                    onCheckedChange={(checked) => handleSelectRow(integration.id, checked as boolean)}
+                    checked={selectedRows.includes(integration.uid)}
+                    onCheckedChange={(checked) => handleSelectRow(integration.uid, checked as boolean)}
                   />
                   <label className="sr-only">Select row</label>
                 </div>
@@ -166,13 +166,13 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                   <Tooltip>
                     <TooltipTrigger>
                       <span className="truncate block max-w-[200px]">
-                        <Link href={`/pipelines/${integration.id}`}>
-                          {integration.id}
+                        <Link href={`/pipelines/${integration.uid}`}>
+                          {integration.uid}
                         </Link>
                       </span>
                     </TooltipTrigger>
                     <TooltipContent className="dark:bg-card dark:text-white">
-                      <p>{integration.id}</p>
+                      <p>{integration.uid}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -238,7 +238,7 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                       const newValue = value === "true";
                       try {
                         await onEditIntegration(
-                          integration.id,
+                          integration.uid,
                           newValue,
                         );
                       } catch (err) {
