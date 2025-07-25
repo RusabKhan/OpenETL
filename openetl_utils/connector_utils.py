@@ -208,7 +208,7 @@ def fetch_metadata(connection, auth_options, connection_type):
         dict: {"tables": [],"schema":[]}
     """
 
-    module = import_module(auth_options["connection_name"], f"{connectors_directory}/{connection_type}/{auth_options['connector_name']}.py")
+    module = import_module(connection, f"{connectors_directory}/{connection_type}/{connection}.py")
     auth_details = auth_options["connection_credentials"]
     return module.get_metadata(**auth_details)
 
