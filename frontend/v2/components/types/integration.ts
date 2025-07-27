@@ -36,7 +36,7 @@ export type CronExpressionConfig = {
 };
 
 export type ListIntegrationConfig = {
-  uid: string;
+  id: string;
   integration_name: string;
   integration_type: string;
   cron_expression: CronExpressionConfig[];

@@ -1,7 +1,6 @@
 import os
 import io
 import pandas as pd
-import boto3
 
 from openetl_utils.enums import AuthType
 from openetl_utils.main_storage_class import Storage
@@ -28,6 +27,7 @@ class Connector(Storage):
         return self.connect(**auth_params)
 
     def connect(self, **auth_params):
+        import boto3
         self.authentication_details[AuthType.BASIC].update(auth_params)
         creds = self.authentication_details[AuthType.BASIC]
         self.bucket = creds["bucket_name"]

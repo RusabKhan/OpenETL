@@ -114,9 +114,9 @@ const ConnectionCards: React.FC<CardProps> = ({
           ))}
         </>
       ) : (
-        <div className="flex justify-center items-center">
+        <div className="flex">
           <p className="text-lg font-medium text-gray-600">
-            No connections found
+            No connections found!
           </p>
         </div>
       )}

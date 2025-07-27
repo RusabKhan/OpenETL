@@ -25,10 +25,12 @@ class Storage(ABC):
         authentication_details (dict): Authentication structure using AuthType as key.
     """
 
+    required_libs = []
+    connection_type = ConnectionType.STORAGE
+    logo = ""
+    
     def __init__(self):
-        self.connection_type = ConnectionType.STORAGE
-        self.required_libs = []
-        self.logo = ""
+        self.install_missing_libraries()
 
     def install_missing_libraries(self) -> bool:
         if len(self.required_libs) > 0:

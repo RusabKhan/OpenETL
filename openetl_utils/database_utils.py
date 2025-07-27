@@ -1030,7 +1030,7 @@ class DatabaseUtils():
 
         results = [
             {
-                "uid": scheduler.id,
+                "id": scheduler.id,
                 "integration_name": scheduler.integration_name,
                 "integration_type": scheduler.integration_type,
                 "cron_expression": [parse_cron_expression(cron) for cron in scheduler.cron_expression],

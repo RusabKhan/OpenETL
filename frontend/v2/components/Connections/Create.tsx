@@ -34,6 +34,7 @@ const FormField = ({
   options,
   type = "text",
   placeholder,
+  autoComplete = "off",
 }: {
   label: string;
   name: string;
@@ -42,6 +43,7 @@ const FormField = ({
   options?: { value: string; label: string }[];
   type?: string;
   placeholder?: string;
+  autoComplete?: string;
 }) => (
   <div className="space-y-2">
     <Label>{label}</Label>
@@ -68,6 +70,7 @@ const FormField = ({
         placeholder={placeholder}
         className="block w-full rounded-md border border-input bg-background p-2 text-sm text-foreground shadow-sm focus:border-primary focus:ring-primary"
         required
+        autoComplete={autoComplete}
       />
     )}
   </div>
@@ -107,6 +110,7 @@ const DynamicFields = ({
                 ? "number"
                 : "text"
           }
+          autoComplete="off"
         />
       ))}
   </>
@@ -290,6 +294,7 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
                 } as React.ChangeEvent<HTMLInputElement>)
               }
               placeholder="my_connection"
+              autoComplete="on"
             />
             <FormField
               label={`Select ${capitalizeFirstLetter(

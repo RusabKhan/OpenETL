@@ -93,43 +93,19 @@ export default function Connections() {
           </button>
         </div>
         <div className="@container/main flex flex-1 flex-col gap-2">
-          {Object.keys(connectors).map((connector) => {
-            return (
-              <div className="flex flex-col gap-2 pb-4">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-                  {capitalizeFirstLetter(connector)}
-                </h2>
-                <ConnectionCards
-                  connections={connectors[connector] as Connection[]}
-                  loading={isLoading}
-                  onDelete={onDelete}
-                  load={load}
-                />
-              </div>
-            );
-          })}
-          {/* <div className="flex flex-col gap-2">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-              Databases
-            </h2>
-            <ConnectionCards
-              connections={databases}
-              loading={isLoading}
-              onDelete={onDelete}
-              load={load}
-            />
-          </div>
-          <div className="flex flex-col gap-2 py-4 md:py-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-              APIs
-            </h2>
-            <ConnectionCards
-              connections={apis}
-              loading={isLoading}
-              onDelete={onDelete}
-              load={load}
-            />
-          </div> */}
+          {Object.keys(connectors).map((connector, index) => (
+            <div className="flex flex-col gap-2 pb-4" key={index}>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                {capitalizeFirstLetter(connector)}
+              </h2>
+              <ConnectionCards
+                connections={connectors[connector] as Connection[]}
+                loading={isLoading}
+                onDelete={onDelete}
+                load={load}
+              />
+            </div>
+          ))}
         </div>
 
         {isDialogOpen && (
