@@ -189,7 +189,7 @@ export const getCeleryWorkerStatus = async (cache: boolean) => {
 
 // POST
 export const fetchCreatedConnections = async (type: string) => {
-  return apiRequest("post", "/connector/get_created_connections", {
+  return axios.post(`${base_url}/connector/get_created_connections`, {
     connector_type: type,
   });
 };

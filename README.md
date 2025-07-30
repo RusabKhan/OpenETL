@@ -111,7 +111,7 @@ If the features in the base version of OpenETL aren't quite cutting it for you, 
 require additional functionality, customizations, or have specific requirements, reach out to us.
 
 For more information, visit [dataomnisolutions.com](https://www.dataomnisolutions.com) or contact us
-at [sales@dataomnisolutions.com](mailto:sales@dataomnisolutions.com).
+at [sales.team@dataomnisolutions.com](mailto:sales.team@dataomnisolutions.com).
 
 ## Support and Feedback
 
