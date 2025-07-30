@@ -255,7 +255,13 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                 )
 
                 for df in gen:
+                    batch_id = create_batch(db, job_id, job_name, logger, run_id)
+
                     row_count = df.count()
+
+                    create_table_from_spark_df(df=df, engine=db.engine, table_name=target_table,
+                                               schema_name=target_credentials['schema'])
+
                     run_status = RunStatus.SUCCESS if run_pipeline_target(
                         df=df,
                         integration_id=job_id,

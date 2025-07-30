@@ -878,7 +878,7 @@ class DatabaseUtils():
             session.commit()
             return batch
         else:
-            raise NoResultFound
+            raise NoResultFound("Batch not found")
 
 
     def update_openetl_document(self, document_id, **kwargs):
