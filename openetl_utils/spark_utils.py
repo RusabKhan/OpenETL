@@ -114,7 +114,7 @@ class SparkConnection():
         except Exception as e:
             raise Exception(str(e))
 
-    def read_via_spark(self, spark_connection_details, source_format="jdbc", batch_size=10000):
+    def read_via_spark(self, spark_connection_details, source_format="jdbc", batch_size=100000, load=""):
         """
         Reads data from a Spark DataFrame using limit/offset pagination, yielding batches of data until all rows are read.
         Stops if all rows in a batch are null.
@@ -129,12 +129,17 @@ class SparkConnection():
 
         Raises:
             Exception: If an error occurs during the data reading process.
+            :param load:
         """
         start = 0
         while True:
             # Create the pagination filter with row_number and limit/offset
-            paginated_df = self.spark_session.read.format(source_format).options(**spark_connection_details).load() \
-                .withColumn("row_number", F.row_number().over(Window.orderBy(F.lit(1)))) \
+            if source_format == "jdbc":
+                df = self.spark_session.read.format(source_format).options(**spark_connection_details).load()
+            else:
+                df = self.spark_session.read.format(source_format).options(**spark_connection_details).load(load)
+
+            paginated_df = df.withColumn("row_number", F.row_number().over(Window.orderBy(F.lit(1)))) \
                 .filter((F.col("row_number") > start) & (F.col("row_number") <= start + batch_size)) \
                 .drop("row_number")
 

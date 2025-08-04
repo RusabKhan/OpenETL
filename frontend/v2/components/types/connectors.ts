@@ -6,7 +6,7 @@ export type Connection = {
   connection_type: string;
   connector_name: string;
   auth_type: string;
-  connection_credentials: DatabaseAuthParams | ApiAuthParams;
+  connection_credentials: DatabaseAuthParams | ApiAuthParams | unknown;
   logo?: string;
 };
 
@@ -18,8 +18,7 @@ export type ParamUpdateConnection = {
 };
 
 export type Connectors = {
-  database: string[];
-  api: string[];
+  [key: string]: string[];
 };
 
 export type ParamMetadata = {
@@ -28,7 +27,7 @@ export type ParamMetadata = {
       name: string;
       value: string;
     };
-    connection_credentials: DatabaseAuthParams | ApiAuthParams;
+    connection_credentials: DatabaseAuthParams | ApiAuthParams | unknown;
     connection_name: string;
     connection_type: string;
     connector_name: string;
@@ -45,11 +44,11 @@ export type TestConnection = {
   auth_type: string;
   connector_name: string;
   connector_type: string;
-  auth_params: DatabaseAuthParams | ApiAuthParams;
+  auth_params: DatabaseAuthParams | ApiAuthParams | unknown;
 };
 
 export type StoreConnectionsParam = {
-  connection_credentials: DatabaseAuthParams | ApiAuthParams;
+  connection_credentials: DatabaseAuthParams | ApiAuthParams | unknown;
   connector_name: string;
   auth_type: string;
   connection_name: string;
@@ -61,6 +60,6 @@ export type GetCreatedConnections = {
   connection_type: string;
   auth_type: string;
   connector_name: string;
-  connection_credentials: DatabaseAuthParams | ApiAuthParams;
+  connection_credentials: DatabaseAuthParams | ApiAuthParams | unknown;
   id: number;
 };

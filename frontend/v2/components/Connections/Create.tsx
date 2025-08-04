@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { capitalizeFirstLetter, isValidAuthParams } from "../utils/func";
 import { ApiAuthParams, DatabaseAuthParams } from "../types/auth_params";
-import { CONNECTION_TYPES } from "../utils/contants";
 import {
   fetchInstalledConnectors,
   getConnectorAuthDetails,
@@ -35,6 +34,7 @@ const FormField = ({
   options,
   type = "text",
   placeholder,
+  autoComplete = "off",
 }: {
   label: string;
   name: string;
@@ -43,6 +43,7 @@ const FormField = ({
   options?: { value: string; label: string }[];
   type?: string;
   placeholder?: string;
+  autoComplete?: string;
 }) => (
   <div className="space-y-2">
     <Label>{label}</Label>
@@ -69,6 +70,7 @@ const FormField = ({
         placeholder={placeholder}
         className="block w-full rounded-md border border-input bg-background p-2 text-sm text-foreground shadow-sm focus:border-primary focus:ring-primary"
         required
+        autoComplete={autoComplete}
       />
     )}
   </div>
@@ -79,7 +81,7 @@ const DynamicFields = ({
   fields,
   onChange,
 }: {
-  fields: DatabaseAuthParams | ApiAuthParams | undefined;
+  fields: DatabaseAuthParams | ApiAuthParams | unknown;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
@@ -89,7 +91,7 @@ const DynamicFields = ({
       Object.entries(fields).map(([key, value]) => (
         <FormField
           key={key}
-          label={capitalizeFirstLetter(key)}
+          label={capitalizeFirstLetter(key).replace(/_/g, " ")}
           name={key}
           value={value}
           onChange={(val: string) => {
@@ -105,9 +107,10 @@ const DynamicFields = ({
             key === "password"
               ? "password"
               : typeof value === "number"
-              ? "number"
-              : "text"
+                ? "number"
+                : "text"
           }
+          autoComplete="off"
         />
       ))}
   </>
@@ -115,19 +118,14 @@ const DynamicFields = ({
 
 const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
   const [connection, setConnection] = useState({
-    connection_type: "database",
+    connection_type: "",
     connection_name: "",
-    connector_name: "postgresql",
+    connector_name: "",
     auth_type: "",
   });
-
-  const [connectors, setConnectors] = useState<Connectors>({
-    database: [],
-    api: [],
-  });
-
-  const [fields, setFields] = useState<DatabaseAuthParams | ApiAuthParams>();
+  const [connectors, setConnectors] = useState<Connectors>({});
   const [authType, setAuthType] = useState<string[]>([]);
+  const [fields, setFields] = useState<DatabaseAuthParams | ApiAuthParams | unknown>(null);
 
   const router = useRouter();
 
@@ -144,51 +142,46 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
   }, []);
 
   // Fetch auth details when connection type or connector changes
-  useEffect(() => {
-    const fetchAuthDetails = async () => {
-      const response = await getConnectorAuthDetails(
-        connection.connector_name,
-        connection.connection_type
-      );
+  const fetchAuthDetails = async (connector_name: string, connection_type: string) => {
+    const response = await getConnectorAuthDetails(
+      connector_name,
+      connection_type
+    );
+    const values = Object.values(response.data)[0];
+    setFields(values);
 
-      const values = Object.values(response.data)[0];
+    setAuthType(Object.keys(response.data));
+  };
 
-      if (isValidAuthParams(values)) {
-        setFields(values);
-      }
-
-      setAuthType(Object.keys(response.data));
-    };
-
-    fetchAuthDetails();
-  }, [connection.connection_type, connection.connector_name]);
-
-  // Derived state for connector options
+  // Optimized derived state for connector options
   const connectorOptions = useMemo(() => {
-    return connection.connection_type === "database"
-      ? connectors.database.map((db) => ({
-          value: db,
-          label: capitalizeFirstLetter(db),
-        }))
-      : connectors.api.map((api) => ({
-          value: api,
-          label: capitalizeFirstLetter(api),
-        }));
+    const type = connection.connection_type;
+    const options = connectors[type as keyof Connectors] || [];
+    return options.map((item) => ({
+      value: item,
+      label: capitalizeFirstLetter(item),
+    }));
   }, [connection.connection_type, connectors]);
+
+  const handleConnectionTypeChange = useCallback(
+    (value: string) => {
+      setConnection((prev) => ({
+        ...prev,
+        connection_type: value,
+        connector_name: "",
+        auth_type: "",
+      }));
+    },
+    []
+  );
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const { name, value } = e.target;
 
       setConnection((prev) => {
-        if (name === "connection_type") {
-          return {
-            ...prev,
-            connection_type: value,
-            connector_name:
-              value === "database" ? connectors.database[0] : connectors.api[0],
-          };
-        } else if (name == "connector_name") {
+        if (name == "connector_name") {
+          fetchAuthDetails(value, prev.connection_type);
           return {
             ...prev,
             connector_name: value,
@@ -222,13 +215,8 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
         auth_type: connection.auth_type,
         connector_name: connection.connector_name,
         connector_type: connection.connection_type,
-        auth_params: fields as DatabaseAuthParams | ApiAuthParams,
+        auth_params: fields,
       };
-
-      if (!isValidAuthParams(fields)) {
-        toast.error("Invalid authentication parameters! ❌");
-        return;
-      }
 
       if (connection.connection_name.length < 3) {
         toast.error("Connection name must be at least 3 characters!");
@@ -255,7 +243,7 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
           connector_name: connection.connector_name,
           connection_type: connection.connection_type,
           auth_type: connection.auth_type,
-          connection_credentials: fields as DatabaseAuthParams | ApiAuthParams,
+          connection_credentials: fields,
         };
 
         const response = await store_connection(storePayload);
@@ -286,20 +274,15 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
               label="Select Connection Type"
               name="connection_type"
               value={connection.connection_type}
-              onChange={(value: string) =>
-                setConnection((prev) => ({
-                  ...prev,
-                  connection_type: value,
-                  connector_name:
-                    value === "database"
-                      ? connectors.database[0]
-                      : connectors.api[0],
-                }))
-              }
-              options={CONNECTION_TYPES.map((type) => ({
-                value: type.value,
-                label: type.label,
-              }))}
+              onChange={handleConnectionTypeChange}
+              options={Object.keys(connectors).map((type) => {
+                if (connectors[type].length > 0) {
+                  return {
+                    value: type,
+                    label: capitalizeFirstLetter(type),
+                  }
+                }
+              })}
             />
             <FormField
               label="Connection Name"
@@ -311,6 +294,7 @@ const CreateConnection: React.FC<CreateProps> = ({ closeForm, load }) => {
                 } as React.ChangeEvent<HTMLInputElement>)
               }
               placeholder="my_connection"
+              autoComplete="on"
             />
             <FormField
               label={`Select ${capitalizeFirstLetter(

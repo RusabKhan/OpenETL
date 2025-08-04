@@ -20,7 +20,8 @@ router = APIRouter(prefix="/connector", tags=["connector"])
 async def get_installed_connectors_api():
     database_sources = get_installed_connectors(ConnectionType.DATABASE)
     api_engines = get_installed_connectors(ConnectionType.API)
-    return {"database": database_sources, "api": api_engines}
+    storage_engines = get_installed_connectors(ConnectionType.STORAGE)
+    return {"database": database_sources, "api": api_engines, "storage": storage_engines}
 
 
 @router.post("/test_connection")

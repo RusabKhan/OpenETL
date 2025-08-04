@@ -90,7 +90,7 @@ const EditConnection: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
                 return (
                   <div key={key} className="space-y-1">
                     <h3 className="text-xs font-bold capitalize text-neutral-700 dark:text-neutral-300">
-                      {key.replace("_", " ")}
+                      {key.replace(/_/g, " ")}
                     </h3>
                     {Object.entries(value).map(([nestedKey, nestedValue]) => (
                       <div
@@ -101,7 +101,7 @@ const EditConnection: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
                           htmlFor={`${key}.${nestedKey}`}
                           className="text-xs font-medium capitalize text-neutral-700 dark:text-neutral-300"
                         >
-                          {nestedKey.replace("_", " ")}
+                          {nestedKey.replace(/_/g, " ")}
                         </label>
                         <Input
                           id={`${key}.${nestedKey}`}
@@ -125,7 +125,7 @@ const EditConnection: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
                       htmlFor={key}
                       className="text-xs font-medium capitalize text-neutral-700 dark:text-neutral-300"
                     >
-                      {key.replace("_", " ")}
+                      {key.replace(/_/g, " ")}
                     </label>
                     <Input
                       id={key}

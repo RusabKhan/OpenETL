@@ -7,27 +7,35 @@ import { Connection } from "@/components/types/connectors";
 import {
   delete_connection,
   fetchCreatedConnections,
+  fetchInstalledConnectors,
   getConnectorImage,
 } from "@/components/utils/api";
+import { capitalizeFirstLetter } from "@/components/utils/func";
 import { PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function Connections() {
-  const [databases, setDatabases] = useState([]);
-  const [apis, setApis] = useState([]);
+  const [connectors, setConnectors] = useState<{ [key: string]: Connection[] }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const load = async () => {
     try {
       setIsLoading(true);
-      const data_res = await fetchCreatedConnections("database");
-      const api_res = await fetchCreatedConnections("api");
-      const updatedDataConnections = await updateConnections(data_res.data);
-      const updatedApiConnections = await updateConnections(api_res.data);
-      setDatabases(updatedDataConnections);
-      setApis(updatedApiConnections);
+      const installed_connectors = await fetchInstalledConnectors();
+      const list_connectors = Object.keys(installed_connectors.data);
+
+      const connectorPromises = list_connectors.map(async (connector) => {
+        const response = await fetchCreatedConnections(connector);
+        const updatedConnections = await updateConnections(response.data);
+        return [connector, updatedConnections] as [string, Connection[]];
+      });
+
+      const connectorEntries = await Promise.all(connectorPromises);
+      const connectorsObj = Object.fromEntries(connectorEntries);
+      setConnectors(connectorsObj);
+
     } catch (err: any) {
       if (!err.message.includes("undefined"))
         toast.error(
@@ -85,28 +93,19 @@ export default function Connections() {
           </button>
         </div>
         <div className="@container/main flex flex-1 flex-col gap-2">
-          <div className="flex flex-col gap-2">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-              Databases
-            </h2>
-            <ConnectionCards
-              connections={databases}
-              loading={isLoading}
-              onDelete={onDelete}
-              load={load}
-            />
-          </div>
-          <div className="flex flex-col gap-2 py-4 md:py-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-              APIs
-            </h2>
-            <ConnectionCards
-              connections={apis}
-              loading={isLoading}
-              onDelete={onDelete}
-              load={load}
-            />
-          </div>
+          {Object.keys(connectors).map((connector, index) => (
+            <div className="flex flex-col gap-2 pb-4" key={index}>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                {capitalizeFirstLetter(connector)}
+              </h2>
+              <ConnectionCards
+                connections={connectors[connector] as Connection[]}
+                loading={isLoading}
+                onDelete={onDelete}
+                load={load}
+              />
+            </div>
+          ))}
         </div>
 
         {isDialogOpen && (

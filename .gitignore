@@ -183,3 +183,5 @@ main.env
 /node_modules/.bin/*
 frontend/v2/node_modules/
 frontend/v2/node_modules/*
+
+poetry.lock

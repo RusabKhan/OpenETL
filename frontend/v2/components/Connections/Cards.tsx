@@ -34,12 +34,12 @@ interface API {
 }
 
 interface Connection {
-  id: number;
+  id: string;
   connection_name: string;
   connection_type: string;
   connector_name: string;
   auth_type: string;
-  connection_credentials: Database | API;
+  connection_credentials: Database | API | unknown;
   logo?: string;
 }
 
@@ -67,7 +67,7 @@ const ConnectionCards: React.FC<CardProps> = ({
     setDeleteConnection(null);
     onDelete(id);
   };
-  
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -90,11 +90,13 @@ const ConnectionCards: React.FC<CardProps> = ({
               }}
             >
               <div className="flex flex-row items-center pl-6 w-full">
-                <img
-                  src={connection.logo}
-                  alt="Connector logo"
-                  className="h-12 w-12 object-contain"
-                />
+                {connection.logo && (
+                  <img
+                    src={connection.logo}
+                    alt="Connector logo"
+                    className="h-12 w-12 object-contain"
+                  />
+                )}
                 <CardHeader>
                   <CardDescription className="flex flex-row items-center gap-2">
                     {connection.connector_name}
@@ -112,9 +114,9 @@ const ConnectionCards: React.FC<CardProps> = ({
           ))}
         </>
       ) : (
-        <div className="flex justify-center items-center">
+        <div className="flex">
           <p className="text-lg font-medium text-gray-600">
-            No connections found
+            No connections found!
           </p>
         </div>
       )}
@@ -144,11 +146,13 @@ const ConnectionCards: React.FC<CardProps> = ({
             </button>
 
             <div className="flex items-center space-x-4">
-              <img
-                src={selectedConnection.logo}
-                alt="Connector logo"
-                className="h-12 w-12 object-contain"
-              />
+              {selectedConnection.logo && (
+                <img
+                  src={selectedConnection.logo}
+                  alt="Connector logo"
+                  className="h-12 w-12 object-contain"
+                />
+              )}
               <div>
                 <div className="flex items-center space-x-4">
                   <h2 className="text-xl font-bold text-foreground">
@@ -198,7 +202,7 @@ const ConnectionCards: React.FC<CardProps> = ({
                       htmlFor={key}
                       className="block text-sm font-medium capitalize text-foreground"
                     >
-                      {key.replace("_", " ")} {/* Format label */}
+                      {key.replace(/_/g, " ")}
                     </label>
                     <Input
                       id={key}
