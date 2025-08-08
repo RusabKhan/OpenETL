@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "../ui/badge";
 import { Delete, DeleteIcon, Lock, Trash2Icon } from "lucide-react";
-import EditConnection from "../DynamicForm/EditConnection";
+import EditConnection from "./EditConnection";
 import { Input } from "../ui/input";
 
 interface Database {
