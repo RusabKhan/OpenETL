@@ -47,6 +47,13 @@ To get started with OpenETL, follow these steps:
 OpenETL relies on a `.env` file for configuration. Ensure the following variables are defined in your local `.env` file,
 and **update them** according to your environment:
 
+### 1. Generate and set encryption key (do this once):
+```python
+from cryptography.fernet import Fernet
+key = Fernet.generate_key()
+print(key.decode())  # Save this in your .env file as DB_ENCRYPTION_KEY
+```
+
 ```bash
 OPENETL_DOCUMENT_HOST=postgres
 OPENETL_DOCUMENT_DB=openetl_db
@@ -59,6 +66,7 @@ OPENETL_HOME=/app
 CELERY_BROKER_URL=redis://redis:6379/0
 SPARK_MASTER=spark://spark-master:7077
 SPARK_DRIVER_HOST=openetl-celery-worker-1
+DB_ENCRYPTION_KEY=
 ```
 
 ### Using Docker

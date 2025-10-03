@@ -1183,6 +1183,13 @@ class DatabaseUtils():
         self.session.commit()
         return scheduler
 
+    def get_integration_by_id(self, job_id):
+        return (
+            self.session.query(OpenETLIntegrations)
+            .filter(OpenETLIntegrations.id == job_id)
+            .first()
+        )
+
 
 def get_open_etl_document_connection_details(url=False):
     """Get connection details for OpenETL Document"""
