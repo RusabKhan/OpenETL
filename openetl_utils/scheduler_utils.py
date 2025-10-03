@@ -16,7 +16,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 
-from openetl_utils.celery_utils import app, run_pipeline, retry
+from openetl_utils.celery_utils import app, run_pipeline, retry, kill_pipeline
 from openetl_utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details
 from openetl_utils.enums import RunStatus
 from openetl_utils.logger import get_logger
@@ -26,6 +26,7 @@ import redis
 REDIS_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 redis_client = redis.from_url(REDIS_URL)
 REDIS_QUEUE_KEY = os.getenv('REDIS_QUEUE_KEY', 'openetl:trigger_queue')
+REDIS_KILL_KEY = os.getenv("REDIS_KILL_KEY", "openetl:kill_queue")
 
 db = DatabaseUtils(**get_open_etl_document_connection_details())
 engine = db.engine.url
@@ -201,7 +202,7 @@ def start_scheduler():
 
     scheduler.add_job(
         func=check_redis_and_trigger,
-        trigger=IntervalTrigger(seconds=5),
+        trigger=IntervalTrigger(seconds=2),
         id="immediate_trigger_queue_check",
         replace_existing=True
     )
@@ -211,6 +212,13 @@ def start_scheduler():
         trigger=IntervalTrigger(days=1),
         id="clean_up_old_logs",
         replace_existing=True,
+    )
+
+    scheduler.add_job(
+        func=check_redis_for_kills,
+        trigger=IntervalTrigger(seconds=2),
+        id="immediate_exit_tasks",
+        replace_existing=True
     )
 
     scheduler.start()
@@ -224,6 +232,9 @@ def start_scheduler():
     except (KeyboardInterrupt, SystemExit):
         scheduler.shutdown(wait=False)
         logger.info("Scheduler shut down gracefully.")
+
+
+
 
 
 def check_redis_and_trigger():
@@ -306,6 +317,32 @@ def check_redis_and_trigger():
 
     except Exception as e:
         logger.error(f"Error checking Redis queue: {e}", exc_info=True)
+
+
+def check_redis_for_kills():
+    """
+    Poll Redis for kill signals and terminate pipelines.
+    """
+    while True:
+        item = redis_client.lpop(REDIS_KILL_KEY)
+        if not item:
+            break
+
+        try:
+            integration_data = json.loads(item)
+            job_id = integration_data.get('integration_id')
+
+            if not job_id:
+                logger.error(f"Invalid kill payload: {job_id}")
+                continue
+
+            kill_pipeline(job_id)
+
+        except json.JSONDecodeError:
+            logger.error(f"Invalid JSON in Redis kill queue: {item}")
+        except Exception as e:
+            logger.error(f"Error handling kill request {item}: {e}", exc_info=True)
+
 
 if __name__ == '__main__':
     start_scheduler()

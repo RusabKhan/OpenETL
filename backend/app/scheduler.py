@@ -13,6 +13,7 @@ router = APIRouter(prefix="/scheduler", tags=["scheduler"])
 REDIS_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 redis_client = redis.from_url(REDIS_URL)
 REDIS_QUEUE_KEY = os.getenv('REDIS_QUEUE_KEY', 'openetl:trigger_queue')
+REDIS_KILL_KEY = os.getenv("REDIS_KILL_KEY", "openetl:kill_queue")
 
 @router.delete("/remove-job/{job_id}")
 def remove_job(job_id: str):
@@ -73,3 +74,17 @@ async def trigger_job(request: Request, fields: dict = Body(...)):
         return {"message": f"Job {job_id} added to trigger queue {REDIS_QUEUE_KEY}", "payload": job_id}
     except redis.RedisError as e:
         raise HTTPException(status_code=500, detail=f"Failed to add job to queue: {e}")
+
+@router.post("/kill-job")
+async def kill_job(fields: dict = Body(...)):
+    """
+    Push a kill request (task_id + optional container_name) into the Redis kill queue.
+    """
+    try:
+        kill_data = {"integration_id":fields["integration_id"]}
+        redis_client.lpush(REDIS_KILL_KEY, json.dumps(kill_data))
+        return {
+            "payload": kill_data
+        }
+    except redis.RedisError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add kill request to queue: {e}")
