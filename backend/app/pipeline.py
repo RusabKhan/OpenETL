@@ -11,6 +11,7 @@ from starlette.responses import JSONResponse
 from openetl_utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details, generate_cron_expression
 from openetl_utils.enums import IntegrationType, LogsType
 from openetl_utils.local_connection_utils import  paginate_log_content, get_log_file_path
+from starlette.responses import JSONResponse, FileResponse
 
 sys.path.append(os.environ['OPENETL_HOME'])
 
@@ -163,3 +164,27 @@ async def get_logs_api(
         "total_pages": total_pages
     })
 
+async def download_logs_api(
+        request: Request,
+        integration_id: str | None = None,
+        logs_type: LogsType = LogsType.INTEGRATION
+):
+    """
+    Endpoint to download full log file(s).
+    - Filters by integration_id and logs_type.
+    - Returns the first matched log file as a download.
+    """
+    logs_dir = os.path.join(os.environ['OPENETL_HOME'], ".logs")
+    log_file_paths = get_log_file_path(logs_dir, integration_id, logs_type.value)
+
+    if not log_file_paths:
+        return JSONResponse(content={"error": "No logs found"}, status_code=404)
+
+    log_file = log_file_paths[0]  # serve first match
+    filename = os.path.basename(log_file)
+
+    return FileResponse(
+        path=log_file,
+        media_type="text/plain",
+        filename=filename
+    )

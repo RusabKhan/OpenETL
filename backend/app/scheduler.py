@@ -10,7 +10,7 @@ import redis
 router = APIRouter(prefix="/scheduler", tags=["scheduler"])
 
 
-REDIS_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+REDIS_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379")
 redis_client = redis.from_url(REDIS_URL)
 REDIS_QUEUE_KEY = os.getenv('REDIS_QUEUE_KEY', 'openetl:trigger_queue')
 REDIS_KILL_KEY = os.getenv("REDIS_KILL_KEY", "openetl:kill_queue")
