@@ -6,7 +6,6 @@ WORKDIR /app
 
 # Install required tools and OpenJDK 11
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    software-properties-common \
     wget \
     curl \
     tar \

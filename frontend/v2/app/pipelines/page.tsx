@@ -33,6 +33,11 @@ export default function PipelinesPage() {
     setIsloading(false);
   };
 
+  const bg_load = async () => {
+    const response = await getIntegrations(false, page);
+    setIntegrations(response.data);
+  };
+
   const router = useRouter();
 
   const changePage = (pg: number) => {
@@ -42,6 +47,13 @@ export default function PipelinesPage() {
   useEffect(() => {
     load_integrations(false);
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      bg_load();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [page]);
 
   useEffect(() => {
     document.title = "Pipelines | OpenETL";
@@ -60,7 +72,7 @@ export default function PipelinesPage() {
     }
   };
 
-  const columns = ["Id", "Name", "Cron Expression", "Type", "Active", "Status"];
+  const columns = ["Name", "Cron Expression", "Type", "Active", "Status", "Actions"];
 
   return (
     <DefaultLayout title="Pipelines">

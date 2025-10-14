@@ -18,6 +18,8 @@ import {
   IconCircleX,
   IconInfoOctagon,
   IconLoader,
+  IconPlayerPlayFilled,
+  IconSkull,
   IconTrash,
 } from "@tabler/icons-react";
 import {
@@ -46,7 +48,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./select";
-import { update_integration } from "../utils/api";
+import {
+  kill_integration,
+  trigger_integration,
+  update_integration,
+} from "../utils/api";
+import { toast } from "sonner";
 
 interface ETLTableInterface {
   columns: string[];
@@ -61,6 +68,7 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -103,6 +111,24 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
     });
 
     load(false);
+  };
+
+  const triggerIntegration = async (integration_id) => {
+    setIsLoading(true);
+    await trigger_integration(integration_id);
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    load(false);
+    setIsLoading(false);
+    toast.success("Integration triggered successfully");
+  };
+
+  const killIntegration = async (integration_id) => {
+    setIsLoading(true);
+    await kill_integration(integration_id);
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    load(false);
+    setIsLoading(false);
+    toast.success("Kill signal sent to the integration");
   };
 
   return (
@@ -177,7 +203,7 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                   <label className="sr-only">Select row</label>
                 </div>
               </TableCell>
-              <TableCell className="px-6 py-4">
+              {/* <TableCell className="px-6 py-4">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -192,13 +218,15 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              </TableCell>
+              </TableCell> */}
               <TableCell className="px-6 py-4">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
                       <span className="truncate block max-w-[200px]">
-                        {integration.integration_name}
+                        <Link href={`/pipelines/${integration.id}`}>
+                          {integration.integration_name}
+                        </Link>
                       </span>
                     </TooltipTrigger>
                     <TooltipContent className="dark:bg-card dark:text-white">
@@ -311,6 +339,35 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                   )}
                   {integration.is_running ? "Running" : "Stopped"}
                 </Badge> */}
+              </TableCell>
+
+              <TableCell className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    title="Trigger Pipeline"
+                    disabled={integration.is_running || isLoading}
+                    onClick={() => {
+                      triggerIntegration(integration.id);
+                    }}
+                  >
+                    <IconPlayerPlayFilled className="w-4 h-4 mr-1" />
+                    Trigger
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    title="Kill Pipeline"
+                    disabled={!integration.is_running || isLoading}
+                    onClick={() => {
+                      killIntegration(integration.id);
+                    }}
+                  >
+                    <IconSkull className="w-4 h-4 mr-1" />
+                    Kill
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}

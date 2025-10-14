@@ -79,7 +79,7 @@ const ConnectionCards: React.FC<CardProps> = ({
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-      {connections && connections.length > 0 ? (
+      {connections && connections.length > 0 && (
         <>
           {connections.map((connection) => (
             <Card
@@ -113,12 +113,6 @@ const ConnectionCards: React.FC<CardProps> = ({
             </Card>
           ))}
         </>
-      ) : (
-        <div className="flex">
-          <p className="text-lg font-medium text-gray-600">
-            No connections found!
-          </p>
-        </div>
       )}
 
       {selectedConnection && (
