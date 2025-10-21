@@ -3,7 +3,7 @@ name: Publish OpenETL utils to PyPI
 on:
   push:
     branches:
-      - 'release/openetl-utils-main'
+      - 'development/openetl-utils'
     tags:
       - 'v*'
 
@@ -61,17 +61,6 @@ jobs:
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
-      # 5. LINE COMMENTING ------------------------------------------
-      - name: Comment lines in __init__.py
-        run: |
-          if [ -f "openetl_utils/__init__.py" ]; then
-            sed -i.bak -e '25s/^/# /' -e '26s/^/# /' -e '27s/^/# /' -e '28s/^/# /' openetl_utils/__init__.py
-            echo "✅ Successfully commented lines 25, 26, 27, and 28"
-            diff -u openetl_utils/__init__.py.bak openetl_utils/__init__.py || true
-          else
-          echo "❌ Critical: __init__.py not found!"
-          exit 1
-          fi
       # 6. BUILD AND PUBLISH ----------------------------------------
       - name: Install dependencies
         run: poetry install --no-interaction
