@@ -4,7 +4,7 @@ import requests
 import pandas as pd
 import flatten_json
 from openetl_utils.enums import *
-from openetl_utils.connector_utils import install_libraries
+from openetl_utils.connector_utils import install_libraries, dataframe_details
 
 
 class API:
@@ -190,14 +190,9 @@ class API:
         Returns:
             dict: A dictionary containing the schema details of the table.
         """
-        endpoint = self.construct_endpoint(table_name)
-        resp = api_session.get(url=endpoint)
-        if resp.status_code == 200:
-            table_data = resp.json()
-            return table_data
-        else:
-            raise Exception(
-                f"Failed to retrieve table schema. Status code: {resp.status_code}. Message: {resp.text}")
+        table_data = super().get_table_schema(
+            api_session, table_name)[self.main_response_key]
+        return dataframe_details(self.return_final_df(table_data))
 
     def install_missing_libraries(self) -> bool:
         """

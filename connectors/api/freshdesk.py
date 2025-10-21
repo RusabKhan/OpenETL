@@ -1,7 +1,5 @@
-from openetl_utils.database_utils import DatabaseUtils
 from openetl_utils.main_api_class import API
 from openetl_utils.enums import *
-from urllib.parse import urlencode
 import sys
 import os
 import pandas as pd
@@ -188,20 +186,7 @@ class Connector(API):
         return super().construct_endpoint(endpoint)
 
     def get_table_schema(self, api_session, table) -> dict:
-        table_data = super().get_table_schema(api_session, table)
-
-        if not table_data:
-            return {"error": "No data retrieved. Verify API credentials and endpoint."}
-
-        return DatabaseUtils().dataframe_details(self.return_final_df(table_data))
-
-    def get_table_schema(self, api_session, table) -> dict:
-        table_data = super().get_table_schema(api_session, table)
-
-        if not table_data:
-            return {"error": "No data retrieved. Verify API credentials and endpoint."}
-
-        return DatabaseUtils().dataframe_details(self.return_final_df(table_data))
+        return super().get_table_schema(api_session, table)
 
     def install_missing_libraries(self) -> bool:
         return super().install_missing_libraries()
