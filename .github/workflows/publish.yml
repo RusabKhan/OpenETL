@@ -61,7 +61,9 @@ jobs:
 
       # 6. BUILD AND PUBLISH ----------------------------------------
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run:  |
+          poetry lock
+          poetry install --no-interaction
 
       - name: Build package
         run: |
