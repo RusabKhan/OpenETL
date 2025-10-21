@@ -28,10 +28,9 @@ try:
     from .main_api_class import *
     from .connector_utils import *
     from .pipeline_utils import *
-    from .database_utils import *
     from .spark_utils import *
 except ImportError as e:
-    print(f"[INFO] Running in standalone mode. Some features may be limited: {e}", file=sys.stderr)
+    print(f"[INFO] Running in SDK mode. Some features may be limited: {e}", file=sys.stderr)
 
 
 from .database_utils import *

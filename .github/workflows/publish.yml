@@ -3,9 +3,7 @@ name: Publish OpenETL utils to PyPI
 on:
   push:
     branches:
-      - 'development/openetl-utils'
-    tags:
-      - 'v*'
+      - 'release/openetl-utils'
 
 jobs:
   build-and-publish:
