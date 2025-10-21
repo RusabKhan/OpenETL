@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "openetl-sdk"
-version = "0.1.6"
+version = "0.0.1"
 description = "OpenETL backend lib with connectors."
 readme = "README.md"
 license = "MIT"
@@ -29,17 +29,19 @@ packages = [
 ]
 
 exclude = [
-    "openetl_utils/deprecated/*",
+    "openetl_utils/deprecated",
     "openetl_utils/scheduler_utils.py",
     "openetl_utils/celery_utils.py",
     "openetl_utils/spark_utils.py",
     "openetl_utils/pipeline_utils.py",
-    "opeetl_utils/__migrations__/*",
-    ".mypy_cache/*",
-    ".pytest_cache/*",
-    "*.pyc",
-    "*.pyo",
-    "*.pyd"
+    "openetl_utils/__migrations__",
+    "openetl_utils/__pycache__",
+    "**/__pycache__",
+    "**/.mypy_cache",
+    "**/.pytest_cache",
+    "**/*.pyc",
+    "**/*.pyo",
+    "**/*.pyd"
 ]
 
 [tool.poetry.dependencies]
@@ -52,3 +54,4 @@ croniter = "5.0.1"
 regex = "2024.11.6"
 requests = "2.32.3"
 flatten-json = "0.1.14"
+cryptography = "43.0.3"
