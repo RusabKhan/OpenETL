@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "openetl-sdk"
 version = "0.1.6"
-description = "Simple ETL utilities used by OpenETL"
+description = "OpenETL backend lib with connectors."
 readme = "README.md"
 license = "MIT"
 authors = [
@@ -24,8 +24,8 @@ classifiers = [
 
 # THIS IS THE KEY PART - Poetry will now respect this
 packages = [
-    { include = "openetl_utils", to = "openetl_sdk" },
-    { include = "connectors", to = "openetl_sdk" }
+    { include = "openetl_utils"},
+    { include = "connectors", to = "openetl_csdk" }
 ]
 
 exclude = [
