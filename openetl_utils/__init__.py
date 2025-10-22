@@ -29,11 +29,11 @@ try:
     from .connector_utils import *
     from .pipeline_utils import *
     from .spark_utils import *
+    from .database_utils import *
 except ImportError as e:
     print(f"[INFO] Running in SDK mode. Some features may be limited: {e}", file=sys.stderr)
 
 
-from .database_utils import *
 from .local_connection_utils import *
 from .enums import *
 from .cache import *
