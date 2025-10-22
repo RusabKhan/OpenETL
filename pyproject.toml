@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "openetl-sdk"
-version = "0.0.1"
+version = "0.0.2"
 description = "OpenETL backend lib with connectors."
 readme = "README.md"
 license = "MIT"
