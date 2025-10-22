@@ -22,7 +22,6 @@ classifiers = [
     "Operating System :: OS Independent"
 ]
 
-# THIS IS THE KEY PART - Poetry will now respect this
 packages = [
     { include = "openetl_utils"},
     { include = "connectors", to = "openetl_csdk" }
