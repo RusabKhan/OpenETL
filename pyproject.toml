@@ -33,6 +33,7 @@ exclude = [
     "openetl_utils/scheduler_utils.py",
     "openetl_utils/celery_utils.py",
     "openetl_utils/spark_utils.py",
+    "openetl_utils/database_utils.py",
     "openetl_utils/pipeline_utils.py",
     "openetl_utils/__migrations__",
     "openetl_utils/__pycache__",
