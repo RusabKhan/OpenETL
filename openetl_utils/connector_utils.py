@@ -10,7 +10,11 @@ import pkg_resources
 home = os.environ['OPENETL_HOME']
 sys.path.append(home)
 import json
-from openetl_utils.database_utils import DatabaseUtils
+try:
+    from openetl_utils.database_utils import DatabaseUtils
+except  ImportError as e:
+    pass
+
 from openetl_utils.enums import *
 
 
