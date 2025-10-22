@@ -123,7 +123,7 @@ jdbc_database_jars = {
     'Apache Accumulo': 'org.apache.accumulo:accumulo-core:2.0.1',
     'MemSQL': 'com.memsql:memsql-connector:3.1.0',
     'Amazon Athena': 'software.amazon.athena.jdbc:athena-jdbc:2.2.0',
-    'Amazon S3': 'software.amazon.awssdk:s3:2.16.58',
+    'Amazon S3': 'org.apache.hadoop:hadoop-aws:3.3.2,com.amazonaws:aws-java-sdk-pom:1.12.365',
     'AWS Glue': 'software.amazon.awssdk:aws-glue-datacatalog-client:2.16.58',
     'Elasticsearch': 'org.elasticsearch.client:elasticsearch-rest-client:7.15.0',
     'Azure Data Explorer (Kusto)': 'com.microsoft.azure.kusto:kusto-ingest:2.2.3',

@@ -1,7 +1,10 @@
 "use client";
 
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
-import { IntegrationConfig, PaginatedIntegrationHistoryConfig } from "@/components/types/integration";
+import {
+  IntegrationConfig,
+  PaginatedIntegrationHistoryConfig,
+} from "@/components/types/integration";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -23,9 +26,23 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getIntegrationHistory, update_integration } from "@/components/utils/api";
-import { formatDateTime, getCurrentDate, getCurrentTime } from "@/components/utils/func";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  getIntegrationHistory,
+  update_integration,
+} from "@/components/utils/api";
+import {
+  formatDateTime,
+  getCurrentDate,
+  getCurrentTime,
+  truncateText,
+} from "@/components/utils/func";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -37,6 +54,13 @@ import {
 import Spinner from "@/components/Spinner";
 import { Save, SquarePen, X } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Card, CardContent } from "@/components/ui/card";
 
 const initial_integration: IntegrationConfig = {
   frequency: "Weekly",
@@ -77,7 +101,11 @@ const IntegrationHistory = () => {
       setIsLoading(false);
       return;
     }
-    const resp = await getIntegrationHistory(integrationId.toString(), page, cache);
+    const resp = await getIntegrationHistory(
+      integrationId.toString(),
+      page,
+      cache
+    );
     setData(resp.data);
     // Set integration data when loading
     if (resp.data?.data) {
@@ -117,8 +145,8 @@ const IntegrationHistory = () => {
   }, [page]);
 
   const historyColumns = [
-    "Id",
-    "Integration Id",
+    // "Id",
+    "Pipeline Id",
     "Run Status",
     "Row Count",
     "Error Message",
@@ -129,9 +157,9 @@ const IntegrationHistory = () => {
   ];
 
   const handleInputChange = (field: string, value: any) => {
-    setIntegration(prev => ({
+    setIntegration((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -140,11 +168,11 @@ const IntegrationHistory = () => {
       const updateData = {
         pipeline_id: integrationId as string,
         fields: {
-          ...integration
-        }
+          ...integration,
+        },
       };
       const res = await update_integration(updateData);
-      if (res && 'status' in res && res.status === 204) {
+      if (res && "status" in res && res.status === 204) {
         toast.success("Integration updated successfully!");
         setEditable(false);
         load(false); // Reload data to show updated values
@@ -220,30 +248,45 @@ const IntegrationHistory = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Basic Information */}
                     <div className="space-y-4">
-                      <h3 className="text-md font-medium text-gray-900 dark:text-gray-100">Basic Information</h3>
+                      <h3 className="text-md font-medium text-gray-900 dark:text-gray-100">
+                        Basic Information
+                      </h3>
 
                       <div className="space-y-2">
-                        <Label htmlFor="integration_name">Integration Name</Label>
+                        <Label htmlFor="integration_name">
+                          Integration Name
+                        </Label>
                         <Input
                           id="integration_name"
                           value={integration.integration_name}
-                          onChange={(e) => handleInputChange('integration_name', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "integration_name",
+                              e.target.value
+                            )
+                          }
                           placeholder="Enter integration name"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="integration_type">Integration Type</Label>
+                        <Label htmlFor="integration_type">
+                          Integration Type
+                        </Label>
                         <Select
                           value={integration.integration_type}
-                          onValueChange={(value) => handleInputChange('integration_type', value)}
+                          onValueChange={(value) =>
+                            handleInputChange("integration_type", value)
+                          }
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select integration type" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="full_load">Full Load</SelectItem>
-                            <SelectItem value="incremental">Incremental</SelectItem>
+                            <SelectItem value="incremental">
+                              Incremental
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -254,7 +297,12 @@ const IntegrationHistory = () => {
                           id="batch_size"
                           type="number"
                           value={integration.batch_size}
-                          onChange={(e) => handleInputChange('batch_size', parseInt(e.target.value) || 0)}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "batch_size",
+                              parseInt(e.target.value) || 0
+                            )
+                          }
                           placeholder="Enter batch size"
                         />
                       </div>
@@ -262,13 +310,17 @@ const IntegrationHistory = () => {
 
                     {/* Additional Configuration */}
                     <div className="space-y-4">
-                      <h3 className="text-md font-medium text-gray-900 dark:text-gray-100">Additional Configuration</h3>
+                      <h3 className="text-md font-medium text-gray-900 dark:text-gray-100">
+                        Additional Configuration
+                      </h3>
 
                       <div className="space-y-2">
                         <Label htmlFor="frequency">Frequency</Label>
                         <Select
                           value={integration.frequency}
-                          onValueChange={(value) => handleInputChange('frequency', value)}
+                          onValueChange={(value) =>
+                            handleInputChange("frequency", value)
+                          }
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select frequency" />
@@ -287,7 +339,9 @@ const IntegrationHistory = () => {
                           id="schedule_time"
                           type="time"
                           value={integration.schedule_time}
-                          onChange={(e) => handleInputChange('schedule_time', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("schedule_time", e.target.value)
+                          }
                         />
                       </div>
 
@@ -296,8 +350,12 @@ const IntegrationHistory = () => {
                         <Input
                           id="schedule_date"
                           type="date"
-                          value={integration.schedule_date[0] || getCurrentDate()}
-                          onChange={(e) => handleInputChange('schedule_date', [e.target.value])}
+                          value={
+                            integration.schedule_date[0] || getCurrentDate()
+                          }
+                          onChange={(e) =>
+                            handleInputChange("schedule_date", [e.target.value])
+                          }
                         />
                       </div>
                     </div>
@@ -352,7 +410,7 @@ const IntegrationHistory = () => {
                     <AccordionTrigger>Spark Configuration</AccordionTrigger>
                     <AccordionContent>
                       {data.data.spark_config &&
-                        Object.keys(data.data.spark_config).length > 0 ? (
+                      Object.keys(data.data.spark_config).length > 0 ? (
                         <div className="p-4 border rounded-lg">
                           {Object.entries(data.data.spark_config).map(
                             ([key, value]) => (
@@ -376,7 +434,7 @@ const IntegrationHistory = () => {
                     <AccordionTrigger>Hadoop Configuration</AccordionTrigger>
                     <AccordionContent>
                       {data.data.hadoop_config &&
-                        Object.keys(data.data.hadoop_config).length > 0 ? (
+                      Object.keys(data.data.hadoop_config).length > 0 ? (
                         <div className="p-4 border rounded-lg">
                           {Object.entries(data.data.hadoop_config).map(
                             ([key, value]) => (
@@ -415,23 +473,59 @@ const IntegrationHistory = () => {
                 <TableBody>
                   {data?.history?.map((integration, key) => (
                     <TableRow key={key}>
-                      <TableCell>{integration.id}</TableCell>
-                      <TableCell>{integration.integration}</TableCell>
+                      {/* <TableCell>{integration.id}</TableCell> */}
+                      <TableCell className="py-4">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <span className="truncate block max-w-[200px]">
+                                {integration.integration}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent className="dark:bg-card dark:text-white">
+                              <p>{integration.integration}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
+                      {/* <TableCell>{integration.integration}</TableCell> */}
                       <TableCell>
                         <Badge
                           variant={
                             integration.run_status === "success"
                               ? "outline"
                               : integration.run_status === "running"
-                                ? "secondary"
-                                : "destructive"
+                              ? "secondary"
+                              : "destructive"
                           }
                         >
                           {integration.run_status}
                         </Badge>
                       </TableCell>
-                      <TableCell>{integration.row_count}</TableCell>
-                      <TableCell>{integration.error_message}</TableCell>
+                      <TableCell>{integration.row_count || 0}</TableCell>
+                      <TableCell>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <span className="truncate block max-w-[200px]">
+                                {truncateText(integration.error_message) ||
+                                  "No error message"}
+                              </span>
+                            </TooltipTrigger>
+                            {integration.error_message && (
+                              <TooltipContent className="m-0 p-0">
+                                <Card className="max-w-[600px] max-h-[400px] overflow-y-auto whitespace-pre-wrap break-words rounded-none">
+                                  <CardContent>
+                                    <p className="text-sm text-muted-foreground">
+                                      {integration.error_message}
+                                    </p>
+                                  </CardContent>
+                                </Card>
+                              </TooltipContent>
+                            )}
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
                       <TableCell>
                         {formatDateTime(integration.start_date)}
                       </TableCell>

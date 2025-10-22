@@ -5,10 +5,12 @@ import logging
 from datetime import datetime
 
 from celery import Celery
+from celery.result import AsyncResult
 from celery.signals import after_setup_logger, task_prerun
 from openetl_utils.database_utils import get_open_etl_document_connection_details, DatabaseUtils
 import openetl_utils.pipeline_utils as pipeline
 from openetl_utils.logger import get_logger
+from openetl_utils.enums import RunStatus
 
 # Environment setup
 LOG_DIR = f"{os.environ['OPENETL_HOME']}/.logs"
@@ -140,3 +142,20 @@ def retry(tries, delay):
                         raise
         return wrapper
     return decorator
+
+
+def kill_pipeline(task_id, terminate=True, signal="SIGKILL"):
+    """
+    Kill a running Celery pipeline.
+    """
+    try:
+        res = AsyncResult(task_id, app=app)
+        res.revoke(terminate=terminate, signal=signal)
+        pipeline.update_integration_in_db(task_id, task_id, "SIGTERM. Task killed externally?", RunStatus.FAILED,
+                                      datetime.utcnow())
+
+        return {"message": f"Pipeline {task_id} killed successfully"}
+
+
+    except Exception as e:
+        return {"error": f"Failed to kill pipeline {task_id}: {e}"}

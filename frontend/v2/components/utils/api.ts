@@ -189,7 +189,7 @@ export const getCeleryWorkerStatus = async (cache: boolean) => {
 
 // POST
 export const fetchCreatedConnections = async (type: string) => {
-  return apiRequest("post", "/connector/get_created_connections", {
+  return axios.post(`${base_url}/connector/get_created_connections`, {
     connector_type: type,
   });
 };
@@ -213,6 +213,16 @@ export const create_integration = async (params: IntegrationConfig) => {
     ...params,
   });
 };
+export const trigger_integration = async (id: string) => {
+  return apiRequest("post", "/scheduler/trigger-job/", {
+    integration_id: id,
+  });
+};
+export const kill_integration = async (id: string) => {
+  return apiRequest("post", "/scheduler/kill-job/", {
+    integration_id: id,
+  });
+}
 
 // DELETE
 export const delete_connection = async (id: number) => {

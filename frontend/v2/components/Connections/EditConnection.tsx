@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { update_connection } from "../utils/api";
+import { test_connection, update_connection } from "../utils/api";
 import { Input } from "../ui/input";
+import { toast } from "sonner";
+import Spinner from "../Spinner";
 
 interface DynamicFormProps {
   data: { [key: string]: any };
@@ -9,6 +11,7 @@ interface DynamicFormProps {
 
 const EditConnection: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
   const [formData, setFormData] = useState(data);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Handle input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,15 +40,45 @@ const EditConnection: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Destructure id and rest of form data
-    const { id, ...fields } = formData;
-
-    const params = {
-      document_id: id,
-      fields,
+    // perform test connection for new connection
+    // if successful, update the connection
+    // if not successful, show error message
+    const testPayload = {
+      connector_type: formData.connection_type,
+      connector_name: formData.connector_name,
+      auth_type: formData.auth_type,
+      auth_params: formData.connection_credentials,
     };
-    await update_connection(params);
-    closeForm();
+
+    try {
+      setIsLoading(true);
+      // Test the connection
+      const testResult = await test_connection(testPayload);
+      if (!testResult || !testResult.data) {
+        toast.error("Test Connection Failed!");
+        return;
+      }
+      toast.success("Test Connection Successful!");
+
+      // Destructure id and rest of form data
+      const { id, ...fields } = formData;
+
+      const params = {
+        document_id: id,
+        fields,
+      };
+      await update_connection(params);
+      toast.success("Connection updated successfully!");
+      closeForm();
+    } catch (error: any) {
+      toast.error(
+        error.message ||
+          "Test Connection Failed! Please check your credentials."
+      );
+      return;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -90,7 +123,7 @@ const EditConnection: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
                 return (
                   <div key={key} className="space-y-1">
                     <h3 className="text-xs font-bold capitalize text-neutral-700 dark:text-neutral-300">
-                      {key.replace("_", " ")}
+                      {key.replace(/_/g, " ")}
                     </h3>
                     {Object.entries(value).map(([nestedKey, nestedValue]) => (
                       <div
@@ -101,12 +134,16 @@ const EditConnection: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
                           htmlFor={`${key}.${nestedKey}`}
                           className="text-xs font-medium capitalize text-neutral-700 dark:text-neutral-300"
                         >
-                          {nestedKey.replace("_", " ")}
+                          {nestedKey.replace(/_/g, " ")}
                         </label>
                         <Input
                           id={`${key}.${nestedKey}`}
                           name={nestedKey}
-                          type={key === "password" || nestedKey === "password" ? "password" : "text"}
+                          type={
+                            key === "password" || nestedKey === "password"
+                              ? "password"
+                              : "text"
+                          }
                           value={nestedValue as string}
                           onChange={
                             (e) => handleNestedChange(e, key) // Pass the parent key to the nested handler
@@ -125,7 +162,7 @@ const EditConnection: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
                       htmlFor={key}
                       className="text-xs font-medium capitalize text-neutral-700 dark:text-neutral-300"
                     >
-                      {key.replace("_", " ")}
+                      {key.replace(/_/g, " ")}
                     </label>
                     <Input
                       id={key}
@@ -146,13 +183,16 @@ const EditConnection: React.FC<DynamicFormProps> = ({ data, closeForm }) => {
           <div className="mt-4 flex justify-end">
             <button
               type="submit"
+              disabled={isLoading}
               className="rounded bg-blue-500 px-3 py-1 text-sm text-white transition hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
             >
-              Save
+              Update
             </button>
           </div>
         </form>
       </div>
+
+      <Spinner visible={isLoading} />
     </div>
   );
 };

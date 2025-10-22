@@ -27,7 +27,7 @@ interface IntegrationProps {
   setIntegration: Dispatch<SetStateAction<IntegrationConfig>>;
 }
 
-const source_types = ["database", "api"];
+const source_types = ["database", "api", "storage"];
 const target_types = ["database"];
 const target_table_types = ["new", "existing"];
 

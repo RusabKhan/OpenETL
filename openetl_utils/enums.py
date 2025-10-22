@@ -10,6 +10,7 @@ class AuthType(Enum):
 class ConnectionType(Enum):
     DATABASE = "database"
     API = "api"
+    STORAGE = "storage"
     
     
 class TableAction(Enum):
