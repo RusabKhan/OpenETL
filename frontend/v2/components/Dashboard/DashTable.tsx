@@ -18,6 +18,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
+import { Card, CardContent } from "../ui/card";
+import { Car } from "lucide-react";
 
 interface DashTableProps {
   columns: string[];
@@ -30,7 +32,6 @@ export default function DashTable({
   data,
   changePage,
 }: DashTableProps) {
-
   return (
     <div className="space-y-4">
       {/* Table */}
@@ -66,8 +67,8 @@ export default function DashTable({
                     integration.latest_run_status === "success"
                       ? "outline"
                       : integration.latest_run_status === "running"
-                        ? "secondary"
-                        : "destructive"
+                      ? "secondary"
+                      : "destructive"
                   }
                 >
                   {integration.latest_run_status}
@@ -81,11 +82,17 @@ export default function DashTable({
                         {truncateText(integration.error_message)}
                       </span>
                     </TooltipTrigger>
-                    <TooltipContent>
-                      <div className="max-w-[300px] max-h-[200px] overflow-y-auto whitespace-pre-wrap break-words">
-                        {integration.error_message || "None"}
-                      </div>
-                    </TooltipContent>
+                    {integration.error_message && (
+                      <TooltipContent className="m-0 p-0">
+                        <Card className="max-w-[600px] max-h-[400px] overflow-y-auto whitespace-pre-wrap break-words rounded-none">
+                          <CardContent>
+                            <p className="text-sm text-muted-foreground">
+                              {integration.error_message}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </TooltipContent>
+                    )}
                   </Tooltip>
                 </TooltipProvider>
               </TableCell>

@@ -41,7 +41,7 @@ export default function Home() {
   }, []);
 
   const columns = [
-    "Integration Name",
+    "Integration",
     "Run Count",
     "Latest Run Status",
     "Error Message",

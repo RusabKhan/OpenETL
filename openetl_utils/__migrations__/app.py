@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, JSON, String, Enum, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Enum, DateTime, Text, ForeignKey
+from openetl_utils.encrypted_fields import EncryptedJSON
 from sqlalchemy.ext.declarative import declarative_base
 from openetl_utils.enums import AuthType
 
@@ -12,7 +13,7 @@ class OpenETLDocument(Base):
     __table_args__ = {'schema': 'public'}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    connection_credentials = Column(JSON)
+    connection_credentials = Column(EncryptedJSON)
     connection_name = Column(String, unique=True)
     connection_type = Column(String)
     auth_type = Column(Enum(AuthType))

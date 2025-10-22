@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import uuid
@@ -15,10 +16,17 @@ from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 
-from openetl_utils.celery_utils import app, run_pipeline, retry
+from openetl_utils.celery_utils import app, run_pipeline, retry, kill_pipeline
 from openetl_utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details
 from openetl_utils.enums import RunStatus
 from openetl_utils.logger import get_logger
+
+import redis
+
+REDIS_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+redis_client = redis.from_url(REDIS_URL)
+REDIS_QUEUE_KEY = os.getenv('REDIS_QUEUE_KEY', 'openetl:trigger_queue')
+REDIS_KILL_KEY = os.getenv("REDIS_KILL_KEY", "openetl:kill_queue")
 
 db = DatabaseUtils(**get_open_etl_document_connection_details())
 engine = db.engine.url
@@ -193,10 +201,24 @@ def start_scheduler():
     )
 
     scheduler.add_job(
+        func=check_redis_and_trigger,
+        trigger=IntervalTrigger(seconds=2),
+        id="immediate_trigger_queue_check",
+        replace_existing=True
+    )
+
+    scheduler.add_job(
         func=clean_up_old_logs,
         trigger=IntervalTrigger(days=1),
         id="clean_up_old_logs",
         replace_existing=True,
+    )
+
+    scheduler.add_job(
+        func=check_redis_for_kills,
+        trigger=IntervalTrigger(seconds=2),
+        id="immediate_exit_tasks",
+        replace_existing=True
     )
 
     scheduler.start()
@@ -210,6 +232,116 @@ def start_scheduler():
     except (KeyboardInterrupt, SystemExit):
         scheduler.shutdown(wait=False)
         logger.info("Scheduler shut down gracefully.")
+
+
+
+
+
+def check_redis_and_trigger():
+    """
+    Check Redis for pending integration triggers and execute them immediately.
+    """
+    if not redis_client:
+        logger.warning("Redis client not available. Skipping Redis check.")
+        return
+
+    try:
+        # Get all items from the Redis queue
+        while True:
+            # Pop item from Redis list (LPOP for FIFO)
+            item = redis_client.lpop(REDIS_QUEUE_KEY)
+
+            if not item:
+                # No more items in queue
+                break
+
+            try:
+                # Parse the integration data from Redis
+                integration_data = json.loads(item)
+                job_id = integration_data.get('integration_id')
+
+                if not job_id:
+                    logger.error(f"Invalid integration data in Redis: {item}")
+                    continue
+
+                logger.info(f"Found integration {job_id} in Redis. Triggering immediately.")
+
+                # Fetch integration details from database
+                integration = db.get_integration_by_id(job_id)
+
+                if not integration:
+                    logger.error(f"Integration {job_id} not found in database.")
+                    continue
+
+                # Prepare job parameters
+                job_name = str(integration.integration_name)
+                job_type = str(integration.integration_type)
+                source_connection = integration.source_connection
+                target_connection = integration.target_connection
+                source_table = str(integration.source_table)
+                target_table = str(integration.target_table)
+                source_schema = str(integration.source_schema)
+                target_schema = str(integration.target_schema)
+                spark_config = integration.spark_config
+                hadoop_config = integration.hadoop_config
+                batch_size = integration.batch_size
+
+                # Get connection details
+                source_details = db.get_created_connections(id=source_connection)[0]
+                target_details = db.get_created_connections(id=target_connection)[0]
+                source_details['auth_type'] = source_details['auth_type'].value
+                target_details['auth_type'] = target_details['auth_type'].value
+
+                # Trigger the job immediately
+                send_task_to_celery(
+                    job_id=job_id,
+                    job_name=job_name,
+                    job_type=job_type,
+                    source_connection=source_details,
+                    target_connection=target_details,
+                    source_table=source_table,
+                    target_table=target_table,
+                    source_schema=source_schema,
+                    target_schema=target_schema,
+                    spark_config=spark_config,
+                    hadoop_config=hadoop_config,
+                    batch_size=batch_size
+                )
+
+                logger.info(f"Integration {job_id} triggered successfully from Redis.")
+
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse Redis item: {item}. Error: {e}")
+            except Exception as e:
+                logger.error(f"Error processing Redis item: {item}. Error: {e}", exc_info=True)
+
+    except Exception as e:
+        logger.error(f"Error checking Redis queue: {e}", exc_info=True)
+
+
+def check_redis_for_kills():
+    """
+    Poll Redis for kill signals and terminate pipelines.
+    """
+    while True:
+        item = redis_client.lpop(REDIS_KILL_KEY)
+        if not item:
+            break
+
+        try:
+            integration_data = json.loads(item)
+            job_id = integration_data.get('integration_id')
+
+            if not job_id:
+                logger.error(f"Invalid kill payload: {job_id}")
+                continue
+
+            kill_pipeline(job_id)
+
+        except json.JSONDecodeError:
+            logger.error(f"Invalid JSON in Redis kill queue: {item}")
+        except Exception as e:
+            logger.error(f"Error handling kill request {item}: {e}", exc_info=True)
 
 
 if __name__ == '__main__':

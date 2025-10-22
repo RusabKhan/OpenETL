@@ -15,8 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "./badge";
 import {
   IconCircleCheckFilled,
+  IconCircleX,
   IconInfoOctagon,
   IconLoader,
+  IconPlayerPlayFilled,
+  IconSkull,
   IconTrash,
 } from "@tabler/icons-react";
 import {
@@ -38,8 +41,19 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "./checkbox";
 import Spinner from "../Spinner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
-import { update_integration } from "../utils/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./select";
+import {
+  kill_integration,
+  trigger_integration,
+  update_integration,
+} from "../utils/api";
+import { toast } from "sonner";
 
 interface ETLTableInterface {
   columns: string[];
@@ -54,6 +68,7 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -80,7 +95,7 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
       setSelectedRows([]);
       load(false);
     } catch (error) {
-      console.error('Error deleting items:', error);
+      console.error("Error deleting items:", error);
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
@@ -91,19 +106,44 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
     await update_integration({
       pipeline_id: integration_id,
       fields: {
-        is_enabled
-      }
+        is_enabled,
+      },
     });
 
     load(false);
-  }
+  };
+
+  const triggerIntegration = async (integration_id) => {
+    setIsLoading(true);
+    await trigger_integration(integration_id);
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    load(false);
+    setIsLoading(false);
+    toast.success("Integration triggered successfully");
+  };
+
+  const killIntegration = async (integration_id) => {
+    setIsLoading(true);
+    await kill_integration(integration_id);
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    load(false);
+    setIsLoading(false);
+    toast.success("Kill signal sent to the integration");
+  };
 
   return (
     <div className="relative shadow-md sm:rounded-lg">
-      <div className={`flex items-center justify-between p-4 bg-muted/50 border-b transition-all duration-200 ${selectedRows.length > 0 ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full h-0 p-0 overflow-hidden'}`}>
+      <div
+        className={`flex items-center justify-between p-4 bg-muted/50 border-b transition-all duration-200 ${
+          selectedRows.length > 0
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 -translate-y-full h-0 p-0 overflow-hidden"
+        }`}
+      >
         <div className="flex items-center gap-4">
           <span className="text-sm font-medium">
-            {selectedRows.length} {selectedRows.length === 1 ? 'item' : 'items'} selected
+            {selectedRows.length} {selectedRows.length === 1 ? "item" : "items"}{" "}
+            selected
           </span>
           <Button
             variant="destructive"
@@ -156,12 +196,14 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                   <Checkbox
                     id={`checkbox-${key}`}
                     checked={selectedRows.includes(integration.id)}
-                    onCheckedChange={(checked) => handleSelectRow(integration.id, checked as boolean)}
+                    onCheckedChange={(checked) =>
+                      handleSelectRow(integration.id, checked as boolean)
+                    }
                   />
                   <label className="sr-only">Select row</label>
                 </div>
               </TableCell>
-              <TableCell className="px-6 py-4">
+              {/* <TableCell className="px-6 py-4">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -176,14 +218,15 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-
-              </TableCell>
+              </TableCell> */}
               <TableCell className="px-6 py-4">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
                       <span className="truncate block max-w-[200px]">
-                        {integration.integration_name}
+                        <Link href={`/pipelines/${integration.id}`}>
+                          {integration.integration_name}
+                        </Link>
                       </span>
                     </TooltipTrigger>
                     <TooltipContent className="dark:bg-card dark:text-white">
@@ -228,7 +271,7 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                 </div>
               </TableCell>
               <TableCell className="px-6 py-4">
-                {integration.integration_type}
+                {integration.integration_type.replace("_", " ").toUpperCase()}
               </TableCell>
               <TableCell className="px-6 py-4">
                 <div className="flex items-center gap-2">
@@ -237,42 +280,94 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                     onValueChange={async (value) => {
                       const newValue = value === "true";
                       try {
-                        await onEditIntegration(
-                          integration.id,
-                          newValue,
-                        );
+                        await onEditIntegration(integration.id, newValue);
                       } catch (err) {
                         console.error("Failed to update integration", err);
                       }
                     }}
                   >
-                    <SelectTrigger className="w-[110px]">
+                    <SelectTrigger className="w-[140px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="true">Enabled</SelectItem>
-                      <SelectItem value="false">Disabled</SelectItem>
+                      <SelectItem value="true">
+                        <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />{" "}
+                        Enabled
+                      </SelectItem>
+                      <SelectItem value="false">
+                        <IconCircleX /> Disabled
+                      </SelectItem>
                     </SelectContent>
                   </Select>
-                  {integration.is_enabled === true ? (
-                    <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
-                  ) : (
-                    <IconLoader />
-                  )}
                 </div>
               </TableCell>
               <TableCell className="px-6 py-4">
-                <Badge
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={integration.is_running ? "true" : "false"}
+                    onValueChange={async (value) => {
+                      const newValue = value === "true";
+                      try {
+                        await onEditIntegration(integration.id, newValue);
+                      } catch (err) {
+                        console.error("Failed to update integration", err);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">
+                        <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />{" "}
+                        Running
+                      </SelectItem>
+                      <SelectItem value="false">
+                        <IconCircleX /> Stopped
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* <Badge
                   variant="outline"
                   className="text-muted-foreground px-1.5"
                 >
                   {integration.is_running === true ? (
                     <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
                   ) : (
-                    <IconLoader />
+                    <IconCircleX />
                   )}
                   {integration.is_running ? "Running" : "Stopped"}
-                </Badge>
+                </Badge> */}
+              </TableCell>
+
+              <TableCell className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    title="Trigger Pipeline"
+                    disabled={integration.is_running || isLoading}
+                    onClick={() => {
+                      triggerIntegration(integration.id);
+                    }}
+                  >
+                    <IconPlayerPlayFilled className="w-4 h-4 mr-1" />
+                    Trigger
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    title="Kill Pipeline"
+                    disabled={!integration.is_running || isLoading}
+                    onClick={() => {
+                      killIntegration(integration.id);
+                    }}
+                  >
+                    <IconSkull className="w-4 h-4 mr-1" />
+                    Kill
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
@@ -284,7 +379,8 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete {selectedRows.length} selected item(s). This action cannot be undone.
+              This will permanently delete {selectedRows.length} selected
+              item(s). This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
