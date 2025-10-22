@@ -1,0 +1,110 @@
+name: Publish OpenETL utils to PyPI
+
+on:
+  push:
+    branches:
+      - 'release/openetl-sdk'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # 1. CHECKOUT AND SETUP ----------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify PyPI token
+        run: |
+          echo "Verifying PyPI token..."
+          echo "Token starts with: ${PYPI_TOKEN:0:4}"
+          echo "Token length: ${#PYPI_TOKEN} chars"
+          if [[ ! "$PYPI_TOKEN" =~ ^pypi- ]]; then
+            echo "❌ Invalid token format - must start with 'pypi-'"
+            exit 1
+          fi
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+
+      # 2. INSTALL ESSENTIAL TOOLS -----------------------------------
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install twine build  # Explicitly install twine and build
+
+      # 3. NUCLEAR-PROOF POETRY INSTALL -----------------------------
+      - name: Install Poetry (official method)
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "export PATH=$HOME/.local/bin:$PATH" >> $HOME/.bashrc
+          source $HOME/.bashrc
+          poetry --version || { echo "Poetry installation failed!"; exit 1; }
+
+      # 4. AUTHENTICATION FIXES -------------------------------------
+      - name: Configure Poetry auth
+        run: |
+          poetry config pypi-token.pypi "$PYPI_TOKEN"
+          poetry config http-basic.pypi __token__ "$PYPI_TOKEN"
+          poetry config virtualenvs.create false
+          poetry config --list
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+
+      # 6. BUILD AND PUBLISH ----------------------------------------
+      - name: Install dependencies
+        run:  |
+          poetry lock
+          poetry install --no-interaction
+
+      - name: Build package
+        run: |
+          poetry build --no-interaction
+          ls -la dist/
+          twine check dist/*  # Now twine is guaranteed available
+
+      - name: Publish to PyPI
+        run: |
+          echo "Publishing with token: ${PYPI_TOKEN:0:4}...${PYPI_TOKEN: -4}"
+          poetry publish \
+            --no-interaction \
+            --username=__token__ \
+            --password="$PYPI_TOKEN"
+          # Alternative using twine directly:
+          # twine upload --username __token__ --password "$PYPI_TOKEN" dist/*
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+
+      # 7. VERIFICATION ---------------------------------------------
+      - name: Verify published package
+        if: always()
+        run: |
+          echo "Waiting for PyPI propagation..."
+          sleep 30  # Increased from 10 to 30 seconds
+          
+          echo "Attempting to install version: $(poetry version -s)"
+          pip install --no-cache-dir --upgrade openetl-sdk==$(poetry version -s) || {
+            echo "❌ Package installation failed"
+            echo "Possible reasons:"
+            echo "1. Package not yet available on PyPI"
+            echo "2. Version number mismatch"
+            echo "3. PyPI indexing delay (try again later)"
+            exit 1
+          }
+          
+          python -c "
+          try:
+              import openetl_utils
+              print(f'✅ Successfully imported version {openetl_utils.__version__}')
+          except Exception as e:
+              print(f'❌ Import failed: {str(e)}')
+              exit(1)
+          "
