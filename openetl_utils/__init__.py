@@ -2,6 +2,8 @@ import tomllib
 import pathlib
 import sys
 
+if not os.environ.get("OPENETL_HOME"):
+    os.environ["OPENETL_HOME"] = "/your/path/here"
 
 def _get_version():
     try:
