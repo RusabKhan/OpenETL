@@ -4,13 +4,12 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "openetl-sdk"
-version = "0.0.3"
+version = "0.0.4"
 description = "OpenETL backend lib with connectors."
 readme = "README.md"
 license = "MIT"
 authors = [
-    "Rusab Khan <rusabkhan7@gmail.com>",
-    "Muhammad Ahmed <mahmed743454@gmail.com>"
+    "Rusab Khan <rusabkhan7@gmail.com>"
 ]
 homepage = "https://dataomnisolutions.com"
 repository = "https://github.com/RusabKhan/OpenETL"
@@ -55,3 +54,4 @@ regex = "2024.11.6"
 requests = "2.32.3"
 flatten-json = "0.1.14"
 cryptography = "43.0.3"
+setuptools = "75.6.0"
