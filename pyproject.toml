@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "openetl-sdk"
-version = "0.0.2"
+version = "0.0.3"
 description = "OpenETL backend lib with connectors."
 readme = "README.md"
 license = "MIT"
@@ -15,7 +15,7 @@ authors = [
 homepage = "https://dataomnisolutions.com"
 repository = "https://github.com/RusabKhan/OpenETL"
 documentation = "https://rusabkhan.github.io/OpenETL/"
-keywords = ["etl", "data", "utilities"]
+keywords = ["etl", "data", "utilities", "openetl", "openetl-sdk", "openetl-utils", "openetl-csdk", "openetl-connector-sdk"]
 classifiers = [
     "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: MIT License",
