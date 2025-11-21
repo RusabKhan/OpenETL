@@ -190,14 +190,9 @@ class API:
         Returns:
             dict: A dictionary containing the schema details of the table.
         """
-        endpoint = self.construct_endpoint(table_name)
-        resp = api_session.get(url=endpoint)
-        if resp.status_code == 200:
-            table_data = resp.json()
-            return table_data
-        else:
-            raise Exception(
-                f"Failed to retrieve table schema. Status code: {resp.status_code}. Message: {resp.text}")
+        table_data = super().get_table_schema(
+            api_session, table_name)[self.main_response_key]
+        return dataframe_details(self.return_final_df(table_data))
 
     def install_missing_libraries(self) -> bool:
         """
@@ -270,3 +265,48 @@ class OAuth2Client:
         response = requests.post(self.token_url, data=data)
         response.raise_for_status()
         return response.json()
+
+
+def dataframe_details(df):
+    """
+    Generate a dictionary containing details about each column in the DataFrame.
+
+    Parameters:
+        df (DataFrame): The input DataFrame for which details are to be generated.
+
+    Returns:
+        dict: A dictionary where keys are column names and values are their data types.
+    """
+    details = {}
+    for col in df.columns:
+        dtype = df[col].dtype.name
+        # Mapping Pandas data types to SQLAlchemy data types
+        if dtype == 'float64':
+            dtype = 'Float'
+        elif dtype == 'int64':
+            dtype = 'Integer'
+        elif dtype == 'bool':
+            dtype = 'Boolean'
+        elif dtype == 'object':
+            dtype = 'String'
+        elif dtype == 'datetime64[ns]':
+            dtype = 'DateTime'
+        elif dtype == 'timedelta64[ns]':
+            dtype = 'Interval'
+        elif dtype == 'category':
+            dtype = 'Enum'
+        elif dtype == 'bytes':
+            dtype = 'LargeBinary'
+        elif dtype == 'unicode':
+            dtype = 'UnicodeText'
+        elif dtype == 'period':
+            dtype = 'Interval'
+        elif dtype == 'object':
+            if df[col].apply(lambda x: isinstance(x, dict)).any():
+                dtype = 'Dictionary'
+            elif df[col].apply(lambda x: isinstance(x, list)).any():
+                dtype = 'Array'
+        else:
+            dtype = 'String'
+        details[col] = str(dtype)
+    return details

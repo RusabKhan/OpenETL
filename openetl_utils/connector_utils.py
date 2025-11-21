@@ -9,8 +9,11 @@ import pkg_resources
 
 home = os.environ['OPENETL_HOME']
 sys.path.append(home)
-import json
-from openetl_utils.database_utils import DatabaseUtils
+try:
+    from openetl_utils.database_utils import DatabaseUtils
+except  ImportError as e:
+    pass
+
 from openetl_utils.enums import *
 
 
@@ -292,3 +295,5 @@ def get_spark_workflow_for_storage(connector_name, connection_type, location, au
     module = import_module(connector_name, f"{connectors_directory}/{connection_type}/{connector_name}.py")
     module = module.connect(**auth_params)
     return module.get_spark_workflow(location)
+
+

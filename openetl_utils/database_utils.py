@@ -23,6 +23,7 @@ import pandas as pd
 from alembic.operations import Operations
 from alembic.runtime.migration import MigrationContext
 
+from openetl_utils import dataframe_details
 from openetl_utils.__migrations__.app import OpenETLDocument, OpenETLOAuthToken
 from openetl_utils.__migrations__.batch import OpenETLBatch
 from openetl_utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
@@ -194,49 +195,6 @@ class DatabaseUtils():
 
     # TO HANDLE DML TASKS
 
-    def dataframe_details(self, df):
-        """
-        Generate a dictionary containing details about each column in the DataFrame.
-
-        Parameters:
-            df (DataFrame): The input DataFrame for which details are to be generated.
-
-        Returns:
-            dict: A dictionary where keys are column names and values are their data types.
-        """
-        details = {}
-        for col in df.columns:
-            dtype = df[col].dtype.name
-            # Mapping Pandas data types to SQLAlchemy data types
-            if dtype == 'float64':
-                dtype = 'Float'
-            elif dtype == 'int64':
-                dtype = 'Integer'
-            elif dtype == 'bool':
-                dtype = 'Boolean'
-            elif dtype == 'object':
-                dtype = 'String'
-            elif dtype == 'datetime64[ns]':
-                dtype = 'DateTime'
-            elif dtype == 'timedelta64[ns]':
-                dtype = 'Interval'
-            elif dtype == 'category':
-                dtype = 'Enum'
-            elif dtype == 'bytes':
-                dtype = 'LargeBinary'
-            elif dtype == 'unicode':
-                dtype = 'UnicodeText'
-            elif dtype == 'period':
-                dtype = 'Interval'
-            elif dtype == 'object':
-                if df[col].apply(lambda x: isinstance(x, dict)).any():
-                    dtype = 'Dictionary'
-                elif df[col].apply(lambda x: isinstance(x, list)).any():
-                    dtype = 'Array'
-            else:
-                dtype = 'String'
-            details[col] = str(dtype)
-        return details
 
     def create_table(self, table_name: str, df: pd.DataFrame, target_schema="public"):
         """
@@ -248,7 +206,7 @@ class DatabaseUtils():
         Returns:
             tuple: A tuple indicating the success status and a message.
         """
-        schema_details = self.dataframe_details(df)
+        schema_details = dataframe_details(df)
         table = Table(table_name, self.metadata,
                       *[Column(column_name, eval(column_type)) for column_name, column_type in schema_details.items()], schema=target_schema)
         self.metadata.create_all(self.engine)

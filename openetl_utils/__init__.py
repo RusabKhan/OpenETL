@@ -22,14 +22,18 @@ def _get_version():
 
 __version__ = _get_version()
 
-from .celery_utils import *
+# Import modules with error handling for standalone usage
+try:
+    from .celery_utils import *
+    from .pipeline_utils import *
+    from .spark_utils import *
+    from .database_utils import *
+except ImportError as e:
+    print(f"[INFO] Running in SDK mode. Some features may be limited: {e}", file=sys.stderr)
+
 from .main_api_class import *
 from .connector_utils import *
-from .pipeline_utils import *
-
-from .database_utils import *
 from .local_connection_utils import *
-from .spark_utils import *
 from .enums import *
 from .cache import *
 
