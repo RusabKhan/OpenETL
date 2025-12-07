@@ -83,3 +83,11 @@ async def update_connection_api(request: Request, document_id: int = Body(...), 
 async def delete_connection_api(request: Request, document_id: int):
     db = DatabaseUtils(**get_open_etl_document_connection_details())
     return db.delete_document(document_id=document_id)
+
+@router.post("/get_oauth_url")
+async def get_oauth_url_api(request: Request):
+    body = await request.json()
+    connector_name = body.get("connector_name")
+    connector_type = body.get("connector_type")
+    auth_details = body.get("auth_details")
+    return con_utils.get_oauth_url(connector_name, connector_type, **auth_details)

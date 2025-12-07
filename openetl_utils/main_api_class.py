@@ -3,6 +3,8 @@ from urllib.parse import urlencode
 import requests
 import pandas as pd
 import flatten_json
+
+from openetl_utils import dataframe_details
 from openetl_utils.enums import *
 from openetl_utils.connector_utils import install_libraries
 
@@ -32,6 +34,7 @@ class API:
         This constructor calls the install_missing_libraries method to ensure that all necessary
         libraries are present before any API operations are performed.
         """
+        self.auth_url = ""
         self.install_missing_libraries()
 
     def connect_to_api(self, auth_type=AuthType.BASIC, **auth_params) -> requests.Session | str:
@@ -228,85 +231,6 @@ class API:
             dict: A dictionary containing the metadata for the API.
         """
         return {"public":self.tables}
-
-
-class OAuth2Client:
-    def __init__(self, client_id, client_secret, auth_url, token_url, redirect_uri, scope):
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.auth_url = auth_url
-        self.token_url = token_url
-        self.redirect_uri = redirect_uri
-        self.scope = scope
-
-    def get_authorization_url(self):
-        """
-        Generate the authorization URL to redirect the user to the provider's OAuth2 login.
-        """
-        params = {
-            "response_type": "code",
-            "client_id": self.client_id,
-            "redirect_uri": self.redirect_uri,
-            "scope": " ".join(self.scope),
-        }
-        return f"{self.auth_url}?{urlencode(params)}"
-
-    def get_access_token(self, authorization_code):
-        """
-        Exchange the authorization code for an access token.
-        """
-        data = {
-            "grant_type": "authorization_code",
-            "code": authorization_code,
-            "redirect_uri": self.redirect_uri,
-            "client_id": self.client_id,
-            "client_secret": self.client_secret,
-        }
-        response = requests.post(self.token_url, data=data)
-        response.raise_for_status()
-        return response.json()
-
-
-def dataframe_details(df):
-    """
-    Generate a dictionary containing details about each column in the DataFrame.
-
-    Parameters:
-        df (DataFrame): The input DataFrame for which details are to be generated.
-
-    Returns:
-        dict: A dictionary where keys are column names and values are their data types.
-    """
-    details = {}
-    for col in df.columns:
-        dtype = df[col].dtype.name
-        # Mapping Pandas data types to SQLAlchemy data types
-        if dtype == 'float64':
-            dtype = 'Float'
-        elif dtype == 'int64':
-            dtype = 'Integer'
-        elif dtype == 'bool':
-            dtype = 'Boolean'
-        elif dtype == 'object':
-            dtype = 'String'
-        elif dtype == 'datetime64[ns]':
-            dtype = 'DateTime'
-        elif dtype == 'timedelta64[ns]':
-            dtype = 'Interval'
-        elif dtype == 'category':
-            dtype = 'Enum'
-        elif dtype == 'bytes':
-            dtype = 'LargeBinary'
-        elif dtype == 'unicode':
-            dtype = 'UnicodeText'
-        elif dtype == 'period':
-            dtype = 'Interval'
-        elif dtype == 'object':
-            if df[col].apply(lambda x: isinstance(x, dict)).any():
-                dtype = 'Dictionary'
-            elif df[col].apply(lambda x: isinstance(x, list)).any():
-                dtype = 'Array'
-        else:
-            dtype = 'String'
-        details[col] = str(dtype)
-    return details
+    
+    def construct_oauth_url(self, auth_details):
+        return self.auth_url.format(**auth_details)

@@ -8,7 +8,7 @@ authors = [
     {name = "Muhammad Ahmed", email = "mahmed743454@gmail.com"},
     {name = "Talha Khan", email = "talha.k2625@gmail.com"},
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.12 <3.14"
 
 dependencies = [
   "aiosqlite==0.20.0",
@@ -139,7 +139,8 @@ dependencies = [
   "wcwidth==0.2.13",
   "websockets==13.1",
   "wrapt==1.17.0",
-  "zipp==3.21.0"
+  "zipp==3.21.0",
+  "psycopg2-binary (>=2.9.11,<3.0.0)"
 ]
 
 

@@ -8,7 +8,6 @@ import pandas as pd
 
 sys.path.append(os.getenv('OPENETL_HOME'))
 
-
 class Connector(API):
 
     def __init__(self):
@@ -136,17 +135,36 @@ class Connector(API):
         self.schema = "public"
         self.database = "public"
         self.authentication_details = {AuthType.BEARER: {
-            "token": ""}
+            "token": ""},
+            AuthType.OAUTH2: {
+                "client_id": "",
+                "redirect_uri": "",
+                "scope": "",
+                "account_id":""
+            }
         }
-        self.auth_url = "https://app.hubspot.com/oauth/authorize"
+        self.oauth_scopes = ["contacts", "automation"]
+        self.oauth_url = "https://app.hubspot.com/oauth/{account_id}/authorize?client_id={client_id}&scope={scope}&redirect_uri={redirect_uri}"
         self.token_url = "https://api.hubapi.com/oauth/v1/token"
 
         self.main_response_key = "results"
         self.required_libs = []
         super().__init__()
 
+    def construct_oauth_url(self, auth_details):
+        account_id = auth_details.get("account_id")
+        client_id = auth_details.get("client_id")
+        redirect_uri = auth_details.get("redirect_uri")
+        scope = " ".join(self.oauth_scopes)
 
-    def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params) -> bool:
+        return self.oauth_url.format(
+            account_id=account_id,
+            client_id=client_id,
+            redirect_uri=redirect_uri,
+            scope=scope
+        )
+
+    def connect_to_api(self, auth_type=AuthType.BEARER, **auth_params) -> bool | str:
         """
         Establish a connection to the API using the specified authentication type and parameters.
         

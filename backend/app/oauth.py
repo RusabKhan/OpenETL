@@ -6,7 +6,6 @@ from fastapi.responses import RedirectResponse
 import datetime
 
 sys.path.append(os.environ['OPENETL_HOME'])
-from openetl_utils.main_api_class import OAuth2Client
 from openetl_utils.database_utils import DatabaseUtils
 
 

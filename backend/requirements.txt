@@ -70,7 +70,7 @@ pathspec==0.12.1
 pendulum==3.0.0
 prometheus_client==0.21.0
 prompt_toolkit==3.0.48
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.11
 py4j==0.10.9.7
 pycparser==2.22
 pydantic==2.10.1

@@ -297,3 +297,6 @@ def get_spark_workflow_for_storage(connector_name, connection_type, location, au
     return module.get_spark_workflow(location)
 
 
+def get_oauth_url(connector_name, connection_type, **auth_details):
+    return import_module(connector_name, f"{connectors_directory}/{connection_type}/{connector_name}.py").construct_oauth_url(auth_details)
+
