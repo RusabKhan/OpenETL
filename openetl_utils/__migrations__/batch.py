@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import Column, Integer, UUID, DateTime, String, Enum
 from sqlalchemy.orm import declarative_base
-from openetl_utils.enums import RunStatus
+from openetl_utils.enums import RunStatus, SCDType
 
 Base = declarative_base()
 
@@ -18,6 +18,10 @@ class OpenETLBatch(Base):
     batch_status = Column(Enum(RunStatus))
     integration_name = Column(String(500))
     integration_id = Column(String(500))
+    scd_type = Column(
+        Enum(SCDType, values_callable=lambda obj: [e.value for e in obj]),
+        nullable=True
+    )
     rows_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow,

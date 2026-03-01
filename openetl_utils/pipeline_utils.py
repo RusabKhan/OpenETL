@@ -78,7 +78,7 @@ def read_data(connector_name, auth_values, auth_type, table, connection_type, sc
 
 def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=None, job_type=None,
                  source_table=None, source_schema=None, target_table=None, target_schema=None,
-                 source_connection_details=None, target_connection_details=None, batch_size=100000, logger=None):
+                 source_connection_details=None, target_connection_details=None, batch_size=100000, logger=None, scd_type: str = None):
     """
     A function that runs a pipeline with the specified configurations, particularly used in the airflow DAG to run a pipeline.
 
@@ -100,6 +100,8 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
     Raises:
         Exception: If no data is found in the source table.
         NotImplementedError: If the target connection type is API.
+        :param scd_type:
+        :type scd_type:
     """
     global row_count, db, batch_id, spark_class
     spark_class = None
@@ -158,13 +160,14 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                         batch_id = create_batch(db, job_id, job_name, logger, run_id)
 
                         row_count = df.count()
+                        scd_type = SCDType.from_value(scd_type)
                         run_status = RunStatus.SUCCESS if run_pipeline_target(df=df, integration_id=job_id,
                                                                               spark_class=spark_class,
                                                                               con_string=con_string,
                                                                               target_table=target_table, job_id=job_id,
                                                                               job_name=job_name, driver=driver,
                                                                               spark_session=spark_session, db_class=db,
-                                                                              logger=logger) else RunStatus.FAILED
+                                                                              logger=logger, scd_type=scd_type) else RunStatus.FAILED
 
             elif source_connection_details["connection_type"].lower() == ConnectionType.API.value:
                 gen = read_data(connector_name=source_connection_details['connector_name'],
@@ -230,7 +233,7 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                         run_status = RunStatus.SUCCESS if run_pipeline_target(df=df, integration_id=job_id, spark_class=spark_class,
                                             con_string=con_string,
                                             target_table=target_table, job_id=job_id, job_name=job_name, driver=driver,
-                                            spark_session=spark_session, db_class=db, logger=logger) else RunStatus.FAILED
+                                            spark_session=spark_session, db_class=db, logger=logger, scd_type=SCDType.from_value(scd_type)) else RunStatus.FAILED
 
             elif source_connection_details['connection_type'].lower() == ConnectionType.STORAGE.value:
 
@@ -274,7 +277,8 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
                         driver=driver,
                         spark_session=spark_session,
                         db_class=db,
-                        logger=logger
+                        logger=logger,
+                        scd_type=SCDType.from_value(scd_type)
                     ) else RunStatus.FAILED
 
         elif target_connection_details['connection_type'].lower() == ConnectionType.API.value:
@@ -325,14 +329,15 @@ def create_batch(db_class, job_id, job_name, logger, run_id):
     )
     return batch_id
 
-def complete_batch(db_class, batch_id, integration_id, batch_df_size, logger, batch_status=RunStatus.SUCCESS):
+def complete_batch(db_class, batch_id, integration_id, batch_df_size, logger, batch_status=RunStatus.SUCCESS, scd_type: str = None):
     logger.info(f"Completing batch ID: {batch_id}")
     db_class.update_openetl_batch(
         batch_id=batch_id,
         integration_id=integration_id,
         batch_status=batch_status,
         end_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        rows_count=batch_df_size
+        rows_count=batch_df_size,
+        scd_type=scd_type
     )
 
 
@@ -390,7 +395,7 @@ def run_pipeline_target(
             raise Exception(msg)
 
     logger.info("Data written successfully. Updating batch status.")
-    complete_batch(db_class, batch_id, integration_id, row_count, logger)
+    complete_batch(db_class, batch_id, integration_id, row_count, logger, scd_type=scd_type.name)
     update_integration_row_in_db(integration_id, row_count)
 
     return True
