@@ -25,7 +25,7 @@ from sqlalchemy import MetaData, inspect
 from sqlalchemy import Table, MetaData, Column, Integer, Float, String, Boolean, DateTime, BigInteger
 
 import openetl_utils.connector_utils as con_utils
-from openetl_utils.enums import RunStatus, ConnectionType, ColumnActions
+from openetl_utils.enums import RunStatus, ConnectionType, ColumnActions, SCDType
 from openetl_utils.__migrations__.batch import OpenETLBatch
 from datetime import datetime
 import openetl_utils.spark_utils as sp_ut
@@ -33,6 +33,7 @@ import openetl_utils.database_utils as database_utils
 import logging
 
 from openetl_utils.cache import jdbc_connection_strings, jdbc_engine_drivers, jdbc_database_jars
+from openetl_utils.scd_utils import apply_scd
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -146,15 +147,15 @@ def run_pipeline(spark_config=None, hadoop_config=None, job_name=None, job_id=No
 
             if source_connection_details["connection_type"].lower() == ConnectionType.DATABASE.value:
 
-                connection_details_upper = {key.upper(): value for key, value in connection_details.items()}
+                connection_details_upper = {key.upper(): value for key, value in source_credentials.items()}
                 spark_conn_url = {"url": jdbc_connection_strings[engine].format(**connection_details_upper),
                                   "dbtable": source_table,
                                   "driver": jdbc_engine_drivers[engine]}
 
                 for df in spark_class.read_via_spark(spark_conn_url):
 
-                    if not df.empty:
-                        batch_id = create_batch(db, job_id, job_name, logger)
+                    if df.head(1):
+                        batch_id = create_batch(db, job_id, job_name, logger, run_id)
 
                         row_count = df.count()
                         run_status = RunStatus.SUCCESS if run_pipeline_target(df=df, integration_id=job_id,
@@ -335,25 +336,64 @@ def complete_batch(db_class, batch_id, integration_id, batch_df_size, logger, ba
     )
 
 
-def run_pipeline_target(df, integration_id, spark_class, job_id, job_name, con_string, target_table, driver,
-                        spark_session, db_class, logger):
+def run_pipeline_target(
+    df, integration_id, spark_class, job_id, job_name,
+    con_string, target_table, driver, spark_session, db_class,
+    logger,
+    scd_type: SCDType = SCDType.SCD6,          # ← NEW param, defaults to overwrite
+    target_schema: str = "public",             # ← NEW param, pass from target_credentials
+):
     logger.info("Initializing writing to target")
     logger.info(df.limit(2))
     logger.info(df.dtypes)
-    logger.debug(df.show(truncate=False))
 
-    logger.info(f"Writing full DataFrame to target table: {target_table}")
-    success, message = spark_class.write_via_spark(df, conn_string=con_string, table=target_table, driver=driver)
+    # ── Run SCD merge entirely in Spark; get back the final DF to write ───────
+    merged_df, write_mode, extra_writes = apply_scd(
+        scd_type=scd_type,
+        source_df=df,
+        spark_session=spark_session,
+        engine=db_class.engine,          # SQLAlchemy engine — PK inspection only
+        target_table=target_table,
+        con_string=con_string,
+        driver=driver,
+        schema_name=target_schema,
+        logger=logger,
+    )
 
-    if success:
-        logger.info("Data written successfully. Updating batch status.")
-        complete_batch(db_class, batch_id, integration_id, row_count, logger)
-        update_integration_row_in_db(integration_id, row_count)
-    else:
+    logger.info(f"Writing merged DataFrame to {target_table} (mode={write_mode})")
+
+    # ── Write main table ──────────────────────────────────────────────────────
+    success, message = spark_class.write_via_spark(
+        merged_df,
+        conn_string=con_string,
+        table=target_table,
+        driver=driver,
+        mode=write_mode,                 # "overwrite" for all SCD types on main table
+    )
+
+    if not success:
         logger.error(message)
         raise Exception(message)
 
-    return success
+    # ── Write any extra tables (SCD4 history) ─────────────────────────────────
+    for extra_df, extra_table, extra_mode in extra_writes:
+        logger.info(f"Writing extra table: {extra_table} (mode={extra_mode})")
+        ok, msg = spark_class.write_via_spark(
+            extra_df,
+            conn_string=con_string,
+            table=extra_table,
+            driver=driver,
+            mode=extra_mode,             # "append" for history table
+        )
+        if not ok:
+            logger.error(msg)
+            raise Exception(msg)
+
+    logger.info("Data written successfully. Updating batch status.")
+    complete_batch(db_class, batch_id, integration_id, row_count, logger)
+    update_integration_row_in_db(integration_id, row_count)
+
+    return True
 
 def coerce_inferable_columns(df: pd.DataFrame, spark_session: SparkSession, logger):
     """
