@@ -8,6 +8,7 @@ from fastapi import APIRouter, Body, Request
 from app.models.main import CreatePipelineModel
 from starlette.responses import JSONResponse
 
+from openetl_utils import SCDType
 from openetl_utils.database_utils import DatabaseUtils, get_open_etl_document_connection_details, generate_cron_expression
 from openetl_utils.enums import IntegrationType, LogsType
 from openetl_utils.local_connection_utils import  paginate_log_content, get_log_file_path
@@ -45,6 +46,8 @@ async def create_pipeline_api(request: Request, pipeline_config: CreatePipelineM
                                                                   schedule_dates=pipeline_config["schedule_date"],
                                                                   frequency=pipeline_config["frequency"])
     pipeline_config["integration_type"] = IntegrationType(pipeline_config["integration_type"])
+    pipeline_config["scd_type"] = SCDType.from_value(pipeline_config["scd_type"])
+
     del pipeline_config["frequency"]
     del pipeline_config["schedule_time"]
     del pipeline_config["schedule_date"]

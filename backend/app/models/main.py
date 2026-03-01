@@ -21,6 +21,7 @@ class CreatePipelineModel(BaseModel):
     schedule_time: str = Field(..., min_length=3,  examples=["00:00:00"])
     frequency: str = Field(..., min_length=3,  examples=["daily"])
     batch_size: int = Field(...,  examples=["100000"])
+    scd_type: str = Field(..., min_length=4,  examples=["SCD1"])
 
 
 class IntegrationBody(BaseModel):
