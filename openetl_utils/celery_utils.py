@@ -90,7 +90,7 @@ def configure_task_logger(task_id=None, task=None, args=None, **kwargs):
 # Task definition
 @app.task(bind=True)
 def run_pipeline(self, job_id, job_name, job_type, source_connection, target_connection, source_table, target_table,
-                 source_schema, target_schema, spark_config, hadoop_config, batch_size, **kwargs):
+                 source_schema, target_schema, spark_config, hadoop_config, batch_size, scd_type, **kwargs):
     # Log task start
     job_logger = logging.getLogger(f"job_{job_id}")
     job_logger.info(f"Starting pipeline: {job_name} (Job ID: {job_id})")
@@ -110,7 +110,8 @@ def run_pipeline(self, job_id, job_name, job_type, source_connection, target_con
             spark_config=spark_config,
             hadoop_config=hadoop_config,
             batch_size=batch_size,
-            logger=job_logger
+            logger=job_logger,
+            scd_type=scd_type
         )
         job_logger.info(f"Pipeline {job_name} completed successfully.")
     except Exception as e:

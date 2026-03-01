@@ -55,7 +55,7 @@ scheduler = BackgroundScheduler(jobstores={'default': SQLAlchemyJobStore(engine=
 # Wrapper function for task execution
 def send_task_to_celery(job_id, job_name, job_type, source_connection, target_connection, source_table, target_table,
                         source_schema,
-                        target_schema, spark_config, hadoop_config, batch_size, **kwargs):
+                        target_schema, spark_config, hadoop_config, batch_size, scd_type, **kwargs):
     """
     Wrapper function to send tasks to Celery dynamically using apply_async.
     """
@@ -65,7 +65,7 @@ def send_task_to_celery(job_id, job_name, job_type, source_connection, target_co
                       task_id=job_id,
                       args=[job_id, job_name, job_type, source_connection, target_connection, source_table,
                             target_table,
-                            source_schema, target_schema, spark_config, hadoop_config, batch_size],
+                            source_schema, target_schema, spark_config, hadoop_config, batch_size, scd_type],
                       kwargs=kwargs)
         logger.info(f"Task {job_id} sent successfully to Celery.")
     except Exception as e:
@@ -137,6 +137,7 @@ def check_and_schedule_tasks():
         spark_config = integration.spark_config
         hadoop_config = integration.hadoop_config
         batch_size = integration.batch_size
+        scd_type = integration.scd_type.name
 
         source_details = db.get_created_connections(id=source_connection)[0]
         target_details = db.get_created_connections(id=target_connection)[0]
@@ -149,7 +150,7 @@ def check_and_schedule_tasks():
                     func=send_task_to_celery,
                     trigger=CronTrigger.from_crontab(cron),
                     args=[job_id, job_name, job_type, source_details, target_details, source_table, target_table,
-                          source_schema, target_schema, spark_config, hadoop_config, batch_size],
+                          source_schema, target_schema, spark_config, hadoop_config, batch_size, scd_type],
                     kwargs={},
                     id=job_id,
                     replace_existing=True,
@@ -285,6 +286,7 @@ def check_redis_and_trigger():
                 spark_config = integration.spark_config
                 hadoop_config = integration.hadoop_config
                 batch_size = integration.batch_size
+                scd_type = integration.scd_type.name
 
                 # Get connection details
                 source_details = db.get_created_connections(id=source_connection)[0]
@@ -305,7 +307,8 @@ def check_redis_and_trigger():
                     target_schema=target_schema,
                     spark_config=spark_config,
                     hadoop_config=hadoop_config,
-                    batch_size=batch_size
+                    batch_size=batch_size,
+                    scd_type=scd_type
                 )
 
                 logger.info(f"Integration {job_id} triggered successfully from Redis.")
