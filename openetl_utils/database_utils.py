@@ -1041,7 +1041,7 @@ class DatabaseUtils():
 
     def create_integration(self, integration_name, integration_type, target_schema, source_schema, spark_config,
                            hadoop_config, cron_expression, source_connection,target_connection, source_table, target_table,
-                           batch_size):
+                           batch_size, scd_type):
         scheduler = OpenETLIntegrations(
             integration_name=integration_name,
             integration_type=integration_type,
@@ -1054,7 +1054,8 @@ class DatabaseUtils():
             hadoop_config=hadoop_config,
             source_schema=source_schema,
             target_schema=target_schema,
-            batch_size=batch_size
+            batch_size=batch_size,
+            scd_type=scd_type
         )
 
         self.session.add(scheduler)
