@@ -128,7 +128,9 @@ def _changed_condition(non_key_cols: List[str], src_alias: str = "src", tgt_alia
     if not non_key_cols:
         return F.lit(False)
     conditions = [
-        F.col(f"{src_alias}.{c}").cast("string") != F.col(f"{tgt_alias}.{c}").cast("string")
+        ~F.col(f"{src_alias}.{c}").cast("string").eqNullSafe(
+            F.col(f"{tgt_alias}.{c}").cast("string")
+        )
         for c in non_key_cols
     ]
     result = conditions[0]
@@ -311,7 +313,7 @@ def _scd3(
 
     # For matching rows: pull old current values to populate previous_
     # Join source onto target to get old values side by side
-    joined = source_df.alias("src").join(target_df.alias("tgt"), on=join_keys, how="left")
+    joined = source_df.alias("src").join(target_df.alias("tgt"), on=join_keys, how="inner")
 
     # Build select list: all source columns + previous_ from target current values
     select_cols = [F.col(f"src.{c}").alias(c) for c in source_df.columns]
