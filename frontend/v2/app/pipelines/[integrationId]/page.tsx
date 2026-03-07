@@ -83,6 +83,7 @@ const initial_integration: IntegrationConfig = {
   target_schema: "",
   target_table: "",
   batch_size: 100000,
+  scd_type: "SCD0",
 };
 
 const IntegrationHistory = () => {
@@ -130,6 +131,7 @@ const IntegrationHistory = () => {
         target_schema: resp.data.data.target_schema || "",
         target_table: resp.data.data.target_table || "",
         batch_size: resp.data.data.batch_size || 100000,
+        scd_type: resp.data.data.scd_type || "SCD0",
       });
     }
     setIsLoading(false);
