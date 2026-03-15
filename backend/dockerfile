@@ -12,13 +12,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     default-jre && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Spark (version 3.5.3) from the official Apache repo
-RUN wget -q "https://downloads.apache.org/spark/spark-3.5.6/spark-3.5.6-bin-hadoop3.tgz" && \
-    tar -xvf spark-3.5.6-bin-hadoop3.tgz -C /opt && \
-    rm spark-3.5.6-bin-hadoop3.tgz
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Set PATH to include uv
+ENV PATH=/root/.local/bin:$PATH
+
+# Install Spark (version 4.1.1) from the official Apache repo
+RUN wget -q "https://downloads.apache.org/spark/spark-4.1.1/spark-4.1.1-bin-hadoop3.tgz" && \
+    tar -xvf spark-4.1.1-bin-hadoop3.tgz -C /opt && \
+    rm spark-4.1.1-bin-hadoop3.tgz
 
 # Set SPARK_HOME environment variable
-ENV SPARK_HOME=/opt/spark-3.5.6-bin-hadoop3
+ENV SPARK_HOME=/opt/spark-4.1.1-bin-hadoop3
 
 # Add Spark binaries to the PATH
 ENV PATH=$SPARK_HOME/bin:$PATH
@@ -26,15 +32,13 @@ ENV PATH=$SPARK_HOME/bin:$PATH
 # Copy backend application
 COPY ./backend/requirements.txt /app/requirements.txt
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies using uv
+RUN uv pip install --system --no-cache -r requirements.txt
 
 # COPY pyproject.toml /app/
 COPY ./backend /app
 COPY ./openetl_utils /app/openetl_utils
 COPY ./connectors /app/connectors
-
 
 # Expose the port for FastAPI
 EXPOSE 5009
