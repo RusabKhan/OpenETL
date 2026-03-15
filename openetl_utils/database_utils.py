@@ -23,7 +23,7 @@ import pandas as pd
 from alembic.operations import Operations
 from alembic.runtime.migration import MigrationContext
 
-from openetl_utils.connector_utils import dataframe_details
+from openetl_utils.df_utils import dataframe_details
 from openetl_utils.__migrations__.app import OpenETLDocument, OpenETLOAuthToken
 from openetl_utils.__migrations__.batch import OpenETLBatch
 from openetl_utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
