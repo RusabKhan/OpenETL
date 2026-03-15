@@ -991,6 +991,7 @@ class DatabaseUtils():
                 "id": scheduler.id,
                 "integration_name": scheduler.integration_name,
                 "integration_type": scheduler.integration_type,
+                "scd_type": getattr(scheduler.scd_type, "name", None),
                 "cron_expression": [parse_cron_expression(cron) for cron in scheduler.cron_expression],
                 "is_running": scheduler.is_running,
                 "is_enabled": scheduler.is_enabled,

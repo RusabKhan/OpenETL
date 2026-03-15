@@ -40,6 +40,7 @@ export type ListIntegrationConfig = {
   id: string;
   integration_name: string;
   integration_type: string;
+  scd_type?: string;
   cron_expression: CronExpressionConfig[];
   is_running: boolean;
   is_enabled: boolean;

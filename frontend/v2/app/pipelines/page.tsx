@@ -72,7 +72,15 @@ export default function PipelinesPage() {
     }
   };
 
-  const columns = ["Name", "Cron Expression", "Type", "Active", "Status", "Actions"];
+  const columns = [
+    "Name",
+    "Cron Expression",
+    "Type",
+    "SCD Type",
+    "Active",
+    "Status",
+    "Actions",
+  ];
 
   return (
     <DefaultLayout title="Pipelines">

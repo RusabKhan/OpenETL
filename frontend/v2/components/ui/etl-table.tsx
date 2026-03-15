@@ -274,6 +274,9 @@ const ETLTable: React.FC<ETLTableInterface> = (params) => {
                 {integration.integration_type.replace("_", " ").toUpperCase()}
               </TableCell>
               <TableCell className="px-6 py-4">
+                {integration.scd_type ?? "-"}
+              </TableCell>
+              <TableCell className="px-6 py-4">
                 <div className="flex items-center gap-2">
                   <Select
                     value={integration.is_enabled ? "true" : "false"}
