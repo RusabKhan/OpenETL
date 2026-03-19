@@ -152,7 +152,7 @@ const FinishTab: React.FC<{
                 )}
 
                 {/* Batch Size */}
-                <div>
+                <div className="mb-4">
                   <Label>Batch Size</Label>
                   <Input
                     type="number"
@@ -165,6 +165,32 @@ const FinishTab: React.FC<{
                     }
                     placeholder="Enter batch size"
                   />
+                </div>
+
+                {/* SCD Type */}
+                <div>
+                  <Label>SCD Type</Label>
+                  <Select
+                    value={integration.scd_type ?? ""}
+                    onValueChange={(value) =>
+                      setIntegration((prev) => ({
+                        ...prev,
+                        scd_type: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select SCD Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="SCD0">SCD0</SelectItem>
+                      <SelectItem value="SCD1">SCD1</SelectItem>
+                      <SelectItem value="SCD2">SCD2</SelectItem>
+                      <SelectItem value="SCD3">SCD3</SelectItem>
+                      <SelectItem value="SCD4">SCD4</SelectItem>
+                      <SelectItem value="SCD6">SCD6</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>

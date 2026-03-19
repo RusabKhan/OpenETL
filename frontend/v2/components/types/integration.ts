@@ -21,6 +21,7 @@ export type IntegrationConfig = {
   target_schema: string; // e.g., "public"
   target_table: string; // e.g., ""
   batch_size: number; // e.g., 100000
+  scd_type?: string; // e.g., "SCD0", "SCD1", ...
 };
 
 export type CronExpressionConfig = {
@@ -39,6 +40,7 @@ export type ListIntegrationConfig = {
   id: string;
   integration_name: string;
   integration_type: string;
+  scd_type?: string;
   cron_expression: CronExpressionConfig[];
   is_running: boolean;
   is_enabled: boolean;
@@ -79,6 +81,7 @@ export type PaginatedIntegrationHistoryConfig = {
     id: string;
     integration_name: string;
     integration_type: string;
+    scd_type?: string;
     is_enabled: boolean;
     is_running: boolean;
     source_connection: number;

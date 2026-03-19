@@ -83,6 +83,7 @@ const initial_integration: IntegrationConfig = {
   target_schema: "",
   target_table: "",
   batch_size: 100000,
+  scd_type: "SCD0",
 };
 
 const IntegrationHistory = () => {
@@ -93,6 +94,24 @@ const IntegrationHistory = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [editable, setEditable] = useState(false);
+
+  const normalizeScdType = (raw: any): string => {
+    if (!raw) return "SCD0";
+    if (Array.isArray(raw)) {
+      const code = raw[0];
+      return typeof code === "string" ? code.toUpperCase() : "SCD0";
+    }
+    return typeof raw === "string" ? raw.toUpperCase() : "SCD0";
+  };
+
+  const formatScdType = (raw: any): string => {
+    if (!raw) return "-";
+    if (Array.isArray(raw)) {
+      const code = raw[0];
+      return typeof code === "string" ? code.toUpperCase() : "-";
+    }
+    return typeof raw === "string" ? raw.toUpperCase() : String(raw);
+  };
 
   const load = async (cache: boolean) => {
     setIsLoading(true);
@@ -109,6 +128,7 @@ const IntegrationHistory = () => {
     setData(resp.data);
     // Set integration data when loading
     if (resp.data?.data) {
+      const apiScdType = (resp.data.data as any).scd_type;
       setIntegration({
         frequency: "Weekly", // Default value since not in response
         hadoop_config: resp.data.data.hadoop_config || {},
@@ -130,6 +150,7 @@ const IntegrationHistory = () => {
         target_schema: resp.data.data.target_schema || "",
         target_table: resp.data.data.target_table || "",
         batch_size: resp.data.data.batch_size || 100000,
+        scd_type: normalizeScdType(apiScdType),
       });
     }
     setIsLoading(false);
@@ -292,6 +313,28 @@ const IntegrationHistory = () => {
                       </div>
 
                       <div className="space-y-2">
+                        <Label htmlFor="scd_type">SCD Type</Label>
+                        <Select
+                          value={integration.scd_type ?? ""}
+                          onValueChange={(value) =>
+                            handleInputChange("scd_type", value)
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select SCD Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="SCD0">SCD0</SelectItem>
+                            <SelectItem value="SCD1">SCD1</SelectItem>
+                            <SelectItem value="SCD2">SCD2</SelectItem>
+                            <SelectItem value="SCD3">SCD3</SelectItem>
+                            <SelectItem value="SCD4">SCD4</SelectItem>
+                            <SelectItem value="SCD6">SCD6</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
                         <Label htmlFor="batch_size">Batch Size</Label>
                         <Input
                           id="batch_size"
@@ -370,6 +413,10 @@ const IntegrationHistory = () => {
                     </p>
                     <p className="text-sm text-muted-foreground">
                       <strong>Type:</strong> {data.data.integration_type}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      <strong>SCD Type:</strong>{" "}
+                      {formatScdType((data.data as any).scd_type)}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       <strong>Source:</strong> {data.data.source_schema}.

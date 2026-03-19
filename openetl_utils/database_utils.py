@@ -23,7 +23,7 @@ import pandas as pd
 from alembic.operations import Operations
 from alembic.runtime.migration import MigrationContext
 
-from openetl_utils import dataframe_details
+from openetl_utils.df_utils import dataframe_details
 from openetl_utils.__migrations__.app import OpenETLDocument, OpenETLOAuthToken
 from openetl_utils.__migrations__.batch import OpenETLBatch
 from openetl_utils.__migrations__.scheduler import OpenETLIntegrations, OpenETLIntegrationsRuntimes
@@ -991,6 +991,7 @@ class DatabaseUtils():
                 "id": scheduler.id,
                 "integration_name": scheduler.integration_name,
                 "integration_type": scheduler.integration_type,
+                "scd_type": getattr(scheduler.scd_type, "name", None),
                 "cron_expression": [parse_cron_expression(cron) for cron in scheduler.cron_expression],
                 "is_running": scheduler.is_running,
                 "is_enabled": scheduler.is_enabled,
@@ -1041,7 +1042,7 @@ class DatabaseUtils():
 
     def create_integration(self, integration_name, integration_type, target_schema, source_schema, spark_config,
                            hadoop_config, cron_expression, source_connection,target_connection, source_table, target_table,
-                           batch_size):
+                           batch_size, scd_type):
         scheduler = OpenETLIntegrations(
             integration_name=integration_name,
             integration_type=integration_type,
@@ -1054,7 +1055,8 @@ class DatabaseUtils():
             hadoop_config=hadoop_config,
             source_schema=source_schema,
             target_schema=target_schema,
-            batch_size=batch_size
+            batch_size=batch_size,
+            scd_type=scd_type
         )
 
         self.session.add(scheduler)
