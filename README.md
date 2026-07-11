@@ -1,7 +1,5 @@
 ![OpenETL Logo](https://cdn.dataomnisolutions.com/main/logos/open-etl.png)
 
-_By [DataOmni Solutions](https://dataomnisolutions.com)_
-
 ![dashboard_new](https://cdn.dataomnisolutions.com/main/app/dashboard.png?v=1)
 
 OpenETL is a robust and scalable ETL (Extract, Transform, Load) application built with modern technologies like
@@ -116,10 +114,7 @@ capabilities, we also offer Pro and an Enterprise version with additional featur
 
 
 If the features in the base version of OpenETL aren't quite cutting it for you, fear not! We're here to help. If you
-require additional functionality, customizations, or have specific requirements, reach out to us.
-
-For more information, visit [dataomnisolutions.com](https://www.dataomnisolutions.com) or contact us
-at [sales.team@dataomnisolutions.com](mailto:sales.team@dataomnisolutions.com).
+require additional functionality, customizations, or have specific requirements, reach out to me.
 
 ## Support and Feedback
 
